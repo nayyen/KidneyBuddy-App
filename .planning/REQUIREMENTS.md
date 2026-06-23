@@ -135,13 +135,67 @@ Explicitly excluded per `PRD.md` section 4.1 and `.planning/PROJECT.md`. Documen
 
 ## Traceability
 
-To be populated by the roadmapper during roadmap creation (Step 8) — each requirement will map to exactly one phase.
+Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUTH-01 | Phase 1 | Pending |
+| AUTH-02 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Pending |
+| AUTH-04 | Phase 1 | Pending |
+| AUTH-05 | Phase 1 | Pending |
+| ONBOARD-01 | Phase 1 | Pending |
+| ONBOARD-02 | Phase 1 | Pending |
+| ONBOARD-03 | Phase 1 | Pending |
+| ONBOARD-04 | Phase 1 | Pending |
+| ONBOARD-05 | Phase 1 | Pending |
+| ONBOARD-06 | Phase 1 | Pending |
+| FLUID-01 | Phase 2 | Pending |
+| FLUID-02 | Phase 2 | Pending |
+| FLUID-03 | Phase 2 | Pending |
+| FLUID-04 | Phase 2 | Pending |
+| FLUID-05 | Phase 2 | Pending |
+| REMIND-01 | Phase 2 | Pending |
+| REMIND-02 | Phase 2 | Pending |
+| REMIND-03 | Phase 2 | Pending |
+| REMIND-04 | Phase 2 | Pending |
+| REMIND-05 | Phase 2 | Pending |
+| REMIND-06 | Phase 2 | Pending |
+| REMIND-07 | Phase 2 | Pending |
+| REMIND-08 | Phase 2 | Pending |
+| NOTIF-01 | Phase 2 | Pending |
+| NOTIF-02 | Phase 2 | Pending |
+| NOTIF-03 | Phase 2 | Pending |
+| ACTIVITY-01 | Phase 3 | Pending |
+| ACTIVITY-02 | Phase 3 | Pending |
+| ACTIVITY-03 | Phase 3 | Pending |
+| LAB-01 | Phase 3 | Pending |
+| LAB-02 | Phase 3 | Pending |
+| LAB-03 | Phase 3 | Pending |
+| LAB-04 | Phase 3 | Pending |
+| CAREGIVER-01 | Phase 4 | Pending |
+| CAREGIVER-02 | Phase 4 | Pending |
+| REPORT-01 | Phase 4 | Pending |
+| REPORT-02 | Phase 4 | Pending |
+| AI-01 | Phase 5 | Pending |
+| AI-02 | Phase 5 | Pending |
+| AI-03 | Phase 5 | Pending |
+| AI-04 | Phase 5 | Pending |
+| AI-05 | Phase 5 | Pending |
+| ANOMALY-01 | Phase 5 | Pending |
+| ANOMALY-02 | Phase 5 | Pending |
+| ANOMALY-03 | Phase 5 | Pending |
+| ANOMALY-04 | Phase 5 | Pending |
+| COMMUNITY-01 | Phase 6 | Pending |
+| COMMUNITY-02 | Phase 6 | Pending |
+| COMMUNITY-03 | Phase 6 | Pending |
+| EDU-01 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 47 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 47 ⚠️ (expected at this stage)
+- v1 requirements: 51 total
+- Mapped to phases: 51
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-24*
-*Last updated: 2026-06-24 after initial definition*
+*Last updated: 2026-06-24 after roadmap revision (NOTIF-01/02/03 moved from Phase 6 to Phase 2 to resolve push-infrastructure dependency violation — all 51 v1 requirements remain mapped across 6 phases)*
