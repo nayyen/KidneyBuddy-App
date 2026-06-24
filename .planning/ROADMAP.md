@@ -25,13 +25,14 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Goal**: New users (patients and caregivers sharing an account) can register, securely authenticate, and complete an interactive onboarding that selects their active therapy method — establishing the identity and modality foundation every later feature depends on
 **Mode:** mvp
 **Depends on**: Nothing (first phase)
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, ONBOARD-01, ONBOARD-02, ONBOARD-03, ONBOARD-04, ONBOARD-05, ONBOARD-06
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, ONBOARD-01, ONBOARD-02, ONBOARD-03, ONBOARD-04, ONBOARD-05, ONBOARD-06
 **Success Criteria** (what must be TRUE):
   1. User can register with full name, email, password, phone number, and birth date, then log in and stay logged in across a browser refresh
   2. Account locks for 15 minutes after 5 failed login attempts within 10 minutes, enforced server-side
-  3. New user completes onboarding (register → select therapy method with an inline "Apa ini?" explanation → set or skip first reminder) in under 5 minutes, and can resume from the last completed step if they close the app early
-  4. User can change active therapy method anytime from profile settings with explicit confirmation, with the change recorded in therapy history
-  5. User can replay the onboarding tutorial from Settings after initial completion
+  3. User who forgets their password can request a reset link via email and set a new password
+  4. New user completes onboarding (register → select therapy method with an inline "Apa ini?" explanation → set or skip first reminder) in under 5 minutes, and can resume from the last completed step if they close the app early
+  5. User can change active therapy method anytime from profile settings with explicit confirmation, with the change recorded in therapy history
+  6. User can replay the onboarding tutorial from Settings after initial completion
 **Plans**: TBD
 
 ### Phase 2: Fluid & Medication Tracking with Reminders

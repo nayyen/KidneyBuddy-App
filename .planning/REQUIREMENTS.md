@@ -14,6 +14,7 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 - [ ] **AUTH-03**: User can log out from any page
 - [ ] **AUTH-04**: Account locks for 15 minutes after 5 failed login attempts within 10 minutes
 - [ ] **AUTH-05**: Caregiver can log in with the same account credentials as the patient, independently from a separate device
+- [ ] **AUTH-06**: User can reset their password via an emailed reset link if they forget it (gap identified during Phase 1 discuss-phase — missing from initial requirements pass, added 2026-06-25)
 
 ### Onboarding & Therapy Profile (ONBOARD)
 
@@ -153,6 +154,7 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | AUTH-03 | Phase 1 | Pending |
 | AUTH-04 | Phase 1 | Pending |
 | AUTH-05 | Phase 1 | Pending |
+| AUTH-06 | Phase 1 | Pending |
 | ONBOARD-01 | Phase 1 | Pending |
 | ONBOARD-02 | Phase 1 | Pending |
 | ONBOARD-03 | Phase 1 | Pending |
@@ -205,10 +207,10 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | EDU-01 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 55 total
-- Mapped to phases: 55
+- v1 requirements: 56 total
+- Mapped to phases: 56
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-24*
-*Last updated: 2026-06-25 after adding RESPONSIVE-01..04 (mobile/tablet/desktop distinct-layout requirement from PRD.md section 7.2, missed in initial definition) — mapped to Phase 2, where the main UI shell is first built; all 55 v1 requirements remain mapped across 6 phases*
+*Last updated: 2026-06-25 after adding AUTH-06 (password reset via email link — gap surfaced during Phase 1 discuss-phase, no auth system should ship without it) mapped to Phase 1; RESPONSIVE-01..04 (mobile/tablet/desktop distinct-layout requirement from PRD.md section 7.2, missed in initial definition) mapped to Phase 2, where the main UI shell is first built; all 56 v1 requirements remain mapped across 6 phases*
