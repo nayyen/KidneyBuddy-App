@@ -13,7 +13,7 @@ KidneyBuddy ships as six vertical-MVP phases, each delivering a complete, demoab
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation, Auth & Onboarding** - Patients and caregivers can register, log in securely, and complete therapy-method-aware onboarding in under 5 minutes
-- [ ] **Phase 2: Fluid & Medication Tracking with Reminders** - Patients install KidneyBuddy as a working PWA and never miss logging fluid or taking medication without a reliable, multi-device, modality-aware push reminder catching them
+- [ ] **Phase 2: Fluid & Medication Tracking with Reminders** - Patients install KidneyBuddy as a working PWA and never miss logging fluid or taking medication without a reliable, multi-device, modality-aware push reminder catching them, on a UI shell that's fully responsive across mobile/tablet/desktop
 - [ ] **Phase 3: Activity Logging & Lab Results** - Patients can log daily activities with positive framing and track lab results with trend visualization over time
 - [ ] **Phase 4: Caregiver Dashboard & Doctor Reports** - Caregivers see an identical real-time view of patient data, and patients can export a doctor-ready visit report
 - [ ] **Phase 5: AI Insights & Anomaly Detection** - Patients receive calm, disclaimer-safe AI narrative summaries and trend insights, and are reliably warned of clinically meaningful anomalies without alert fatigue
@@ -35,10 +35,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: TBD
 
 ### Phase 2: Fluid & Medication Tracking with Reminders
-**Goal**: Patients across all therapy types (CAPD/HD/transplant) can log fluid and medication intake with automatic daily balance calculation, install KidneyBuddy as a real PWA, and receive reliable push reminders — delivered via per-device VAPID push subscriptions, with iOS gated correctly behind an Add-to-Home-Screen prompt — that survive backend restarts; caregivers on separate devices get independent, correctly-scoped push notifications via their own subscription — this is the system's core value and highest-risk phase (iOS push gating, PWA installability, multi-device subscription model, cron persistence, at-rest encryption), and the full push/PWA stack ships here rather than being deferred, since reminder delivery is not real until the subscription plumbing it depends on exists
+**Goal**: Patients across all therapy types (CAPD/HD/transplant) can log fluid and medication intake with automatic daily balance calculation, install KidneyBuddy as a real PWA, and receive reliable push reminders — delivered via per-device VAPID push subscriptions, with iOS gated correctly behind an Add-to-Home-Screen prompt — that survive backend restarts; caregivers on separate devices get independent, correctly-scoped push notifications via their own subscription — this is the system's core value and highest-risk phase (iOS push gating, PWA installability, multi-device subscription model, cron persistence, at-rest encryption), and the full push/PWA stack ships here rather than being deferred, since reminder delivery is not real until the subscription plumbing it depends on exists. This is also where the main UI shell is first built, so it must establish the full responsive layout system (distinct mobile/tablet/desktop layouts, not just scaling) that every later phase's screens will reuse.
 **Mode:** mvp
 **Depends on**: Phase 1
-**Requirements**: FLUID-01, FLUID-02, FLUID-03, FLUID-04, FLUID-05, REMIND-01, REMIND-02, REMIND-03, REMIND-04, REMIND-05, REMIND-06, REMIND-07, REMIND-08, NOTIF-01, NOTIF-02, NOTIF-03
+**Requirements**: FLUID-01, FLUID-02, FLUID-03, FLUID-04, FLUID-05, REMIND-01, REMIND-02, REMIND-03, REMIND-04, REMIND-05, REMIND-06, REMIND-07, REMIND-08, NOTIF-01, NOTIF-02, NOTIF-03, RESPONSIVE-01, RESPONSIVE-02, RESPONSIVE-03, RESPONSIVE-04
 **Success Criteria** (what must be TRUE):
   1. User can log a fluid entry (type, source, CAPD concentration if applicable, decimal volume, unit) and immediately sees the recalculated daily in/out delta on the dashboard
   2. CAPD patient who logs abnormal outgoing fluid condition (keruh/berdarah) sees an immediate, non-dismissable red warning banner
@@ -46,6 +46,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. User can create a medication reminder (name, dose, type, timing, active days, optional photo) and receives a real push notification at the scheduled time with a follow-up if unconfirmed after 30 minutes
   5. CAPD exchange and HD schedule reminders fire correctly per modality, survive a backend restart without silently dropping, and continue to apply correctly after a therapy-method change
   6. A caregiver logged in on a separate device with the same account credentials registers their own push subscription and receives the same reminders independently, verified with two physical devices
+  7. At 375-767px the app shows a single-column layout with 5-tab bottom navigation and a centered FAB; at 768-1023px it shows a 2-column dashboard/list layout with bottom navigation unchanged; at 1024px+ the primary navigation moves to a left sidebar (bottom nav gone), content becomes multi-column with max-width 1280px, and the FAB becomes a regular primary button — verified on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly 375px/768px/1024px/1280px
 **Plans**: TBD
 **UI hint**: yes
 

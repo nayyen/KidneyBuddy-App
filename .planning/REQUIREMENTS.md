@@ -97,6 +97,15 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 - [ ] **NOTIF-02**: Each device a user (patient or caregiver) logs in on registers its own push subscription, so reminders deliver independently per device on the same account
 - [ ] **NOTIF-03**: On iOS, the app prompts the user to Add to Home Screen before enabling notifications, since push requires this
 
+### Responsive Layout (RESPONSIVE)
+
+Per `PRD.md` section 7.2 (Design Consideration 2 — Platform Requirement): mobile-first but fully responsive with distinct layouts per breakpoint, not just scaling.
+
+- [ ] **RESPONSIVE-01**: On mobile (375–767px), app renders single-column layout with 5-tab bottom navigation, centered FAB ("Catat Cairan"), and a compact header
+- [ ] **RESPONSIVE-02**: On tablet (768–1023px), app renders a 2-column layout for dashboard and list views (e.g., metric cards side by side), with bottom navigation unchanged from mobile
+- [ ] **RESPONSIVE-03**: On desktop (1024px and above), primary navigation moves to a left sidebar (replacing bottom navigation entirely), main content uses a multi-column layout with max-width 1280px, header becomes a top bar with persistent Lab/Laporan/Profil shortcuts, and the FAB becomes a regular primary button fixed in the sidebar or bottom-right corner
+- [ ] **RESPONSIVE-04**: Layout correctness is verified via browser testing on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly the 375px, 768px, 1024px, and 1280px breakpoints
+
 ## v2 Requirements
 
 Deferred to future release per `.planning/research/FEATURES.md` "Add After Validation" and "Future Consideration" findings — tracked but not in current roadmap.
@@ -166,6 +175,10 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | NOTIF-01 | Phase 2 | Pending |
 | NOTIF-02 | Phase 2 | Pending |
 | NOTIF-03 | Phase 2 | Pending |
+| RESPONSIVE-01 | Phase 2 | Pending |
+| RESPONSIVE-02 | Phase 2 | Pending |
+| RESPONSIVE-03 | Phase 2 | Pending |
+| RESPONSIVE-04 | Phase 2 | Pending |
 | ACTIVITY-01 | Phase 3 | Pending |
 | ACTIVITY-02 | Phase 3 | Pending |
 | ACTIVITY-03 | Phase 3 | Pending |
@@ -192,10 +205,10 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | EDU-01 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 51 total
-- Mapped to phases: 51
+- v1 requirements: 55 total
+- Mapped to phases: 55
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-24*
-*Last updated: 2026-06-24 after roadmap revision (NOTIF-01/02/03 moved from Phase 6 to Phase 2 to resolve push-infrastructure dependency violation — all 51 v1 requirements remain mapped across 6 phases)*
+*Last updated: 2026-06-25 after adding RESPONSIVE-01..04 (mobile/tablet/desktop distinct-layout requirement from PRD.md section 7.2, missed in initial definition) — mapped to Phase 2, where the main UI shell is first built; all 55 v1 requirements remain mapped across 6 phases*
