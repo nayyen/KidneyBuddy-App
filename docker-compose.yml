@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16
+    container_name: kidneybuddy-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-kidneybuddy}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kidneybuddy}
+      POSTGRES_DB: ${POSTGRES_DB:-kidneybuddy}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kidneybuddy} -d ${POSTGRES_DB:-kidneybuddy}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: kidneybuddy-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://kidneybuddy:kidneybuddy@db:5432/kidneybuddy}
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "4000:4000"
+    networks:
+      - backend-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: kidneybuddy-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    ports:
+      - "3000:3000"
+    networks:
+      - backend-network
+
+volumes:
+  pgdata:
+
+networks:
+  backend-network:
+    driver: bridge

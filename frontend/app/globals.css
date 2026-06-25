@@ -1,0 +1,72 @@
+@import "tailwindcss";
+@import "./fonts.css";
+
+@theme inline {
+  --font-sans: "DM Sans", sans-serif;
+  --font-heading: "Plus Jakarta Sans", sans-serif;
+
+  /* Page & surface */
+  --color-background: #fdf9f3;
+  --color-foreground: #1a2e2c;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a2e2c;
+  --color-muted: #f3ede5;
+  --color-muted-foreground: #7a8c8a;
+
+  /* Brand teal (primary) */
+  --color-primary: #2a9d8f;
+  --color-primary-foreground: #ffffff;
+  --color-primary-dark: #1e8578;
+  --color-secondary: #f0faf9;
+  --color-secondary-foreground: #1a2e2c;
+
+  /* Accent amber */
+  --color-accent: #ef9f27;
+  --color-accent-foreground: #ffffff;
+  --color-accent-dark: #e8901a;
+  --color-accent-bg: #fdf3e3;
+
+  /* Semantic */
+  --color-destructive: #d4183d;
+  --color-destructive-foreground: #ffffff;
+
+  /* Borders & inputs */
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-input: #f3f3f5;
+  --color-ring: #2a9d8f;
+
+  /* Badge/chip */
+  --color-capd: #2a9d8f;
+  --color-capd-bg: #f0faf9;
+  --color-hemodialisis: #ef9f27;
+  --color-hemodialisis-bg: #fdf3e3;
+  --color-transplantasi: #6b5ca5;
+  --color-transplantasi-bg: #f1eef9;
+
+  /* Border radius */
+  --radius: 0.625rem;
+  --radius-pill: 9999px;
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Heading reset — apply Plus Jakarta Sans to all headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* No pure black anywhere */
+* {
+  border-color: var(--color-border);
+}
