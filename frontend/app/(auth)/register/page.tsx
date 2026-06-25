@@ -20,11 +20,11 @@ export default function RegisterPage() {
 
   async function onSubmit(data: RegisterFormData) {
     try {
-      await apiFetch("/api/auth/register", {
+      const result = await apiFetch<{ email: string }>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(data),
       });
-      router.push("/dashboard");
+      router.push(`/dashboard?email=${encodeURIComponent(result.email)}`);
     } catch (err: any) {
       if (err?.code === "EMAIL_EXISTS") {
         setError("email", { message: "Email sudah terdaftar" });
