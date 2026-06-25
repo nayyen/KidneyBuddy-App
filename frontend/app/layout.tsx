@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -21,14 +21,19 @@ export const metadata: Metadata = {
   description:
     "Pendamping harian untuk pasien gagal ginjal kronis di Indonesia",
   manifest: "/manifest.json",
-  themeColor: "#2a9d8f",
-  viewport:
-    "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "KidneyBuddy",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2a9d8f",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  maximumScale: 1,
 };
 
 export default function RootLayout({

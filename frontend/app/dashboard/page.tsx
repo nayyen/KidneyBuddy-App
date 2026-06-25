@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 
@@ -11,6 +11,18 @@ interface Profile {
 }
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground font-sans">Memuat...</p>
+      </main>
+    }>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
   const [profile, setProfile] = useState<Profile | null>(null);
