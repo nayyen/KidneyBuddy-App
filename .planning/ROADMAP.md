@@ -33,7 +33,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. New user completes onboarding (register → select therapy method with an inline "Apa ini?" explanation → set or skip first reminder) in under 5 minutes, and can resume from the last completed step if they close the app early
   5. User can change active therapy method anytime from profile settings with explicit confirmation, with the change recorded in therapy history
   6. User can replay the onboarding tutorial from Settings after initial completion
-**Plans**: TBD
+**Plans**: 5 plans (Walking Skeleton — produces 01-SKELETON.md)
+Plans:
+- [ ] 01-01-PLAN.md — Walking Skeleton: 3-container Docker scaffold (Next.js + Express + Postgres) + end-to-end register slice with Argon2id
+- [ ] 01-02-PLAN.md — Auth slice: persistent login (JWT access + refresh cookie), logout, server-side account lockout w/ live countdown, multi-device login (AUTH-02..05)
+- [ ] 01-03-PLAN.md — Password reset via single-use, time-limited emailed link (AUTH-06)
+- [ ] 01-04-PLAN.md — Onboarding wizard: therapy select + inline "Apa ini?", set/skip first reminder, resume-on-reopen (ONBOARD-01..04)
+- [ ] 01-05-PLAN.md — Profile: confirmation-gated therapy-method change with history + replay onboarding tutorial (ONBOARD-05, ONBOARD-06)
 
 ### Phase 2: Fluid & Medication Tracking with Reminders
 **Goal**: Patients across all therapy types (CAPD/HD/transplant) can log fluid and medication intake with automatic daily balance calculation, install KidneyBuddy as a real PWA, and receive reliable push reminders — delivered via per-device VAPID push subscriptions, with iOS gated correctly behind an Add-to-Home-Screen prompt — that survive backend restarts; caregivers on separate devices get independent, correctly-scoped push notifications via their own subscription — this is the system's core value and highest-risk phase (iOS push gating, PWA installability, multi-device subscription model, cron persistence, at-rest encryption), and the full push/PWA stack ships here rather than being deferred, since reminder delivery is not real until the subscription plumbing it depends on exists. This is also where the main UI shell is first built, so it must establish the full responsive layout system (distinct mobile/tablet/desktop layouts, not just scaling) that every later phase's screens will reuse.
@@ -108,7 +114,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation, Auth & Onboarding | 0/TBD | Not started | - |
+| 1. Foundation, Auth & Onboarding | 0/5 | Planned | - |
 | 2. Fluid & Medication Tracking with Reminders | 0/TBD | Not started | - |
 | 3. Activity Logging & Lab Results | 0/TBD | Not started | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/TBD | Not started | - |
