@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, DM_Sans } from "next/font/google";
+import { SerwistProvider } from "@serwist/turbopack/react";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -20,7 +21,8 @@ export const metadata: Metadata = {
   title: "KidneyBuddy",
   description:
     "Pendamping harian untuk pasien gagal ginjal kronis di Indonesia",
-  manifest: "/manifest.json",
+  // manifest is now served via app/manifest.ts (MetadataRoute.Manifest)
+  // at /manifest.webmanifest — no manual reference needed.
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -43,7 +45,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${plusJakartaSans.variable} ${dmSans.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {/* SerwistProvider registers the service worker at /serwist/sw.js.
+            The SW is built on-demand by the Route Handler at app/serwist/[path]/route.ts.
+            disable=false ensures the SW is registered in all environments.
+            SerwistProvider is a Client Component — it only runs in the browser. */}
+        <SerwistProvider swUrl="/serwist/sw.js">{children}</SerwistProvider>
+      </body>
     </html>
   );
 }
