@@ -36,7 +36,7 @@ export async function subscribe(
 ): Promise<void> {
   const parsed = pushSubscriptionSchema.safeParse(body);
   if (!parsed.success) {
-    throw new AppError(400, "Format push subscription tidak valid: " + parsed.error.message);
+    throw new AppError(400, "INVALID_PUSH_SUBSCRIPTION", "Format push subscription tidak valid: " + parsed.error.message);
   }
   const sub = parsed.data;
   await upsertByEndpoint({
@@ -51,7 +51,7 @@ export async function subscribe(
 
 export async function unsubscribe(userId: string, endpoint: string): Promise<void> {
   if (!endpoint) {
-    throw new AppError(400, "Endpoint push subscription wajib diisi");
+    throw new AppError(400, "MISSING_ENDPOINT", "Endpoint push subscription wajib diisi");
   }
   // Find the subscription by endpoint under this user and deactivate it
   const subs = await findActiveByUser(userId);
