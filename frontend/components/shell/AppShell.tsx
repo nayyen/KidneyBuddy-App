@@ -1,23 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
 import MobileHeader from "./MobileHeader";
 import TopBar from "./TopBar";
 import FAB from "./FAB";
+import CatatCairanSheet from "@/components/cairan/CatatCairanSheet";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 interface AppShellProps {
   children: React.ReactNode;
 }
 
 export default function AppShell({ children }: AppShellProps) {
-  const [_catatCairanOpen, setCatatCairanOpen] = useState(false);
+  const [catatCairanOpen, setCatatCairanOpen] = useState(false);
+  const { accessToken, user } = useAuth();
 
-  const handleCatatCairan = () => {
-    // TODO: open CatatCairanSheet — wired in plan 02-04
+  const handleCatatCairan = useCallback(() => {
     setCatatCairanOpen(true);
-  };
+  }, []);
+
+  // Called by CatatCairanSheet after a successful save — children refresh via
+  // the custom event so DashboardPage can re-fetch the daily balance
+  const handleSaved = useCallback(() => {
+    window.dispatchEvent(new CustomEvent("fluid:saved"));
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -58,6 +66,15 @@ export default function AppShell({ children }: AppShellProps) {
           <BottomNav />
         </nav>
       </div>
+
+      {/* CatatCairanSheet — mounted here so it persists across page navigations */}
+      <CatatCairanSheet
+        isOpen={catatCairanOpen}
+        onOpenChange={setCatatCairanOpen}
+        accessToken={accessToken}
+        metodeTerapiAktif={user?.metodeTerapiAktif ?? null}
+        onSaved={handleSaved}
+      />
     </div>
   );
 }
