@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AppError } from "../middleware/errorHandler.js";
 import * as userRepository from "../repositories/user.repository.js";
 import * as therapyHistoryRepository from "../repositories/therapyHistory.repository.js";
+import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 
 // ─── Schemas ───────────────────────────────────────────────────────────
 
@@ -13,6 +14,42 @@ export const changeTherapySchema = z.object({
     errorMap: () => ({ message: "Konfirmasi diperlukan untuk mengubah metode terapi" }),
   }),
 });
+
+// ─── Therapy-change reminder hook (injectable for tests) ──────────────
+
+type DeactivateFn = (userId: string, jenisToDeactivate: string) => Promise<void>;
+
+/**
+ * _changeTherapyWithReminderHookCore — injectable core for REMIND-07 tests.
+ *
+ * When a user changes therapy method:
+ * - CAPD → HD: deactivate jenis='capd' reminders, leave 'obat' and 'hd' untouched
+ * - HD → CAPD: deactivate jenis='hd' reminders, leave 'obat' and 'capd' untouched
+ * - Same method → no-op (oldMethod === newMethod)
+ * - To 'Transplantasi' → no therapy-specific reminders to deactivate
+ */
+export async function _changeTherapyWithReminderHookCore(
+  userId: string,
+  oldMethod: string | null | undefined,
+  newMethod: string,
+  deactivateFn: DeactivateFn,
+): Promise<void> {
+  if (!oldMethod || oldMethod === newMethod) {
+    // No-op: no previous method or same method
+    return;
+  }
+
+  // Deactivate the OLD therapy-specific jenis
+  // e.g. CAPD→HD: deactivate jenis='capd'
+  // e.g. HD→CAPD: deactivate jenis='hd'
+  const oldJenis = oldMethod.toLowerCase(); // 'CAPD'→'capd', 'HD'→'hd', 'Transplantasi'→'transplantasi'
+
+  // Only deactivate therapy-specific reminders (capd or hd)
+  // 'obat' reminders are NEVER deactivated by therapy change (REMIND-07)
+  if (oldJenis === "capd" || oldJenis === "hd") {
+    await deactivateFn(userId, oldJenis);
+  }
+}
 
 // ─── Change Therapy Method ─────────────────────────────────────────────
 
@@ -64,6 +101,15 @@ export async function changeTherapyMethod(
     userId,
     currentMethod ?? null,
     parsed.newMethod,
+  );
+
+  // REMIND-07: Deactivate therapy-specific reminders for the OLD method.
+  // Medication (obat) reminders are preserved.
+  await _changeTherapyWithReminderHookCore(
+    userId,
+    currentMethod,
+    parsed.newMethod,
+    reminderScheduleRepository.deactivateTherapySpecific,
   );
 
   return {
