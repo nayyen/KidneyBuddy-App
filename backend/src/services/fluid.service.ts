@@ -104,6 +104,7 @@ export type DailyBalanceResult = {
   keluar: number;
   delta: number;
   unit: string;
+  hasAbnormalCondition: boolean;
 };
 
 // ─── Injectable core functions (for unit testing) ────────────────────────────
@@ -130,7 +131,7 @@ type DecryptFn = (ciphertext: string) => string;
 type GetDailyBalanceFn = (
   userId: string,
   date: string,
-) => Promise<{ masuk: number; keluar: number; delta: number; unit: string }>;
+) => Promise<{ masuk: number; keluar: number; delta: number; unit: string; hasAbnormalCondition: boolean }>;
 
 /**
  * Core create-entry logic with injectable dependencies.
@@ -203,7 +204,11 @@ export async function _getDailyBalanceCore(
   const balance = await getDailyBalanceFn(userId, date);
   return {
     date,
-    ...balance,
+    masuk: balance.masuk,
+    keluar: balance.keluar,
+    delta: balance.delta,
+    unit: balance.unit,
+    hasAbnormalCondition: balance.hasAbnormalCondition,
   };
 }
 

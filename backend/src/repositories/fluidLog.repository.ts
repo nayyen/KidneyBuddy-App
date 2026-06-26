@@ -34,18 +34,21 @@ export async function findByDate(userId: string, date: string): Promise<FluidLog
     .orderBy(fluidLog.waktu);
 }
 
+const ABNORMAL_CONDITIONS_REPO = new Set(["keruh", "keruh_gumpalan", "berdarah"]);
+
 /**
  * Compute the daily fluid balance for a user on a given date.
- * Returns masuk (total intake), keluar (total output), delta (masuk - keluar), and unit.
+ * Returns masuk (total intake), keluar (total output), delta (masuk - keluar),
+ * unit, and hasAbnormalCondition (true if any effluent entry today is keruh/berdarah).
  *
  * Server-computed — never delegated to the client (T-02-04-04, dual-truth prevention).
  */
 export async function getDailyBalance(
   userId: string,
   date: string,
-): Promise<{ masuk: number; keluar: number; delta: number; unit: string }> {
+): Promise<{ masuk: number; keluar: number; delta: number; unit: string; hasAbnormalCondition: boolean }> {
   const rows = await db
-    .select({ tipe: fluidLog.tipe, volume: fluidLog.volume })
+    .select({ tipe: fluidLog.tipe, volume: fluidLog.volume, kondisiKeluar: fluidLog.kondisiKeluar })
     .from(fluidLog)
     .where(and(eq(fluidLog.userId, userId as any), eq(fluidLog.tanggal, date)));
 
@@ -57,5 +60,9 @@ export async function getDailyBalance(
     .filter((r) => r.tipe === "keluar")
     .reduce((sum, r) => sum + Number(r.volume), 0);
 
-  return { masuk, keluar, delta: masuk - keluar, unit: "ml" };
+  const hasAbnormalCondition = rows.some(
+    (r) => r.kondisiKeluar && ABNORMAL_CONDITIONS_REPO.has(r.kondisiKeluar),
+  );
+
+  return { masuk, keluar, delta: masuk - keluar, unit: "ml", hasAbnormalCondition };
 }

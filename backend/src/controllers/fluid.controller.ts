@@ -50,6 +50,33 @@ export async function getDailyBalance(
 }
 
 /**
+ * POST /api/fluid/acknowledge-abnormal
+ * Records that the user has acknowledged a CAPD effluent anomaly alert (T-02-04-05).
+ * Lightweight audit log entry — does not create a new DB record (banner is client-dismissed).
+ * Always responds 200 so the frontend banner can dismiss non-blocking.
+ */
+export async function acknowledgeAbnormal(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const userId = req.user!.id;
+    const acknowledgedAt =
+      typeof req.body?.acknowledgedAt === "string"
+        ? req.body.acknowledgedAt
+        : new Date().toISOString();
+    // Audit log — visible in container stdout for incident review
+    console.log(
+      `[CAPD-ACK] userId=${userId} acknowledgedAt=${acknowledgedAt} ip=${req.ip}`,
+    );
+    res.json({ acknowledged: true, acknowledgedAt });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * GET /api/fluid?date=YYYY-MM-DD
  * Returns fluid log entries for the authenticated user for a given date.
  * Defaults to today's date if no date query param is provided.

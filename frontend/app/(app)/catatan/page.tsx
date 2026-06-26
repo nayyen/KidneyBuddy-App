@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import FluidLogList from "@/components/catatan/FluidLogList";
 
 type TabId = "cairan" | "obat" | "aktivitas" | "lab";
 
@@ -23,8 +24,9 @@ const TABS: Tab[] = [
 
 export default function CatatanPage() {
   const router = useRouter();
-  const { isLoading, isAuthenticated } = useAuth();
+  const { accessToken, isLoading, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("cairan");
+  const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
 
   // Auth redirect guard
   useEffect(() => {
@@ -32,6 +34,15 @@ export default function CatatanPage() {
       router.replace("/login");
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // Listen for fluid:saved to refresh list
+  useEffect(() => {
+    const handleFluidSaved = () => {
+      setFluidRefreshKey((k) => k + 1);
+    };
+    window.addEventListener("fluid:saved", handleFluidSaved);
+    return () => window.removeEventListener("fluid:saved", handleFluidSaved);
+  }, []);
 
   if (isLoading) {
     return (
@@ -95,21 +106,11 @@ export default function CatatanPage() {
         </div>
 
         {/* Tab content */}
-        {activeTab === "cairan" && (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <h2
-              className="font-heading font-bold"
-              style={{ fontSize: 14, color: "#1a2e2c" }}
-            >
-              Belum ada catatan cairan
-            </h2>
-            <p
-              className="font-sans font-medium max-w-xs"
-              style={{ fontSize: 12, color: "#7a8c8a" }}
-            >
-              Ketuk tombol Catat di bawah untuk mulai mencatat.
-            </p>
-          </div>
+        {activeTab === "cairan" && accessToken && (
+          <FluidLogList
+            accessToken={accessToken}
+            refreshKey={fluidRefreshKey}
+          />
         )}
 
         {activeTab === "obat" && (

@@ -2,17 +2,12 @@
 
 import { useAuth } from "@/lib/hooks/useAuth";
 import { authFetch } from "@/lib/api";
-import LogoutButton from "@/components/LogoutButton";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-
-interface Profile {
-  userId: string;
-  namaLengkap: string;
-  email: string;
-  nomorTelepon: string;
-  role: string;
-}
+import DeltaCairanCard from "@/components/beranda/DeltaCairanCard";
+import CAPDEffluentBanner from "@/components/beranda/CAPDEffluentBanner";
+import NoReminderBanner from "@/components/beranda/NoReminderBanner";
+import AiPlaceholderCard from "@/components/beranda/AiPlaceholderCard";
 
 interface OnboardingProgress {
   onboardingComplete: boolean;
@@ -20,13 +15,25 @@ interface OnboardingProgress {
   reminderConfigured: boolean;
 }
 
+interface DailyBalance {
+  date: string;
+  masuk: number;
+  keluar: number;
+  delta: number;
+  unit: string;
+  hasAbnormalCondition?: boolean;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { accessToken, isLoading, isAuthenticated } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgress | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [onboardingProgress, setOnboardingProgress] =
+    useState<OnboardingProgress | null>(null);
+  const [hasAbnormalCondition, setHasAbnormalCondition] = useState(false);
+  const [showCAPDBanner, setShowCAPDBanner] = useState(false);
+  const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
 
+  // Auth guard + onboarding check
   useEffect(() => {
     if (isLoading) return;
 
@@ -35,109 +42,101 @@ export default function DashboardPage() {
       return;
     }
 
-    authFetch<Profile>("/api/auth/me", accessToken)
-      .then((data) => setProfile(data))
-      .catch((err) => setError(err.message));
-
     // Fetch onboarding progress to determine if reminder banner is needed
     authFetch<OnboardingProgress>("/api/onboarding/progress", accessToken)
       .then((res) => {
         setOnboardingProgress(res);
-        // If onboarding not complete (step < 2), redirect to /onboarding
+        // If onboarding not complete, redirect to /onboarding
         if (!res.onboardingComplete || res.lastCompletedStep < 2) {
           router.replace("/onboarding");
         }
       })
       .catch(() => {
-        // Silently fail — banner just won't show
+        // Silently fail — reminder banner just won't show
       });
   }, [isLoading, isAuthenticated, accessToken, router]);
 
+  // Listen for fluid:saved events to refresh DeltaCairanCard
+  useEffect(() => {
+    const handleFluidSaved = () => {
+      setFluidRefreshKey((k) => k + 1);
+    };
+    window.addEventListener("fluid:saved", handleFluidSaved);
+    return () => window.removeEventListener("fluid:saved", handleFluidSaved);
+  }, []);
+
+  // Called by DeltaCairanCard when it receives balance data
+  const handleBalanceFetched = useCallback((balance: DailyBalance) => {
+    const abnormal = !!balance.hasAbnormalCondition;
+    setHasAbnormalCondition(abnormal);
+    setShowCAPDBanner(abnormal);
+  }, []);
+
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground font-sans">Memuat...</p>
-      </main>
+      <div className="flex items-center justify-center min-h-[200px]">
+        <p className="text-muted-foreground font-sans text-sm">Memuat...</p>
+      </div>
     );
   }
 
-  if (error) {
-    return (
-      <main className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="rounded-[14px] bg-destructive/10 p-6">
-            <p className="text-destructive font-sans">{error}</p>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  if (!isAuthenticated || !accessToken) return null;
 
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-md text-center">
-        {profile && (
-          <div className="rounded-[14px] bg-card p-6 shadow-sm border border-border">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-xl font-bold text-foreground">
-                Selamat datang, {profile.namaLengkap}
-              </h2>
-              <LogoutButton />
-            </div>
-            <p className="text-sm text-muted-foreground font-sans">
-              Email: {profile.email}
-            </p>
-            {profile.role && (
-              <p className="text-sm text-muted-foreground font-sans mt-1">
-                Role: {profile.role}
-              </p>
-            )}
-          </div>
-        )}
+    <div className="space-y-3">
+      {/*
+       * D-04 Render Order (per UI-SPEC):
+       * 1. CAPDEffluentBanner — only when today has an abnormal effluent
+       * 2. DeltaCairanCard — hero fluid balance card
+       * 3. NoReminderBanner — conditional on reminder not configured
+       * 4. ObatCard slot — omitted until 02-07
+       * 5. PengingatBerikutnyaCard slot — omitted until 02-07
+       * 6. AiPlaceholderCard — always shown as Phase 5 placeholder
+       *
+       * Grid: single column on mobile, 2-col at md:, 3-col at lg:
+       * But banner + delta card always span full width.
+       */}
 
-        {/* Reminder banner */}
-        {onboardingProgress &&
-          onboardingProgress.onboardingComplete &&
+      {/* Banner: CAPD effluent anomaly (full width, always on top) */}
+      {showCAPDBanner && (
+        <div className="col-span-full">
+          <CAPDEffluentBanner
+            accessToken={accessToken}
+            onDismiss={() => setShowCAPDBanner(false)}
+          />
+        </div>
+      )}
+
+      {/* Hero card: DeltaCairanCard (full width) */}
+      <div>
+        <DeltaCairanCard
+          accessToken={accessToken}
+          refreshKey={fluidRefreshKey}
+          onBalanceFetched={handleBalanceFetched}
+        />
+      </div>
+
+      {/* Grid of secondary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* NoReminderBanner (conditional) */}
+        {onboardingProgress?.onboardingComplete &&
           !onboardingProgress.reminderConfigured && (
-            <div className="mt-4 rounded-[14px] bg-amber-50 border border-amber-200 p-4 text-left">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-                  <svg
-                    className="w-4 h-4 text-amber-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-amber-800 font-sans">
-                    Atur Pengingat
-                  </p>
-                  <p className="text-xs text-amber-700 font-sans mt-0.5">
-                    Kamu belum mengatur pengingat. Yuk atur sekarang supaya tidak lupa jadwal terapi.
-                  </p>
-                  <button
-                    onClick={() => router.push("/onboarding")}
-                    className="mt-2 text-xs font-semibold text-amber-800 hover:text-amber-900 underline font-sans"
-                  >
-                    Atur Pengingat
-                  </button>
-                </div>
-              </div>
+            <div className="md:col-span-2 lg:col-span-3">
+              <NoReminderBanner />
             </div>
           )}
 
-        <p className="mt-6 text-xs text-muted-foreground font-sans">
-          KidneyBuddy &mdash; Pendamping Harian Pasien Ginjal
-        </p>
+        {/*
+         * ObatCard slot — placeholder until Plan 02-07
+         * PengingatBerikutnyaCard slot — placeholder until Plan 02-07
+         * These are intentionally absent (not stub empty states) per plan scope.
+         */}
+
+        {/* AiPlaceholderCard (always visible) */}
+        <div className="md:col-span-2 lg:col-span-3">
+          <AiPlaceholderCard />
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

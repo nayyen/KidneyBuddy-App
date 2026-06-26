@@ -16,6 +16,9 @@ router.post("/", authenticate, fluidController.create);
 // GET /api/fluid/daily-balance?date=YYYY-MM-DD — server-computed daily balance
 router.get("/daily-balance", authenticate, fluidController.getDailyBalance);
 
+// POST /api/fluid/acknowledge-abnormal — patient acknowledges CAPD effluent anomaly (T-02-04-05)
+router.post("/acknowledge-abnormal", authenticate, fluidController.acknowledgeAbnormal);
+
 // GET /api/fluid?date=YYYY-MM-DD — list entries for a date
 router.get("/", authenticate, fluidController.list);
 

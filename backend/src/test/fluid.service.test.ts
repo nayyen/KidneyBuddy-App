@@ -66,6 +66,7 @@ function createInMemoryFluidStore() {
     return row;
   };
 
+  const ABNORMAL = new Set(["keruh", "keruh_gumpalan", "berdarah"]);
   const getDailyBalance = async (userId: string, date: string) => {
     const filtered = rows.filter((r) => r.userId === userId && r.tanggal === date);
     const masuk = filtered
@@ -74,7 +75,10 @@ function createInMemoryFluidStore() {
     const keluar = filtered
       .filter((r) => r.tipe === "keluar")
       .reduce((sum, r) => sum + r.volume, 0);
-    return { masuk, keluar, delta: masuk - keluar, unit: "ml" as const };
+    const hasAbnormalCondition = filtered.some(
+      (r) => r.kondisiKeluar && ABNORMAL.has(r.kondisiKeluar),
+    );
+    return { masuk, keluar, delta: masuk - keluar, unit: "ml" as const, hasAbnormalCondition };
   };
 
   return { rows, insertEntry, getDailyBalance };
