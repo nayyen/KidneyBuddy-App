@@ -5,3 +5,4 @@ export { passwordResetTokens } from "./passwordResetTokens.schema.js";
 export { onboardingProgress } from "./onboardingProgress.schema.js";
 export { reminderSchedule } from "./reminderSchedule.schema.js";
 export { therapyHistory } from "./therapyHistory.schema.js";
+export { pushSubscriptions } from "./pushSubscriptions.schema.js";
