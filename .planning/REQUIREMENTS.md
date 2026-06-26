@@ -36,7 +36,7 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 ### Medication & Therapy Reminders (REMIND)
 
 - [ ] **REMIND-01**: User can create a medication reminder with name, dose, type (minum/suntik), free-text timing note, active days + time, and optional photo
-- [ ] **REMIND-02**: User receives a push notification at the scheduled reminder time showing medication name and photo if available
+- [x] **REMIND-02**: User receives a push notification at the scheduled reminder time showing medication name and photo if available
 - [ ] **REMIND-03**: User can confirm a medication dose was taken directly from the notification; confirmation is logged
 - [ ] **REMIND-04**: If a medication reminder isn't confirmed within 30 minutes, system sends one follow-up reminder
 - [ ] **REMIND-05**: CAPD patient can set exchange reminders with time and fluid concentration
@@ -94,9 +94,9 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Notifications & PWA (NOTIF)
 
-- [ ] **NOTIF-01**: User can install KidneyBuddy to home screen as a PWA and grant browser notification permission to receive push reminders
+- [x] **NOTIF-01**: User can install KidneyBuddy to home screen as a PWA and grant browser notification permission to receive push reminders
 - [ ] **NOTIF-02**: Each device a user (patient or caregiver) logs in on registers its own push subscription, so reminders deliver independently per device on the same account
-- [ ] **NOTIF-03**: On iOS, the app prompts the user to Add to Home Screen before enabling notifications, since push requires this
+- [x] **NOTIF-03**: On iOS, the app prompts the user to Add to Home Screen before enabling notifications, since push requires this
 
 ### Responsive Layout (RESPONSIVE)
 
@@ -167,16 +167,16 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | FLUID-04 | Phase 2 | Pending |
 | FLUID-05 | Phase 2 | Pending |
 | REMIND-01 | Phase 2 | Pending |
-| REMIND-02 | Phase 2 | Pending |
+| REMIND-02 | Phase 2 | Complete |
 | REMIND-03 | Phase 2 | Pending |
 | REMIND-04 | Phase 2 | Pending |
 | REMIND-05 | Phase 2 | Pending |
 | REMIND-06 | Phase 2 | Pending |
 | REMIND-07 | Phase 2 | Pending |
 | REMIND-08 | Phase 2 | Pending |
-| NOTIF-01 | Phase 2 | Pending |
+| NOTIF-01 | Phase 2 | Complete |
 | NOTIF-02 | Phase 2 | Pending |
-| NOTIF-03 | Phase 2 | Pending |
+| NOTIF-03 | Phase 2 | Complete |
 | RESPONSIVE-01 | Phase 2 | Complete |
 | RESPONSIVE-02 | Phase 2 | Complete |
 | RESPONSIVE-03 | Phase 2 | Complete |
