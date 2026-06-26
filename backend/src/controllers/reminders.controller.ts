@@ -1,0 +1,80 @@
+/**
+ * reminders.controller.ts — Thin Express controller for /api/reminders.
+ * Business logic lives in reminders.service.ts.
+ */
+import type { Request, Response, NextFunction } from "express";
+import * as remindersService from "../services/reminders.service.js";
+
+export async function createReminder(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    // multer sets req.file when a photo was uploaded
+    const fotoObat = req.file ? `/uploads/medication-photos/${req.file.filename}` : null;
+    const payload = { ...req.body, fotoObat };
+
+    const reminder = await remindersService.createReminder(req.user!.id, payload);
+    res.status(201).json(reminder);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function listReminders(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const reminders = await remindersService.listReminders(req.user!.id);
+    res.json(reminders);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getNextUpcoming(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const next_ = await remindersService.getNextUpcoming(req.user!.id);
+    res.json(next_);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateReminder(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = String(req.params.id);
+    const fotoObat = req.file ? `/uploads/medication-photos/${req.file.filename}` : undefined;
+    const data = { ...req.body, ...(fotoObat !== undefined && { fotoObat }) };
+
+    const updated = await remindersService.updateReminder(req.user!.id, id, data);
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteReminder(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = String(req.params.id);
+    await remindersService.removeReminder(req.user!.id, id);
+    res.json({ deleted: true });
+  } catch (err) {
+    next(err);
+  }
+}

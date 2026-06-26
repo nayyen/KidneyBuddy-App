@@ -109,21 +109,8 @@ export type DailyBalanceResult = {
 
 // ─── Injectable core functions (for unit testing) ────────────────────────────
 
-type InsertFn = (data: NewFluidLog) => Promise<{
-  id: string;
-  userId: string;
-  tanggal: string;
-  waktu: string;
-  tipe: string;
-  sumber: string | null;
-  konsentrasiCapd: string | null;
-  volume: string | number;
-  satuan: string;
-  kondisiKeluar: string | null;
-  catatan: string | null;
-  isLateEntry: boolean;
-  createdAt: Date;
-}>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InsertFn = (data: any) => Promise<any>;
 
 type EncryptFn = (plaintext: string) => string;
 type DecryptFn = (ciphertext: string) => string;

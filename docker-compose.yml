@@ -31,6 +31,8 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
     ports:
       - "4000:4000"
+    volumes:
+      - uploads:/app/uploads
     networks:
       - backend-network
 
@@ -51,6 +53,7 @@ services:
 
 volumes:
   pgdata:
+  uploads:  # Persists medication photo uploads across backend container restarts (CLAUDE.md: local Docker volume for file storage)
 
 networks:
   backend-network:

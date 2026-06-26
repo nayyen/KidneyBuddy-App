@@ -72,7 +72,8 @@ export type CreateHdPayload = z.infer<typeof createHdSchema>;
 
 // ─── Injectable core (for unit tests) ────────────────────────────────────────
 
-type InsertFn = (data: Omit<NewReminderSchedule, "id" | "createdAt" | "aktif" | "followUpSent" | "lastNotificationSentAt"> & { aktif?: boolean; followUpSent?: boolean; lastNotificationSentAt?: Date | null }) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InsertFn = (data: any) => Promise<any>;
 type FindReminderByIdFn = (id: string) => Promise<{ id: string; userId: string; nama: string; dosis?: string | null; jenisObat?: string | null } | undefined>;
 type FindLogByReminderUserFn = (reminderId: string, userId: string) => Promise<{ id: string; status: string } | undefined>;
 type MarkConfirmedFn = (id: string) => Promise<void>;
