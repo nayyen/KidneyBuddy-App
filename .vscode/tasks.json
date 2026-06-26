@@ -195,6 +195,36 @@
 			"label": "stage-files",
 			"type": "shell",
 			"command": "git add -A 2>&1 ; Write-Host 'Staged all files' ; git status --short 2>&1 | Measure-Object -Line ; Write-Host '' ; Write-Host 'STAGE_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "commit",
+			"type": "shell",
+			"command": "git commit -m \"Phase 1: Foundation, Auth & Onboarding\" 2>&1 ; Write-Host '' ; Write-Host 'COMMIT_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "commit-2",
+			"type": "shell",
+			"command": "git commit -m 'Phase 1: Foundation, Auth and Onboarding' 2>&1 ; Write-Host '' ; Write-Host 'COMMIT_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "verify-commit",
+			"type": "shell",
+			"command": "git log --oneline -3 2>&1 ; Write-Host '' ; git rev-list --count HEAD 2>&1"
+		},
+		{
+			"label": "push-branch",
+			"type": "shell",
+			"command": "git push --set-upstream origin phase/1-foundation-auth-onboarding 2>&1 ; Write-Host '' ; Write-Host 'PUSH_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "gh-pr-create",
+			"type": "shell",
+			"command": "gh pr create --base main --head phase/1-foundation-auth-onboarding --title 'Phase 1: Foundation, Auth and Onboarding' --body-file .pr_body.md 2>&1 ; Write-Host '' ; Write-Host 'PR_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "cleanup",
+			"type": "shell",
+			"command": "Remove-Item .pr_body.md -Force ; Remove-Item _run_migration.ps1 -Force ; Remove-Item backend/src/db/migrations/apply_0004.js -Force ; Write-Host 'Cleaned up temp files'"
 		}
 	]
 }

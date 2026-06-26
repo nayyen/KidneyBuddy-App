@@ -9,7 +9,20 @@
       "WebFetch(domain:www.mdpi.com)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(python3 *)",
+      "Bash(docker exec *)",
+      "Bash(docker cp *)",
+      "Bash(ls -la .planning/phases/02-fluid-medication-tracking-with-reminders/02-02-SUMMARY.md)",
+      "Bash(grep -i \"self-check: failed\" .planning/phases/02-fluid-medication-tracking-with-reminders/02-02-SUMMARY.md)",
+      "Bash(ls backend/src/lib/encryption.ts backend/src/lib/webPushClient.ts backend/src/db/schema/pushSubscriptions.schema.ts backend/src/services/notification.service.ts backend/src/routes/push.routes.ts)",
+      "Bash(grep -rn \"from 'next/router'\" frontend/ --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -rn 'from \"next/router\"' frontend/ --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -rn 'from '\\\\''next/router'\\\\''\\\\|from \"next/router\"' frontend/ --exclude-dir=node_modules --exclude-dir=.next)",
+      "Bash(grep -rn 'next/router\\\\|next/navigation' frontend/lib/ --exclude-dir=node_modules)",
+      "Bash(npm run *)",
+      "Bash(grep -rn 'from '\\\\''next/router'\\\\''\\\\|from \"next/router\"' frontend/ --include=*.tsx --include=*.ts --exclude-dir=node_modules --exclude-dir=.next)",
+      "Bash(grep -rn useRouter frontend/ --include=*.tsx --include=*.ts --exclude-dir=node_modules --exclude-dir=.next)"
     ]
   }
 }
