@@ -6,3 +6,4 @@ export { onboardingProgress } from "./onboardingProgress.schema.js";
 export { reminderSchedule } from "./reminderSchedule.schema.js";
 export { therapyHistory } from "./therapyHistory.schema.js";
 export { pushSubscriptions } from "./pushSubscriptions.schema.js";
+export { fluidLog } from "./fluidLog.schema.js";
