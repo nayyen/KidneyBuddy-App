@@ -1,0 +1,200 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "run-migration",
+			"type": "shell",
+			"command": "cd backend && echo test && dir /b src\\db\\migrations\\*.sql"
+		},
+		{
+			"label": "update-journal",
+			"type": "shell",
+			"command": "$j = Get-Content 'backend/src/db/migrations/meta/_journal.json' -Raw | ConvertFrom-Json ; $entry = [PSCustomObject]@{idx=4; version='7'; when=1782490000000; tag='0004_add_informed_consent'; breakpoints=$true} ; $j.entries += $entry ; $j | ConvertTo-Json -Depth 10 | Set-Content 'backend/src/db/migrations/meta/_journal.json' -Encoding UTF8 ; Write-Host 'Journal updated'"
+		},
+		{
+			"label": "apply-sql-migration",
+			"type": "shell",
+			"command": "docker exec -i kidneybuddy-db psql -U kidneybuddy -d kidneybuddy -c \"ALTER TABLE users ADD COLUMN IF NOT EXISTS informed_consent boolean NOT NULL DEFAULT false;\""
+		},
+		{
+			"label": "apply-sql",
+			"type": "shell",
+			"command": "docker exec -i kidneybuddy-db psql -U kidneybuddy -d kidneybuddy --command \"ALTER TABLE users ADD COLUMN IF NOT EXISTS informed_consent boolean NOT NULL DEFAULT false;\""
+		},
+		{
+			"label": "apply-sql-via-stdin",
+			"type": "shell",
+			"command": "echo 'ALTER TABLE users ADD COLUMN IF NOT EXISTS informed_consent boolean NOT NULL DEFAULT false;' | docker exec -i kidneybuddy-db psql -U kidneybuddy -d kidneybuddy"
+		},
+		{
+			"label": "record-migration",
+			"type": "shell",
+			"command": "echo \"INSERT INTO drizzle.__drizzle_migrations (id, hash, created_at) VALUES (4, '0004_add_informed_consent', 1782490000000) ON CONFLICT (id) DO NOTHING;\" | docker exec -i kidneybuddy-db psql -U kidneybuddy -d kidneybuddy"
+		},
+		{
+			"label": "record-migration2",
+			"type": "shell",
+			"command": "Set-Content -Path tmp_mig.sql -Value \"INSERT INTO drizzle.__drizzle_migrations (id, hash, created_at) VALUES (4, '0004_add_informed_consent', 1782490000000) ON CONFLICT (id) DO NOTHING;\" ; Get-Content tmp_mig.sql | docker exec -i kidneybuddy-db psql -U kidneybuddy -d kidneybuddy ; Remove-Item tmp_mig.sql"
+		},
+		{
+			"label": "run-migration-script",
+			"type": "shell",
+			"command": "docker cp backend/src/db/migrations/apply_0004.js kidneybuddy-backend:/app/src/db/migrations/apply_0004.js ; docker exec kidneybuddy-backend node --import tsx src/db/migrations/apply_0004.js"
+		},
+		{
+			"label": "run-mig-again",
+			"type": "shell",
+			"command": "docker cp backend/src/db/migrations/apply_0004.js kidneybuddy-backend:/app/src/db/migrations/apply_0004.js ; docker exec kidneybuddy-backend node --import tsx src/db/migrations/apply_0004.js"
+		},
+		{
+			"label": "build-backend",
+			"type": "shell",
+			"command": "docker-compose build backend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-backend",
+			"type": "shell",
+			"command": "docker-compose up -d backend 2>&1 ; Write-Host 'RESTART_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "test-backend",
+			"type": "shell",
+			"command": "cd backend ; npm test 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "e2e-test",
+			"type": "shell",
+			"command": "docker cp backend/src/test/profile.e2e.ts kidneybuddy-backend:/app/src/test/profile.e2e.ts ; docker exec kidneybuddy-backend node --import tsx src/test/profile.e2e.ts 2>&1 ; Write-Host '' ; Write-Host 'E2E_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "check-frontend-tsc",
+			"type": "shell",
+			"command": "cd frontend ; npx tsc --noEmit 2>&1 ; Write-Host '' ; Write-Host 'TSC_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "check-reset-tokens",
+			"type": "shell",
+			"command": "echo \"SELECT id, user_id, left(token_hash, 16) as token_prefix, expires_at < now() as expired, used_at IS NOT NULL as used FROM password_reset_tokens ORDER BY created_at DESC LIMIT 5;\" | docker exec -i kidneybuddy-db psql -U kidneybuddy -d kidneybuddy"
+		},
+		{
+			"label": "rebuild-for-fix",
+			"type": "shell",
+			"command": "docker-compose build backend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-test-backend",
+			"type": "shell",
+			"command": "docker-compose up -d backend 2>&1 ; Write-Host '' ; Write-Host 'RESTART_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "run-tests",
+			"type": "shell",
+			"command": "cd backend ; npm test 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "run-verify-test",
+			"type": "shell",
+			"command": "docker cp backend/src/test/verify_single_use.ts kidneybuddy-backend:/app/src/test/verify_single_use.ts ; docker exec kidneybuddy-backend node --import tsx src/test/verify_single_use.ts 2>&1 ; Write-Host '' ; Write-Host 'VERIFY_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "check-register-error",
+			"type": "shell",
+			"command": "docker-compose logs --tail=20 backend 2>&1 ; Write-Host '---' ; Write-Host 'Testing register with informedConsent...' ; docker exec kidneybuddy-backend node --import tsx -e \"(async()=>{const BASE='http://localhost:4000';const h={'Content-Type':'application/json'};const rand=Math.random().toString(36).slice(2,8);const r=await fetch(BASE+'/api/auth/register',{method:'POST',headers:h,body:JSON.stringify({email:'test_'+rand+'@test.com',namaLengkap:'Test',password:'Test1234!',konfirmasiPassword:'Test1234!',nomorTelepon:'08123456789',tanggalLahir:'1990-01-01',informedConsent:true})});const d=await r.json();console.log('Status:',r.status);console.log('Response:',JSON.stringify(d,null,2));})( )\" 2>&1"
+		},
+		{
+			"label": "rebuild-frontend",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-frontend",
+			"type": "shell",
+			"command": "docker-compose up -d frontend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "build-frontend-again",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-frontend-2",
+			"type": "shell",
+			"command": "docker-compose up -d frontend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "rebuild-frontend-fix",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-frontend-fix",
+			"type": "shell",
+			"command": "docker-compose up -d frontend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "build-frontend-profil",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-frontend-profil",
+			"type": "shell",
+			"command": "docker-compose up -d frontend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "rebuild-frontend-confirm",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-frontend-confirm",
+			"type": "shell",
+			"command": "docker-compose up -d frontend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "build-frontend-token",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-frontend-token",
+			"type": "shell",
+			"command": "docker-compose up -d frontend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "build-frontend-tutorial",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "build-frontend-tutorial2",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "build-frontend-v3",
+			"type": "shell",
+			"command": "docker-compose build frontend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "restart-frontend-v3",
+			"type": "shell",
+			"command": "docker-compose up -d frontend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "ship-preflight",
+			"type": "shell",
+			"command": "Write-Host '=== Git Status ===' ; git status --short 2>&1 ; Write-Host '' ; Write-Host '=== Current Branch ===' ; git branch --show-current 2>&1 ; Write-Host '' ; Write-Host '=== Remote ===' ; git remote -v 2>&1 ; Write-Host '' ; Write-Host '=== gh CLI ===' ; Get-Command gh -ErrorAction SilentlyContinue | Select-Object Source ; Write-Host '' ; Write-Host '=== Phase Dir ===' ; Get-ChildItem .planning/phases/01* -Directory | Select-Object Name"
+		},
+		{
+			"label": "create-branch",
+			"type": "shell",
+			"command": "git checkout -b phase/1-foundation-auth-onboarding 2>&1 ; Write-Host '' ; Write-Host 'BRANCH_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "stage-files",
+			"type": "shell",
+			"command": "git add -A 2>&1 ; Write-Host 'Staged all files' ; git status --short 2>&1 | Measure-Object -Line ; Write-Host '' ; Write-Host 'STAGE_EXIT:' $LASTEXITCODE"
+		}
+	]
+}

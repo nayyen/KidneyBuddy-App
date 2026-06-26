@@ -28,3 +28,25 @@ export async function findById(userId: string): Promise<User | undefined> {
     .limit(1);
   return row;
 }
+
+export async function updatePasswordHash(
+  userId: string,
+  passwordHash: string,
+): Promise<void> {
+  await db
+    .update(users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(users.userId, userId as any));
+}
+
+export async function updateTherapyMethod(
+  userId: string,
+  metodeTerapiAktif: string,
+  tanggalMulaiTerapi: string,
+  riwayatTerapi: unknown[],
+): Promise<void> {
+  await db
+    .update(users)
+    .set({ metodeTerapiAktif, tanggalMulaiTerapi, riwayatTerapi, updatedAt: new Date() })
+    .where(eq(users.userId, userId as any));
+}

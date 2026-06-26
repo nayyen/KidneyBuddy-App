@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
+      "WebFetch(domain:console.groq.com)",
+      "WebFetch(domain:mhealth.jmir.org)",
+      "Bash(npm view *)",
+      "WebFetch(domain:www.mdpi.com)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(python3 -)"
+    ]
+  }
+}

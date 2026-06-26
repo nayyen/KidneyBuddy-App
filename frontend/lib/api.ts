@@ -5,6 +5,7 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
+    public extra?: Record<string, unknown>,
   ) {
     super(message);
     this.name = "ApiError";
@@ -17,21 +18,40 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
+    ...init,
     headers: {
       "Content-Type": "application/json",
-      ...init?.headers,
+      ...(init?.headers as Record<string, string> ?? {}),
     },
-    ...init,
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+    const errBody = body?.error ?? {};
+    // Extract extra fields (everything except code and message)
+    const { code, message, ...extra } = errBody;
     throw new ApiError(
       res.status,
-      body?.error?.code ?? "UNKNOWN",
-      body?.error?.message ?? `Request failed with status ${res.status}`,
+      code ?? "UNKNOWN",
+      message ?? `Request failed with status ${res.status}`,
+      extra,
     );
   }
 
   return res.json() as Promise<T>;
+}
+
+/** Convenience helper — calls apiFetch with an Authorization header. */
+export async function authFetch<T>(
+  path: string,
+  accessToken: string,
+  init?: RequestInit,
+): Promise<T> {
+  return apiFetch<T>(path, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 }
