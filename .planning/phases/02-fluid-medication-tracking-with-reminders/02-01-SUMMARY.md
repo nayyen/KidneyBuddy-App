@@ -124,7 +124,7 @@ All three use `useAuth()` redirect guard. `npm run build` passes — 11 routes r
 
 ## Checkpoint Status
 
-Task 4 is a `checkpoint:human-verify` gate requiring visual verification at exact breakpoints (375px / 768px / 1024px / 1280px) across Chrome and Firefox. This plan is paused at the checkpoint.
+Task 4 is a `checkpoint:human-verify` gate requiring visual verification at exact breakpoints (375px / 768px / 1024px / 1280px) across Chrome and Firefox. The dev server starts cleanly at `http://localhost:3001`. Visual layout verification is performed by the user in the browser.
 
 ## Deviations from Plan
 
@@ -136,6 +136,13 @@ Task 4 is a `checkpoint:human-verify` gate requiring visual verification at exac
 - **Fix:** Created `components.json` with Tailwind v4 configuration manually, then ran `npx shadcn@latest add --yes` which only creates component files and does not touch globals.css.
 - **Files modified:** `frontend/components.json` (created), `frontend/app/globals.css` (unchanged, verified via diff)
 - **Commits:** b914951
+
+**3. [Rule 3 - Blocking] Fixed lightningcss native binary not found on WSL/Linux**
+- **Found during:** Task 4 (checkpoint setup — running `npm run dev`)
+- **Issue:** Stale Turbopack cache (`.next/`) contained Windows-built bundles where `require('lightningcss-linux-x64-gnu')` failed because the bundled code tried `require('../lightningcss.linux-x64-gnu.node')` as fallback, which didn't exist at that relative path.
+- **Fix:** Cleared `.next/` cache entirely; placed native binary at fallback path (`node_modules/lightningcss/lightningcss.linux-x64-gnu.node`). After cache clear, Turbopack recompiles fresh bundles that correctly resolve the Linux native module.
+- **Verification:** `npm run dev` starts cleanly at `localhost:3001` in 12.7s; all routes return HTTP 200; no lightningcss errors in dev log.
+- **Files modified:** None in git (binary is in gitignored `node_modules/`; `.next/` is also gitignored)
 
 **2. [Rule 2 - Missing] Used `<style>` injection for lg desktop padding override**
 - **Found during:** Task 2

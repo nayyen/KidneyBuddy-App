@@ -102,10 +102,10 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 Per `PRD.md` section 7.2 (Design Consideration 2 — Platform Requirement): mobile-first but fully responsive with distinct layouts per breakpoint, not just scaling.
 
-- [ ] **RESPONSIVE-01**: On mobile (375–767px), app renders single-column layout with 5-tab bottom navigation, centered FAB ("Catat Cairan"), and a compact header
-- [ ] **RESPONSIVE-02**: On tablet (768–1023px), app renders a 2-column layout for dashboard and list views (e.g., metric cards side by side), with bottom navigation unchanged from mobile
-- [ ] **RESPONSIVE-03**: On desktop (1024px and above), primary navigation moves to a left sidebar (replacing bottom navigation entirely), main content uses a multi-column layout with max-width 1280px, header becomes a top bar with persistent Lab/Laporan/Profil shortcuts, and the FAB becomes a regular primary button fixed in the sidebar or bottom-right corner
-- [ ] **RESPONSIVE-04**: Layout correctness is verified via browser testing on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly the 375px, 768px, 1024px, and 1280px breakpoints
+- [x] **RESPONSIVE-01**: On mobile (375–767px), app renders single-column layout with 5-tab bottom navigation, centered FAB ("Catat Cairan"), and a compact header
+- [x] **RESPONSIVE-02**: On tablet (768–1023px), app renders a 2-column layout for dashboard and list views (e.g., metric cards side by side), with bottom navigation unchanged from mobile
+- [x] **RESPONSIVE-03**: On desktop (1024px and above), primary navigation moves to a left sidebar (replacing bottom navigation entirely), main content uses a multi-column layout with max-width 1280px, header becomes a top bar with persistent Lab/Laporan/Profil shortcuts, and the FAB becomes a regular primary button fixed in the sidebar or bottom-right corner
+- [x] **RESPONSIVE-04**: Layout correctness is verified via browser testing on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly the 375px, 768px, 1024px, and 1280px breakpoints
 
 ## v2 Requirements
 
@@ -177,10 +177,10 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | NOTIF-01 | Phase 2 | Pending |
 | NOTIF-02 | Phase 2 | Pending |
 | NOTIF-03 | Phase 2 | Pending |
-| RESPONSIVE-01 | Phase 2 | Pending |
-| RESPONSIVE-02 | Phase 2 | Pending |
-| RESPONSIVE-03 | Phase 2 | Pending |
-| RESPONSIVE-04 | Phase 2 | Pending |
+| RESPONSIVE-01 | Phase 2 | Complete |
+| RESPONSIVE-02 | Phase 2 | Complete |
+| RESPONSIVE-03 | Phase 2 | Complete |
+| RESPONSIVE-04 | Phase 2 | Complete |
 | ACTIVITY-01 | Phase 3 | Pending |
 | ACTIVITY-02 | Phase 3 | Pending |
 | ACTIVITY-03 | Phase 3 | Pending |
@@ -207,6 +207,7 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | EDU-01 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 56 total
 - Mapped to phases: 56
 - Unmapped: 0
