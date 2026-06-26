@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.routes.js";
 import onboardingRoutes from "./routes/onboarding.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import pushRoutes from "./routes/push.routes.js";
+import fluidRoutes from "./routes/fluid.routes.js";
 
 export const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/onboarding", onboardingRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/push", pushRoutes);
+app.use("/api/fluid", fluidRoutes);
 
 // --- Health check ---
 app.get("/api/health", (_req, res) => {
