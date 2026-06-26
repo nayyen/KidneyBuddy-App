@@ -27,11 +27,11 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Fluid Tracking (FLUID)
 
-- [ ] **FLUID-01**: User can log a fluid entry with type (masuk/keluar), source (minuman/makanan/cairan CAPD/lainnya — CAPD option only for CAPD patients), CAPD concentration if applicable, decimal volume, and unit (ml/kg)
-- [ ] **FLUID-02**: System automatically calculates and displays the daily fluid in/out delta on the dashboard, updated on every new entry
-- [ ] **FLUID-03**: CAPD patient can record outgoing fluid condition (jernih/keruh/keruh dengan gumpalan putih/berdarah) and sees an immediate red warning banner that cannot be dismissed without active interaction if abnormal
-- [ ] **FLUID-04**: User can log a fluid entry retroactively with a past date/time, flagged as a late entry, still included in anomaly analysis
-- [ ] **FLUID-05**: If connection drops while saving an entry, it's stored locally and synced automatically once connection returns
+- [x] **FLUID-01**: User can log a fluid entry with type (masuk/keluar), source (minuman/makanan/cairan CAPD/lainnya — CAPD option only for CAPD patients), CAPD concentration if applicable, decimal volume, and unit (ml/kg)
+- [x] **FLUID-02**: System automatically calculates and displays the daily fluid in/out delta on the dashboard, updated on every new entry
+- [x] **FLUID-03**: CAPD patient can record outgoing fluid condition (jernih/keruh/keruh dengan gumpalan putih/berdarah) and sees an immediate red warning banner that cannot be dismissed without active interaction if abnormal
+- [x] **FLUID-04**: User can log a fluid entry retroactively with a past date/time, flagged as a late entry, still included in anomaly analysis
+- [x] **FLUID-05**: If connection drops while saving an entry, it's stored locally and synced automatically once connection returns
 
 ### Medication & Therapy Reminders (REMIND)
 
@@ -161,11 +161,11 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | ONBOARD-04 | Phase 1 | Pending |
 | ONBOARD-05 | Phase 1 | Pending |
 | ONBOARD-06 | Phase 1 | Pending |
-| FLUID-01 | Phase 2 | Pending |
-| FLUID-02 | Phase 2 | Pending |
-| FLUID-03 | Phase 2 | Pending |
-| FLUID-04 | Phase 2 | Pending |
-| FLUID-05 | Phase 2 | Pending |
+| FLUID-01 | Phase 2 | Complete |
+| FLUID-02 | Phase 2 | Complete |
+| FLUID-03 | Phase 2 | Complete |
+| FLUID-04 | Phase 2 | Complete |
+| FLUID-05 | Phase 2 | Complete |
 | REMIND-01 | Phase 2 | Pending |
 | REMIND-02 | Phase 2 | Complete |
 | REMIND-03 | Phase 2 | Pending |
