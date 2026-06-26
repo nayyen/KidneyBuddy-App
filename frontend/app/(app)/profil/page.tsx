@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { authFetch } from "@/lib/api";
 import type { TherapyHistoryEntry } from "@/lib/validators/profile.schema";
+import { ensureFreshSubscription } from "@/lib/pushClient";
+import NotificationPermissionBanner from "@/components/push/NotificationPermissionBanner";
 import ChangeTherapyDialog from "./_components/ChangeTherapyDialog";
 import ReplayTutorialButton from "./_components/ReplayTutorialButton";
 
@@ -83,6 +85,21 @@ export default function ProfilePage() {
     fetchProfile();
     fetchTherapyHistory();
   }, [isLoading, isAuthenticated, accessToken, router, fetchProfile, fetchTherapyHistory]);
+
+  // Re-subscribe on app foreground to guard against iOS silent subscription expiry
+  // (RESEARCH.md Pitfall 5 — subscriptions can silently expire after ~1-2 weeks on iOS).
+  useEffect(() => {
+    if (!accessToken) return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void ensureFreshSubscription(accessToken);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [accessToken]);
 
   function handleTherapyChanged() {
     fetchProfile();
@@ -233,6 +250,18 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Pengaturan notifikasi — NOTIF-01, NOTIF-03 */}
+        <div className="rounded-[14px] bg-card p-5 shadow-sm border border-border space-y-3">
+          <h3 className="font-heading font-bold text-foreground text-sm">
+            Aktifkan Notifikasi
+          </h3>
+          <p className="text-xs text-muted-foreground font-sans leading-relaxed">
+            Aktifkan notifikasi agar perangkat ini menerima pengingat obat dan
+            terapi secara langsung.
+          </p>
+          <NotificationPermissionBanner accessToken={accessToken} />
+        </div>
 
         {/* Replay tutorial */}
         <ReplayTutorialButton />
