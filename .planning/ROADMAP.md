@@ -144,7 +144,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation, Auth & Onboarding | 0/5 | Planned | - |
-| 2. Fluid & Medication Tracking with Reminders | 0/TBD | Not started | - |
+| 2. Fluid & Medication Tracking with Reminders | 2/7 | In Progress|  |
 | 3. Activity Logging & Lab Results | 0/TBD | Not started | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/TBD | Not started | - |
 | 5. AI Insights & Anomaly Detection | 0/TBD | Not started | - |
