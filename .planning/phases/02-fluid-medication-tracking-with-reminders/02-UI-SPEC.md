@@ -1,7 +1,8 @@
 ---
 phase: 2
 slug: fluid-medication-tracking-with-reminders
-status: draft
+status: approved
+reviewed_at: 2026-06-26T00:00:00Z
 shadcn_initialized: false
 preset: manual (globals.css tokens — initialize shadcn before Phase 2 execution)
 created: 2026-06-26
@@ -35,30 +36,28 @@ created: 2026-06-26
 |-------|-------|-----------------|
 | xs | 4px | Icon-to-label gaps, micro padding, nav indicator dot margin |
 | sm | 8px | Badge padding (horizontal), icon-to-text gap in list items, button icon gap |
-| ds-10 | 10px | Icon container inner padding (30×30 icon containers per DESIGN_SYSTEM), input horizontal padding |
 | ds-12 | 12px | Card compact inner padding, ReminderItem padding (9px ≈ 12px), form field inner padding |
-| ds-14 | 14px | Card standard padding (per DESIGN_SYSTEM "padding: 12–14px") |
 | md | 16px | Standard element spacing, form field vertical gap, section header padding |
 | lg | 20px | Card section padding, button horizontal padding, sidebar lateral padding |
 | xl | 24px | Page horizontal padding (mobile), section vertical gap, sidebar logo padding |
 | 2xl | 32px | Major section breaks, layout card grid gap |
 
-**Exceptions from 8-point scale:** `ds-10` (10px), `ds-12` (12px), `ds-14` (14px) are from DESIGN_SYSTEM_KidneyBuddy_v3.md Figma export — locked by visual spec.
+**Fixed Component Dimensions (not grid spacing tokens):**
 
-**Fixed dimensions (not spacing):**
-
-| Component | Dimension |
-|-----------|-----------|
-| Touch target minimum | 44×44px (DESIGN_SYSTEM Mobile Specs) |
-| FAB diameter | 44×44px |
-| Bottom nav height | 60px + `env(safe-area-inset-bottom)` |
-| Mobile/tablet header height | 56px (h-14) |
-| Desktop sidebar width | 256px (w-64) |
-| Desktop top bar height | 56px (h-14) |
-| Nav icon size (bottom nav) | 22×22px |
-| Nav icon size (sidebar) | 20×20px |
-| Icon container (Alert Darurat) | 30×30px |
-| Avatar (desktop top bar) | 32×32px |
+| Component | Dimension | Note |
+|-----------|-----------|------|
+| Touch target minimum | 44×44px | DESIGN_SYSTEM Mobile Specs |
+| FAB diameter | 44×44px | — |
+| Bottom nav height | 60px + `env(safe-area-inset-bottom)` | — |
+| Mobile/tablet header height | 56px (h-14) | — |
+| Desktop sidebar width | 256px (w-64) | — |
+| Desktop top bar height | 56px (h-14) | — |
+| Nav icon size (bottom nav) | 22×22px | — |
+| Nav icon size (sidebar) | 20×20px | — |
+| Icon container (Alert Darurat) | 30×30px | — |
+| Avatar (desktop top bar) | 32×32px | — |
+| Icon container inner padding | 10px | DESIGN_SYSTEM fixed — visual centering offset for 30×30 icon containers, not a grid spacing token |
+| Card standard padding | 14px | DESIGN_SYSTEM fixed per Figma export ("padding: 12–14px"), not a grid spacing token |
 
 ---
 
@@ -66,17 +65,17 @@ created: 2026-06-26
 
 | Role | Size | Font | Weight | Line Height | Phase 2 Usage |
 |------|------|------|--------|-------------|--------------|
-| Display | 20px | Plus Jakarta Sans | 800 | 1.2 | Delta cairan balance number, hero metric value, fluid ring center value |
+| Display | 20px | Plus Jakarta Sans | 700 | 1.2 | Delta cairan balance number, hero metric value, fluid ring center value |
 | Heading | 14px | Plus Jakarta Sans | 700 | 1.25 | Section titles, card titles, modal titles, form section labels, tab labels, page title in TopBar |
-| Body | 12px | DM Sans | 400 | 1.5 | Card body text, list item descriptions, form help text, button labels, error messages |
+| Body | 12px | DM Sans | 500 | 1.5 | Card body text, list item descriptions, form help text, button labels, error messages |
 | Caption | 10px | DM Sans | 500 | 1.4 | Timestamps, status labels, nav tab labels, badge text, timing notes, muted secondary info |
 
 **Weight groups:**
 
-- **Bold group:** Plus Jakarta Sans — 700 for heading/section titles; 800 for display/metric values. Use 700 when in doubt for headings.
-- **Regular group:** DM Sans — 400 for body/descriptions; 500 for captions/labels/nav. Use 500 for anything that is a label or needs slight emphasis without being a heading.
+- **Bold group:** Plus Jakarta Sans 700 — for all heading, display, section titles, and metric values. The display vs. heading distinction comes from size (20px vs. 14px), not weight.
+- **Regular group:** DM Sans 500 — for all body text, captions, labels, button labels, and nav items. Use DM Sans 500 everywhere DM Sans is needed; the body vs. caption distinction comes from size (12px vs. 10px), not weight.
 
-**No other font weights are used in Phase 2.** DM Sans 600 is used only for button labels (pill primary buttons — per DESIGN_SYSTEM Button Primary spec). This is the one exception beyond the two-group model; document it as "button label weight."
+**No other font weights are used in Phase 2.** Two weights total: Plus Jakarta Sans 700 and DM Sans 500.
 
 ---
 
@@ -139,7 +138,7 @@ created: 2026-06-26
 | Context | Label |
 |---------|-------|
 | FAB (mobile/tablet) | "Catat" (10px DM Sans 500, below Droplets icon) |
-| Sidebar button (desktop lg+) | "Catat Cairan" (DM Sans 600 14px, with Droplets icon left) |
+| Sidebar button (desktop lg+) | "Catat Cairan" (DM Sans 500 14px, with Droplets icon left) |
 | Form submit — fluid log | "Simpan Catatan" |
 | Add reminder | "Tambah Pengingat" |
 | Enable push notifications | "Aktifkan Notifikasi" |
@@ -162,8 +161,8 @@ created: 2026-06-26
 **No-reminder banner (D-05)** — visible until `reminderConfigured = true`:
 - Background: `#fdf3e3`, border `0.5px solid rgba(239, 159, 39, 0.3)`, border-radius 14px
 - Icon: Bell (Lucide 16px, `#ef9f27`)
-- Text: "Kamu belum mengatur pengingat." (12px DM Sans 500 `#7a4c0a`) + "Tambahkan pengingat agar tidak melewatkan jadwal terapi." (12px DM Sans 400 `#7a4c0a`)
-- CTA link: "Atur Sekarang" (underline, DM Sans 600 `#ef9f27`) → navigates to `/pengingat`
+- Text: "Kamu belum mengatur pengingat." (12px DM Sans 500 `#7a4c0a`) + "Tambahkan pengingat agar tidak melewatkan jadwal terapi." (12px DM Sans 500 `#7a4c0a`)
+- CTA link: "Atur Sekarang" (underline, DM Sans 500 `#ef9f27`) → navigates to `/pengingat`
 
 **CAPD Effluent Alert Darurat** — non-dismissable until explicit action:
 - Title: "Kondisi Cairan Tidak Normal"
@@ -212,7 +211,7 @@ created: 2026-06-26
 ```
 Fixed header (56px, bg white, border-b 0.5px #f0faf9):
   Left: "KidneyBuddy" — Plus Jakarta Sans 700 16px #2a9d8f
-  Right: Bell icon button (44px tap target) + notification badge when pending
+  Right: Bell icon button (44px tap target, aria-label="Notifikasi") + notification badge when pending
 
 Scrollable content area:
   Padding: 16px horizontal
@@ -252,15 +251,15 @@ Left sidebar (fixed, w-64, h-full, bg white, border-r 0.5px #f0faf9):
   Logo area (h-14, px-6):
     Droplets icon (20px #2a9d8f) + "KidneyBuddy" (Plus Jakarta Sans 700 16px #2a9d8f)
   Nav items (48px each, px-4):
-    Inactive: icon #7a8c8a + label #1a2e2c DM Sans 400 14px
-    Active: border-l-[3px] border-primary + bg #f0faf9 + label #2a9d8f DM Sans 600 14px
+    Inactive: icon #7a8c8a + label #1a2e2c DM Sans 500 14px
+    Active: border-l-[3px] border-primary + bg #f0faf9 + label #2a9d8f DM Sans 500 14px
   "Catat Cairan" button (position absolute, bottom-4, left-4, right-4):
-    bg #2a9d8f, text white, border-radius 20px, height 44px, DM Sans 600 14px
+    bg #2a9d8f, text white, border-radius 20px, height 44px, DM Sans 500 14px
     Droplets icon 16px left
 
 Top bar (fixed, left-64, right-0, h-14, bg white/80 backdrop-blur, border-b 0.5px #f0faf9):
   Left: current page title (Plus Jakarta Sans 700 14px #1a2e2c)
-  Right: Bell icon button (32px) + user avatar (32×32px circle, fallback initials)
+  Right: Bell icon button (32px, aria-label="Notifikasi") + user avatar (32×32px circle, fallback initials)
 
 Main content (ml-64 mt-14):
   Max-width: 1280px, mx-auto, px-6, py-6
@@ -372,9 +371,9 @@ Main content (ml-64 mt-14):
 - FluidRing SVG: 144×144px, centered
   - Track circle: `rgba(255,255,255,0.2)` stroke 10px
   - Progress circle: white stroke 10px (or colored per state), strokeDasharray computed from volume/capacity ratio
-- Balance number: 20px Plus Jakarta Sans 800, colored per state, centered in ring
+- Balance number: 20px Plus Jakarta Sans 700, colored per state, centered in ring
 - Sub-label in ring center: "Keseimbangan" (10px DM Sans 500 white/0.8 above number), delta label below (e.g., "-350 ml")
-- Below ring: "Masuk: {n} ml · Keluar: {n} ml" (10px DM Sans 400 `#7a8c8a`)
+- Below ring: "Masuk: {n} ml · Keluar: {n} ml" (10px DM Sans 500 `#7a8c8a`)
 
 ### Screen: Catatan sub-tabs
 
@@ -394,8 +393,8 @@ When disabled tab is tapped: no navigation, brief Toast "Fitur ini akan hadir di
 - Height: auto, min 48px
 - Background: `#ffffff`, border `0.5px solid #f0faf9`, border-radius 13px, padding 9px 11px
 - Left column: time (10px DM Sans 500 `#7a8c8a`)
-- Center: type badge pill (Masuk = teal bg `#f0faf9` text `#2a9d8f` / Keluar = amber bg `#fdf3e3` text `#ef9f27`) + source text (10px DM Sans 400)
-- Right column: volume number (14px Plus Jakarta Sans 700 `#1a2e2c`) + "ml" unit (10px DM Sans 400 muted)
+- Center: type badge pill (Masuk = teal bg `#f0faf9` text `#2a9d8f` / Keluar = amber bg `#fdf3e3` text `#ef9f27`) + source text (10px DM Sans 500)
+- Right column: volume number (14px Plus Jakarta Sans 700 `#1a2e2c`) + "ml" unit (10px DM Sans 500 muted)
 - Condition dot (CAPD keluar only): 6px dot left of volume — jernih=`#2a9d8f`, keruh=`#ef9f27`, berdarah=`#d4183d`
 - Late entry badge: "Terlambat" pill (8px DM Sans 500, bg `#f3ede5`, text `#7a8c8a`)
 
@@ -405,9 +404,9 @@ When disabled tab is tapped: no navigation, brief Toast "Fitur ini akan hadir di
 
 - Background: `#ffffff`, border `0.5px solid #f0faf9`, border-radius 13px, padding 9px 11px
 - Time badge: Plus Jakarta Sans 700 14px `#2a9d8f`, bg `#f0faf9`, border-radius 8px, padding 4px 8px
-- Name: DM Sans 400 12px `#1a2e2c`
-- Timing note: DM Sans 400 10px `#7a8c8a` (free-text field from DESIGN_SYSTEM spec)
-- Active days chips: pill, 8px DM Sans 600 — active day `#f0faf9`/`#2a9d8f`, inactive `#f3f3f5`/`#cfe8e4`
+- Name: DM Sans 500 12px `#1a2e2c`
+- Timing note: DM Sans 500 10px `#7a8c8a` (free-text field from DESIGN_SYSTEM spec)
+- Active days chips: pill, 8px DM Sans 500 — active day `#f0faf9`/`#2a9d8f`, inactive `#f3f3f5`/`#cfe8e4`
 - Type badge: "Obat" / "CAPD" / "HD" — therapy identity colors
 - Done state: opacity 0.6 on whole item, check circle bg `#2a9d8f`
 - Pending state: check circle border `1.5px #cfe8e4`
@@ -449,7 +448,7 @@ When disabled tab is tapped: no navigation, brief Toast "Fitur ini akan hadir di
 Full-screen centered empty state:
 - Icon: BookOpen (Lucide 48px, `#cfe8e4`)
 - Heading: "Konten Segera Hadir" (14px Plus Jakarta Sans 700 `#1a2e2c`)
-- Body: "Artikel dan panduan edukasi akan tersedia di update berikutnya." (12px DM Sans 400 `#7a8c8a`)
+- Body: "Artikel dan panduan edukasi akan tersedia di update berikutnya." (12px DM Sans 500 `#7a8c8a`)
 - No action button.
 
 ### Component: CAPDEffluentBanner (Alert Darurat)
@@ -477,11 +476,11 @@ Text area:
     font: Plus Jakarta Sans 700, size 14px, color #d4183d
   Body: "Cairan keluar yang keruh atau berdarah bisa menjadi tanda infeksi
          serius. Segera hubungi dokter atau perawat CAPD Anda."
-    font: DM Sans 400, size 12px, color #9c1530, margin-top: 4px
+    font: DM Sans 500, size 12px, color #9c1530, margin-top: 4px
   Action button: "Saya mengerti, hubungi dokter segera"
     background: #d4183d, color: #ffffff
     border-radius: 20px (pill), padding: 4px 12px
-    font: DM Sans 600, size 12px
+    font: DM Sans 500, size 12px
     margin-top: 8px
 
 CRITICAL: NO X/close icon anywhere on this component.
@@ -559,7 +558,7 @@ Icons (Lucide): House / ClipboardPen / Bell / BookOpen / User
 | Error | `1px solid #d4183d` | `0 0 0 3px rgba(212, 24, 61, 0.1)` | `#ffffff` |
 | Disabled | `0.5px solid #f0faf9` | none | `#f3f3f5` |
 | Placeholder text | — | — | color `#cfe8e4` |
-| Error text | — | — | 10px DM Sans 400 `#d4183d`, below input |
+| Error text | — | — | 10px DM Sans 500 `#d4183d`, below input |
 
 ### Buttons
 
@@ -619,6 +618,7 @@ Icons (Lucide): House / ClipboardPen / Bell / BookOpen / User
 | FAB spec (44px, teal gradient, Droplets icon) | DESIGN_SYSTEM_KidneyBuddy_v3.md BottomNav section + CONTEXT.md D-06 |
 | Color tokens (teal/amber/cream/destructive) | globals.css (verified match to DESIGN_SYSTEM_KidneyBuddy_v3.md) |
 | Typography (Plus Jakarta Sans + DM Sans) | layout.tsx + DESIGN_SYSTEM_KidneyBuddy_v3.md |
+| Typography weight consolidation (PJS 700 + DMS 500 only) | Checker rule: max 2 weights; size differences (20/14/12/10px) provide role distinction without additional weights |
 | Alert Darurat spec (bg, border-left, icon container, no dismiss) | DESIGN_SYSTEM_KidneyBuddy_v3.md Component Library section |
 | No-reminder banner (D-05) | CONTEXT.md D-05 + dashboard/page.tsx existing amber banner |
 | Delta cairan thresholds (visual guidance only) | Claude's discretion per RESEARCH.md open question A3 |
@@ -627,9 +627,11 @@ Icons (Lucide): House / ClipboardPen / Bell / BookOpen / User
 | Lucide icons (House/ClipboardPen/Bell/BookOpen/User/Droplets) | CONTEXT.md Claude's Discretion + KidneyBuddy_Design/src/app/App.tsx |
 | shadcn component list | RESEARCH.md Standard Stack + CLAUDE.md |
 | Sidebar width 256px, desktop max-width 1280px | CONTEXT.md D-09 + REQUIREMENTS.md RESPONSIVE-03 |
-| Spacing values (4/8/10/12/14/16/20/24/32px) | DESIGN_SYSTEM_KidneyBuddy_v3.md Spacing section |
+| Spacing scale (4/8/12/16/20/24/32px — all multiples of 4) | DESIGN_SYSTEM_KidneyBuddy_v3.md Spacing section; 10px and 14px reclassified as fixed component dimensions |
+| Fixed component dimensions (10px icon padding, 14px card padding) | DESIGN_SYSTEM_KidneyBuddy_v3.md Figma export values — not grid spacing tokens |
 | Touch target 44px min | DESIGN_SYSTEM_KidneyBuddy_v3.md Mobile Specs |
 | Bottom nav height 60px | DESIGN_SYSTEM_KidneyBuddy_v3.md Mobile Specs |
 | Catatan sub-tab disabled state | CONTEXT.md D-02 |
 | Notification action copy | RESEARCH.md Pattern 1 (sw.ts code example) |
 | iOS install interstitial | CONTEXT.md D-Claude's Discretion + REQUIREMENTS.md NOTIF-03 |
+| Bell button aria-label="Notifikasi" | Accessibility requirement — icon-only button must have accessible label |
