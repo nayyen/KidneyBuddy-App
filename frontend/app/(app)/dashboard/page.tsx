@@ -8,6 +8,8 @@ import DeltaCairanCard from "@/components/beranda/DeltaCairanCard";
 import CAPDEffluentBanner from "@/components/beranda/CAPDEffluentBanner";
 import NoReminderBanner from "@/components/beranda/NoReminderBanner";
 import AiPlaceholderCard from "@/components/beranda/AiPlaceholderCard";
+import ObatCard from "@/components/beranda/ObatCard";
+import PengingatBerikutnyaCard from "@/components/beranda/PengingatBerikutnyaCard";
 
 interface OnboardingProgress {
   onboardingComplete: boolean;
@@ -29,7 +31,6 @@ export default function DashboardPage() {
   const { accessToken, isLoading, isAuthenticated } = useAuth();
   const [onboardingProgress, setOnboardingProgress] =
     useState<OnboardingProgress | null>(null);
-  const [hasAbnormalCondition, setHasAbnormalCondition] = useState(false);
   const [showCAPDBanner, setShowCAPDBanner] = useState(false);
   const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
 
@@ -68,7 +69,6 @@ export default function DashboardPage() {
   // Called by DeltaCairanCard when it receives balance data
   const handleBalanceFetched = useCallback((balance: DailyBalance) => {
     const abnormal = !!balance.hasAbnormalCondition;
-    setHasAbnormalCondition(abnormal);
     setShowCAPDBanner(abnormal);
   }, []);
 
@@ -87,38 +87,51 @@ export default function DashboardPage() {
       {/*
        * D-04 Render Order (per UI-SPEC):
        * 1. CAPDEffluentBanner — only when today has an abnormal effluent
-       * 2. DeltaCairanCard — hero fluid balance card
+       * 2. DeltaCairanCard — hero fluid balance card (full width)
        * 3. NoReminderBanner — conditional on reminder not configured
-       * 4. ObatCard slot — omitted until 02-07
-       * 5. PengingatBerikutnyaCard slot — omitted until 02-07
+       * 4. ObatCard — today's unconfirmed meds with inline confirm
+       * 5. PengingatBerikutnyaCard — next upcoming reminder
        * 6. AiPlaceholderCard — always shown as Phase 5 placeholder
        *
-       * Grid: single column on mobile, 2-col at md:, 3-col at lg:
-       * But banner + delta card always span full width.
+       * Grid: 1-col mobile, 2-col at md:, 3-col at lg:
+       * Desktop layout per UI-SPEC:
+       *   DeltaCairanCard: lg:col-span-2
+       *   PengingatBerikutnyaCard: 1 col (right of DeltaCairan on lg)
+       *   ObatCard: lg:col-span-2
+       *   AiPlaceholderCard: 1 col
        */}
 
       {/* Banner: CAPD effluent anomaly (full width, always on top) */}
       {showCAPDBanner && (
-        <div className="col-span-full">
-          <CAPDEffluentBanner
-            accessToken={accessToken}
-            onDismiss={() => setShowCAPDBanner(false)}
-          />
-        </div>
+        <CAPDEffluentBanner
+          accessToken={accessToken}
+          onDismiss={() => setShowCAPDBanner(false)}
+        />
       )}
 
-      {/* Hero card: DeltaCairanCard (full width) */}
-      <div>
-        <DeltaCairanCard
-          accessToken={accessToken}
-          refreshKey={fluidRefreshKey}
-          onBalanceFetched={handleBalanceFetched}
-        />
+      {/*
+       * Hero + next-reminder row (desktop: DeltaCairan 2/3 width + PengingatBerikutnya 1/3)
+       * Mobile/tablet: stack vertically
+       */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* DeltaCairanCard — spans 2 cols on lg */}
+        <div className="lg:col-span-2">
+          <DeltaCairanCard
+            accessToken={accessToken}
+            refreshKey={fluidRefreshKey}
+            onBalanceFetched={handleBalanceFetched}
+          />
+        </div>
+
+        {/* PengingatBerikutnyaCard — 1 col (right on desktop, below delta on mobile) */}
+        <div>
+          <PengingatBerikutnyaCard accessToken={accessToken} />
+        </div>
       </div>
 
-      {/* Grid of secondary cards */}
+      {/* Secondary cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {/* NoReminderBanner (conditional) */}
+        {/* NoReminderBanner (conditional, full width) */}
         {onboardingProgress?.onboardingComplete &&
           !onboardingProgress.reminderConfigured && (
             <div className="md:col-span-2 lg:col-span-3">
@@ -126,14 +139,13 @@ export default function DashboardPage() {
             </div>
           )}
 
-        {/*
-         * ObatCard slot — placeholder until Plan 02-07
-         * PengingatBerikutnyaCard slot — placeholder until Plan 02-07
-         * These are intentionally absent (not stub empty states) per plan scope.
-         */}
+        {/* ObatCard — spans 2 cols on lg */}
+        <div className="md:col-span-2">
+          <ObatCard accessToken={accessToken} />
+        </div>
 
-        {/* AiPlaceholderCard (always visible) */}
-        <div className="md:col-span-2 lg:col-span-3">
+        {/* AiPlaceholderCard — 1 col on lg (right of ObatCard) */}
+        <div className="md:col-span-2 lg:col-span-1">
           <AiPlaceholderCard />
         </div>
       </div>
