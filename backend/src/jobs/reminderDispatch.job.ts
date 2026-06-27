@@ -23,12 +23,15 @@ const logger = pino({ name: "reminderDispatch.job" });
 const INDONESIAN_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
 export function currentHHmm(): string {
-  const now = new Date();
-  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  // Use UTC+7 (WIB) offset so reminders fire at the correct Jakarta local time
+  // on Railway/Render servers that default to TZ=UTC.
+  const jakartaNow = new Date(Date.now() + 7 * 3600 * 1000);
+  return `${String(jakartaNow.getUTCHours()).padStart(2, "0")}:${String(jakartaNow.getUTCMinutes()).padStart(2, "0")}`;
 }
 
 export function currentDayName(): string {
-  return INDONESIAN_DAYS[new Date().getDay()];
+  const jakartaNow = new Date(Date.now() + 7 * 3600 * 1000);
+  return INDONESIAN_DAYS[jakartaNow.getUTCDay()];
 }
 
 export type DispatchDeps = {

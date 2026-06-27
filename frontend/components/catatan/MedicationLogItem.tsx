@@ -15,7 +15,7 @@ import { Check } from "lucide-react";
 export interface MedicationLog {
   id: string;
   reminderId: string;
-  reminderNama: string;
+  namaObat: string;
   status: "dikonfirmasi" | "tertunda" | "terlewat";
   waktuPengingat: string; // ISO timestamp
   waktuDikonfirmasi?: string | null;
@@ -96,7 +96,7 @@ export default function MedicationLogItem({
           className="font-sans font-medium truncate"
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
-          {log.reminderNama}
+          {log.namaObat}
         </p>
         <p
           className="font-sans mt-0.5"

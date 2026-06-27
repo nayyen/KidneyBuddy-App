@@ -77,7 +77,7 @@ export default function MedicationReminderForm({
     fd.append("jenisObat", data.jenisObat);
     if (data.catatanWaktu) fd.append("catatanWaktu", data.catatanWaktu);
     // hariAktif is an array — append each item separately (backend reads req.body.hariAktif)
-    data.hariAktif.forEach((day) => fd.append("hariAktif[]", day));
+    data.hariAktif.forEach((day) => fd.append("hariAktif", day));
     fd.append("jamPengingat", data.jamPengingat);
     if (data.fotoObat instanceof File) {
       fd.append("foto_obat", data.fotoObat);

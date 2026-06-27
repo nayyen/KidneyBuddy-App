@@ -45,6 +45,11 @@ interface SwNotificationEvent extends SwExtendableEvent {
   readonly action: string;
 }
 
+// API_BASE is replaced at build time by Next.js / turbopack's process.env define.
+// In the service worker context there is no window.location, so we must use an
+// absolute URL pointing to the Railway backend — never the Vercel frontend origin.
+const API_BASE: string = process.env.NEXT_PUBLIC_API_URL ?? "";
+
 // sw.ts runs in the ServiceWorkerGlobalScope, not Window. TypeScript's dom lib
 // types `self` as `Window & typeof globalThis`. Use `unknown` as intermediate
 // cast to correctly access SW-specific properties.
@@ -105,7 +110,7 @@ swSelf.addEventListener("notificationclick", (event) => {
 
   if (event.action === "confirm") {
     event.waitUntil(
-      fetch("/api/medication-log/confirm", {
+      fetch(`${API_BASE}/api/medication-log/confirm`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

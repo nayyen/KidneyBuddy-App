@@ -20,7 +20,7 @@ import { Check, Pill } from "lucide-react";
 interface MedicationEntry {
   id: string;
   reminderId: string;
-  reminderNama: string;
+  namaObat: string;
   status: "dikonfirmasi" | "tertunda" | "terlewat";
   waktuPengingat: string;
 }
@@ -181,7 +181,7 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                       textDecoration: isConfirmed ? "line-through" : "none",
                     }}
                   >
-                    {entry.reminderNama}
+                    {entry.namaObat}
                   </p>
                   <p
                     className="font-sans"
