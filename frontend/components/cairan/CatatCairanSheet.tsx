@@ -44,21 +44,23 @@ export default function CatatCairanSheet({
           side="bottom"
           className="max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:max-w-md sm:mx-auto sm:rounded-2xl"
         >
-          <SheetHeader className="pb-2">
+          <SheetHeader className="pb-2 sm:px-6 sm:pt-5 sm:pb-3">
             <SheetTitle className="font-heading text-base font-bold text-foreground text-left">
               Catat Cairan
             </SheetTitle>
           </SheetHeader>
 
-          <CatatCairanForm
-            accessToken={accessToken}
-            metodeTerapiAktif={metodeTerapiAktif}
-            onSuccess={() => {
-              onOpenChange(false);
-              onSaved?.();
-            }}
-            onClose={() => onOpenChange(false)}
-          />
+          <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+            <CatatCairanForm
+              accessToken={accessToken}
+              metodeTerapiAktif={metodeTerapiAktif}
+              onSuccess={() => {
+                onOpenChange(false);
+                onSaved?.();
+              }}
+              onClose={() => onOpenChange(false)}
+            />
+          </div>
         </SheetContent>
       </Sheet>
     </>

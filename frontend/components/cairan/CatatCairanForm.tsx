@@ -128,7 +128,7 @@ export default function CatatCairanForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
       {/* ── Fluid type toggle: Masuk / Keluar ── */}
       <div>
         <label className="block text-sm font-medium font-sans text-foreground mb-2">
