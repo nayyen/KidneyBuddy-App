@@ -49,6 +49,15 @@ Inherited from Phase 2 — no changes.
 | xl | 24px | Page horizontal padding (mobile), sheet top padding |
 | 2xl | 32px | Sheet top handle area to first content item, chart container margin |
 
+**Spacing exceptions — values outside the standard {4, 8, 16, 24, 32, 48, 64} set:**
+
+| Token | Value | Justification |
+|-------|-------|--------------|
+| `ds-12` | 12px | Retained from Phase 2 approved spacing. Matches the `KegiatanModuleInline` card inner padding rhythm established in the Phase 2 UI-SPEC (`border-radius: 14px`, compact card style requires 12px inner padding — 16px is too loose for the inline module context). Also applied to `LabResultItem` padding and chart container inner padding for visual consistency with the compact list-item pattern carried across from Phase 2. |
+| `lg` | 20px | Retained from Phase 2 approved spacing. Used for section label margin-bottom (e.g., "Kegiatan hari ini" label above module, "Riwayat Hasil Lab" label above list) and card lateral padding on wider viewports. 16px leaves labels optically too tight against the content below; 24px creates too much gap in compact mobile-first layouts. This value was accepted in the Phase 2 UI-SPEC checker pass and carries forward unchanged. |
+
+These two values are Phase 2 design system inheritance, not newly introduced deviations. Executor must not replace them with adjacent 8-point grid values without updating the Phase 2 components that also use them.
+
 **Fixed Component Dimensions (Phase 3 additions):**
 
 | Component | Dimension | Note |
@@ -153,7 +162,7 @@ The DESIGN_SYSTEM_KidneyBuddy_v3.md `STATUS KEGIATAN` section lists `Overdue: do
 | Add lab result | "Tambah Hasil Lab" | Primary button in Lab sub-tab, pinned above list |
 | Save manual lab entry | "Simpan Catatan Lab" | Primary button in ManualLabForm (inside TambahHasilLabSheet) |
 | Save document upload | "Unggah Dokumen" | Primary button in UploadLabForm (inside TambahHasilLabSheet) |
-| Archive lab result | "Arsipkan" | Neutral secondary button in ArchiveLabConfirm dialog |
+| Archive lab result | "Arsipkan Hasil Lab" | Neutral secondary button in ArchiveLabConfirm dialog |
 
 ### Empty States
 
@@ -206,7 +215,7 @@ Lab results cannot be permanently deleted (D-08). Archive is the only removal ac
 
 | Action | Dialog Title | Body | Cancel | Confirm |
 |--------|-------------|------|--------|---------|
-| Archive lab result | "Arsipkan Hasil Lab?" | "Hasil lab ini akan disembunyikan dari daftar utama. Kamu bisa melihatnya kembali di tampilan Arsip." | "Batal" | "Arsipkan" (secondary button, `#2a9d8f` border and text — NOT destructive red) |
+| Archive lab result | "Arsipkan Hasil Lab?" | "Hasil lab ini akan disembunyikan dari daftar utama. Kamu bisa melihatnya kembali di tampilan Arsip." | "Batal" | "Arsipkan Hasil Lab" (secondary button, `#2a9d8f` border and text — NOT destructive red) |
 
 **Note:** No permanent delete confirmation exists in Phase 3 — D-08 prohibits hard delete. If a user asks how to permanently delete, show a neutral informational message: "Hasil lab tidak dapat dihapus secara permanen untuk menjaga riwayat kesehatan kamu."
 
@@ -370,6 +379,8 @@ Right:
 
 ### Screen 2: Catatan → Aktivitas sub-tab
 
+**Primary visual anchor:** The "Mulai Kegiatan" primary button (teal `#2a9d8f`, full-width or right-aligned, 44px height) pinned at the top of the content area. This is the single most prominent element on the screen when no activity is active. When an activity is in progress, the amber status badge ("Berlangsung" / "Masih aktif · X menit lebih") in the topmost `ActivityItem` takes over as the visual focal point — teal steps back and amber surfaces become dominant.
+
 **catatan/page.tsx change:** Set `{ id: "aktivitas", label: "Aktivitas", enabled: true }`.
 
 **Page layout (Aktivitas content area):**
@@ -529,6 +540,8 @@ Buttons (margin-top: 16px, stacked):
 
 ### Screen 5: Catatan → Lab sub-tab
 
+**Primary visual anchor:** The "Tambah Hasil Lab" primary button (teal `#2a9d8f`, full-width or right-aligned, 44px height) at the top of the content area when the list is empty. When lab results exist, the `LabTrendChart` card (white card with teal line chart) becomes the dominant visual element — it sits below the result list and draws the eye via the contrasting teal stroke against the white card background. The parameter selector dropdown directly above the chart is the primary interactive control on this screen.
+
 **catatan/page.tsx change:** Set `{ id: "lab", label: "Lab", enabled: true }`.
 
 **Page layout (Lab content area):**
@@ -572,6 +585,7 @@ Center — flex-1:
 
 Right — archive action:
   Archive icon button: Archive (Lucide 16px, color #cfe8e4)
+  aria-label="Arsipkan hasil lab"  ← required; button has no visible text label
   Touch target: 44×44px (padded hit area)
   onClick → open ArchiveLabConfirm dialog
 ```
@@ -764,7 +778,7 @@ AlertDialogContent:
   AlertDialogFooter:
     AlertDialogCancel: "Batal"
       bg: transparent, border: 0.5px #cfe8e4, text: #7a8c8a, radius: 20px
-    AlertDialogAction: "Arsipkan"
+    AlertDialogAction: "Arsipkan Hasil Lab"
       bg: transparent, border: 0.5px #2a9d8f, text: #2a9d8f, radius: 20px
       (NOT bg #d4183d — this is soft delete, not destructive)
       onClick → PATCH /api/lab-results/{id}/archive → close dialog → list refreshes
