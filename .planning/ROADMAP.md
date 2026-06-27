@@ -14,7 +14,7 @@ KidneyBuddy ships as six vertical-MVP phases, each delivering a complete, demoab
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation, Auth & Onboarding** - Patients and caregivers can register, log in securely, and complete therapy-method-aware onboarding in under 5 minutes
-- [ ] **Phase 2: Fluid & Medication Tracking with Reminders** - Patients install KidneyBuddy as a working PWA and never miss logging fluid or taking medication without a reliable, multi-device, modality-aware push reminder catching them, on a UI shell that's fully responsive across mobile/tablet/desktop
+- [x] **Phase 2: Fluid & Medication Tracking with Reminders** - Patients install KidneyBuddy as a working PWA and never miss logging fluid or taking medication without a reliable, multi-device, modality-aware push reminder catching them, on a UI shell that's fully responsive across mobile/tablet/desktop
 - [ ] **Phase 3: Activity Logging & Lab Results** - Patients can log daily activities with positive framing and track lab results with trend visualization over time
 - [ ] **Phase 4: Caregiver Dashboard & Doctor Reports** - Caregivers see an identical real-time view of patient data, and patients can export a doctor-ready visit report
 - [ ] **Phase 5: AI Insights & Anomaly Detection** - Patients receive calm, disclaimer-safe AI narrative summaries and trend insights, and are reliably warned of clinically meaningful anomalies without alert fatigue
