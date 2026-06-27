@@ -1,4 +1,4 @@
-import { eq, and, lte, sql } from "drizzle-orm";
+import { eq, and, lte, sql, isNull, or, lt } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { reminderSchedule } from "../db/schema/reminderSchedule.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -124,6 +124,54 @@ export async function remove(id: string, userId: string): Promise<boolean> {
  * Called when the user's therapy method changes (REMIND-07).
  * Only targets the specified jenis — medication (obat) reminders are NEVER touched.
  */
+/**
+ * Find all active reminders due at the given HH:mm on the given Indonesian day name.
+ * Guards against duplicate dispatch: last_notification_sent_at must be NULL or older than 90s.
+ * Used by dispatchDueReminders every minute.
+ */
+export async function findDueReminders(
+  currentTime: string,  // "HH:mm"
+  dayName: string,      // Indonesian day name e.g. "Senin"
+): Promise<ReminderSchedule[]> {
+  const cutoff = new Date(Date.now() - 90 * 1000);
+  return db
+    .select()
+    .from(reminderSchedule)
+    .where(
+      and(
+        eq(reminderSchedule.aktif, true),
+        eq(reminderSchedule.jamPengingat, currentTime),
+        // jsonb array contains the current day name
+        sql`${reminderSchedule.hariAktif}::jsonb @> ${JSON.stringify([dayName])}::jsonb`,
+        // dedup guard: null or older than 90s
+        or(
+          isNull(reminderSchedule.lastNotificationSentAt),
+          lt(reminderSchedule.lastNotificationSentAt, cutoff),
+        ),
+      ),
+    );
+}
+
+/**
+ * Mark last_notification_sent_at = now and reset follow_up_sent to false (new dispatch cycle).
+ */
+export async function markDispatched(id: string): Promise<void> {
+  await db
+    .update(reminderSchedule)
+    .set({ lastNotificationSentAt: new Date(), followUpSent: false })
+    .where(eq(reminderSchedule.id, id as any));
+}
+
+/**
+ * Mark follow_up_sent = true so exactly one follow-up is sent per missed dose.
+ */
+export async function markFollowUpSent(id: string): Promise<void> {
+  await db
+    .update(reminderSchedule)
+    .set({ followUpSent: true })
+    .where(eq(reminderSchedule.id, id as any));
+}
+
 export async function deactivateTherapySpecific(
   userId: string,
   jenisToDeactivate: string,
