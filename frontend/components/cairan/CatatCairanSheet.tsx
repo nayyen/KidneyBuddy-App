@@ -42,7 +42,7 @@ export default function CatatCairanSheet({
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetContent
           side="bottom"
-          className="max-h-[92dvh] overflow-y-auto rounded-t-2xl"
+          className="max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:max-w-md sm:mx-auto sm:rounded-2xl"
         >
           <SheetHeader className="pb-2">
             <SheetTitle className="font-heading text-base font-bold text-foreground text-left">
