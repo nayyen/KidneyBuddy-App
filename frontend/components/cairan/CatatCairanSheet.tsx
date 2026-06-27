@@ -42,15 +42,15 @@ export default function CatatCairanSheet({
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetContent
           side="bottom"
-          className="max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:max-w-md sm:mx-auto sm:rounded-2xl"
+          className="max-h-[92dvh] rounded-t-2xl sm:max-w-md sm:rounded-2xl sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-h-[85dvh]"
         >
-          <SheetHeader className="pb-2 sm:px-6 sm:pt-5 sm:pb-3">
+          <SheetHeader className="pb-2 sm:px-6 sm:pt-5 sm:pb-3 shrink-0">
             <SheetTitle className="font-heading text-base font-bold text-foreground text-left">
               Catat Cairan
             </SheetTitle>
           </SheetHeader>
 
-          <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+          <div className="pl-4 pb-4 pr-2 sm:pl-6 sm:pb-6 sm:pr-4 overflow-y-auto flex-1 min-h-0">
             <CatatCairanForm
               accessToken={accessToken}
               metodeTerapiAktif={metodeTerapiAktif}

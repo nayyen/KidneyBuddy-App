@@ -13,6 +13,7 @@
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef } from "react";
+import { toast } from "sonner";
 import { authFetch } from "@/lib/api";
 import {
   createObatFormSchema,
@@ -69,37 +70,53 @@ export default function MedicationReminderForm({
   };
 
   const onSubmit: SubmitHandler<CreateObatFormData> = async (data) => {
-    // Build multipart FormData — multer expects foto_obat field
-    const fd = new FormData();
-    fd.append("jenis", "obat");
-    fd.append("nama", data.nama);
-    fd.append("dosis", data.dosis);
-    fd.append("jenisObat", data.jenisObat);
-    if (data.catatanWaktu) fd.append("catatanWaktu", data.catatanWaktu);
-    // hariAktif is an array — append each item separately (backend reads req.body.hariAktif)
-    data.hariAktif.forEach((day) => fd.append("hariAktif", day));
-    fd.append("jamPengingat", data.jamPengingat);
-    if (data.fotoObat instanceof File) {
-      fd.append("foto_obat", data.fotoObat);
+    try {
+      const fd = new FormData();
+      fd.append("jenis", "obat");
+      fd.append("nama", data.nama);
+      fd.append("dosis", data.dosis);
+      fd.append("jenisObat", data.jenisObat);
+      if (data.catatanWaktu) fd.append("catatanWaktu", data.catatanWaktu);
+      data.hariAktif.forEach((day) => fd.append("hariAktif", day));
+      fd.append("jamPengingat", data.jamPengingat);
+      if (data.fotoObat instanceof File) {
+        fd.append("foto_obat", data.fotoObat);
+      }
+
+      // Debug: log payload before fetch
+      const debugPayload: Record<string, unknown> = {};
+      fd.forEach((val, key) => {
+        if (debugPayload[key] !== undefined) {
+          debugPayload[key] = Array.isArray(debugPayload[key])
+            ? [...(debugPayload[key] as unknown[]), val]
+            : [debugPayload[key], val];
+        } else {
+          debugPayload[key] = val;
+        }
+      });
+      console.log("[MedicationReminderForm] payload →", debugPayload);
+
+      const res = await fetch(`${API_BASE}/api/reminders`, {
+        method: "POST",
+        credentials: "include",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: fd,
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        const msg = body?.error?.message ?? `Gagal menyimpan pengingat (${res.status})`;
+        toast.error(msg);
+        return;
+      }
+
+      toast.success("Pengingat berhasil disimpan");
+      reset();
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      onSuccess?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan pengingat");
     }
-
-    // Use native fetch for multipart (authFetch sets Content-Type: application/json)
-    const res = await fetch(`${API_BASE}/api/reminders`, {
-      method: "POST",
-      credentials: "include",
-      headers: { Authorization: `Bearer ${accessToken}` },
-      body: fd,
-    });
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      const msg = body?.error?.message ?? `Gagal menyimpan pengingat (${res.status})`;
-      throw new Error(msg);
-    }
-
-    reset();
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    onSuccess?.();
   };
 
   return (

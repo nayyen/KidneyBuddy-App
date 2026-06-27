@@ -15,9 +15,13 @@ import * as medicationLogRepository from "../repositories/medicationLog.reposito
 
 // ─── Shared base validation ────────────────────────────────────────────────
 
-const hariAktifSchema = z
-  .array(z.string())
-  .min(1, "Pilih minimal satu hari aktif");
+// multer sends a single value as a plain string (not array) when only one item is appended.
+// z.preprocess coerces it to array so z.array().min(1) validates correctly.
+const hariAktifSchema = z.preprocess(
+  (val) =>
+    Array.isArray(val) ? val : val != null && val !== "" ? [val] : [],
+  z.array(z.string()).min(1, "Pilih minimal satu hari aktif"),
+);
 
 const jamPengingatSchema = z
   .string()

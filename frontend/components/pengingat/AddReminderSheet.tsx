@@ -77,9 +77,9 @@ export default function AddReminderSheet({
     >
       <SheetContent
         side="bottom"
-        className="max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:max-w-md sm:mx-auto sm:rounded-2xl"
+        className="max-h-[92dvh] rounded-t-2xl sm:max-w-md sm:rounded-2xl sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-h-[85dvh]"
       >
-        <SheetHeader className="pb-3 sm:px-6 sm:pt-5 sm:pb-3">
+        <SheetHeader className="pb-3 sm:px-6 sm:pt-5 sm:pb-3 shrink-0">
           <SheetTitle className="font-heading text-base font-bold text-foreground text-left">
             {selectedType
               ? `Pengingat ${TYPE_LABELS[selectedType]}`
@@ -87,7 +87,7 @@ export default function AddReminderSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+        <div className="pl-4 pb-4 pr-2 sm:pl-6 sm:pb-6 sm:pr-4 overflow-y-auto flex-1 min-h-0">
           {/* Type selection — shown when no type chosen yet */}
           {!selectedType && (
             <div className="space-y-2">
