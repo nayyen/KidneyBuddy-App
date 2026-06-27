@@ -45,7 +45,6 @@ ALTER TABLE "reminder_schedule" ADD COLUMN "foto_obat" text;--> statement-breakp
 ALTER TABLE "reminder_schedule" ADD COLUMN "konsentrasi_capd" text;--> statement-breakpoint
 ALTER TABLE "reminder_schedule" ADD COLUMN "follow_up_sent" boolean DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE "reminder_schedule" ADD COLUMN "last_notification_sent_at" timestamp;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "informed_consent" boolean DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE "fluid_log" ADD CONSTRAINT "fluid_log_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "medication_log" ADD CONSTRAINT "medication_log_user_id_users_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "medication_log" ADD CONSTRAINT "medication_log_reminder_id_reminder_schedule_id_fk" FOREIGN KEY ("reminder_id") REFERENCES "public"."reminder_schedule"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
