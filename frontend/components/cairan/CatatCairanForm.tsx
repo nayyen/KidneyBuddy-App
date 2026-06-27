@@ -20,6 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { authFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
 import {
   createFluidSchema,
   type CreateFluidFormData,
@@ -30,6 +31,7 @@ import {
 } from "@/lib/validators/fluid.schema";
 import {
   enqueue,
+  getQueue,
   setAccessTokenForQueue,
   registerOnlineListener,
   flush,
@@ -94,6 +96,7 @@ export default function CatatCairanForm({
       if (!navigator.onLine) {
         // Store offline
         await enqueue(data);
+        const q = await getQueue();
         toast("Catatan disimpan dan akan disinkronkan saat kembali online", {
           duration: 4000,
         });
@@ -102,7 +105,15 @@ export default function CatatCairanForm({
         return;
       }
 
-      await authFetch("/api/fluid", accessToken, {
+      // Refresh token if expired
+      let token = accessToken;
+      try {
+        const refreshed = await apiFetch<{ accessToken: string }>("/api/auth/refresh", { method: "POST" });
+        token = refreshed.accessToken;
+      } catch {
+        // Refresh failed — keep existing token
+      }
+      await authFetch("/api/fluid", token, {
         method: "POST",
         body: JSON.stringify(data),
       });

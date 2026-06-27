@@ -49,6 +49,50 @@ export async function findByIdAndUser(
 }
 
 /**
+ * Get all active 'obat' reminders for a user (for JS-side hariAktif filtering).
+ */
+export async function findActiveObatByUser(userId: string): Promise<ReminderSchedule[]> {
+  return db
+    .select()
+    .from(reminderSchedule)
+    .where(
+      and(
+        eq(reminderSchedule.userId, userId as any),
+        eq(reminderSchedule.jenis, "obat"),
+        eq(reminderSchedule.aktif, true),
+      ),
+    );
+}
+
+/**
+ * Find today's active 'obat' reminders that do NOT yet have a medication_log entry
+ * for today. This ensures the ObatCard shows scheduled reminders, not just dispatched ones.
+ */
+export async function findTodayObatReminders(
+  userId: string,
+  todayDayName: string,
+): Promise<ReminderSchedule[]> {
+  // Use raw SQL for jsonb containment check (? operator)
+  const rows = await db.execute(
+    sql`
+      SELECT * FROM reminder_schedule
+      WHERE user_id = ${userId}
+        AND jenis = 'obat'
+        AND aktif = true
+          AND jsonb_exists(hari_aktif, ${todayDayName})
+        AND id NOT IN (
+          SELECT reminder_id FROM medication_log
+          WHERE user_id = ${userId}
+            AND waktu_pengingat >= CURRENT_DATE
+            AND waktu_pengingat < CURRENT_DATE + INTERVAL '1 day'
+        )
+      ORDER BY jam_pengingat ASC
+    `,
+  );
+  return (rows as any).rows as ReminderSchedule[];
+}
+
+/**
  * Find the next upcoming active reminder for a user based on current time.
  * Compares jam_pengingat (HH:mm) against the current time-of-day in Jakarta time.
  * Returns the soonest reminder today, or the first reminder tomorrow if none today.

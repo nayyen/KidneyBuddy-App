@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import FluidLogList from "@/components/catatan/FluidLogList";
 import MedicationLogList from "@/components/catatan/MedicationLogList";
@@ -68,7 +67,6 @@ export default function CatatanPage() {
 
   return (
     <>
-      <Toaster />
       <div className="space-y-4">
         {/* Sub-tab pill row */}
         <div className="flex gap-2 overflow-x-auto pb-1">

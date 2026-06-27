@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import ReminderList from "@/components/pengingat/ReminderList";
 import AddReminderSheet from "@/components/pengingat/AddReminderSheet";
-import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
 export default function PengingatPage() {
@@ -40,7 +39,6 @@ export default function PengingatPage() {
 
   return (
     <>
-      <Toaster position="bottom-center" />
       <div className="space-y-4">
         {/* Page header */}
         <div className="flex items-center justify-between">

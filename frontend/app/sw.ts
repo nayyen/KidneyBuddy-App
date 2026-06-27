@@ -3,7 +3,8 @@
 //
 // self.__SW_MANIFEST is replaced at build time by esbuild's define option
 // (injectionPoint: "self.__SW_MANIFEST") with the precache manifest array.
-import { defaultCache } from "@serwist/turbopack/worker";
+// Using Serwist for precaching only — runtime caching of static assets.
+// API calls to port 4000 must NEVER be intercepted by the service worker.
 import { Serwist, type PrecacheEntry } from "serwist";
 
 // ─── Local type definitions for the ServiceWorker environment ─────────────────
@@ -45,10 +46,10 @@ interface SwNotificationEvent extends SwExtendableEvent {
   readonly action: string;
 }
 
-// API_BASE is replaced at build time by Next.js / turbopack's process.env define.
-// In the service worker context there is no window.location, so we must use an
-// absolute URL pointing to the Railway backend — never the Vercel frontend origin.
-const API_BASE: string = process.env.NEXT_PUBLIC_API_URL ?? "";
+// HARDCODED — no process.env (undefined in SW context).
+// In dev: http://localhost:4000. In production, update this before deploy.
+// The service worker MUST NOT cache or intercept requests to this URL.
+const API_BASE = "http://localhost:4000";
 
 // sw.ts runs in the ServiceWorkerGlobalScope, not Window. TypeScript's dom lib
 // types `self` as `Window & typeof globalThis`. Use `unknown` as intermediate
@@ -70,7 +71,23 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  // Only cache same-origin same-origin static assets — NEVER cache API calls.
+  // defaultCache includes NetworkFirst for navigation which can interfere with
+  // cross-origin fetch() calls to port 4000. Use a minimal allowlist instead.
+  runtimeCaching: [
+    {
+      urlPattern: ({ request }) =>
+        request.destination === "style" ||
+        request.destination === "script" ||
+        request.destination === "font" ||
+        request.destination === "image",
+      handler: "CacheFirst",
+      options: {
+        cacheName: "static-assets",
+        expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
+      },
+    },
+  ],
 });
 
 serwist.addEventListeners();

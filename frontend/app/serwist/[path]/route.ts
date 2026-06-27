@@ -12,4 +12,10 @@ export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } =
   createSerwistRoute({
     swSrc: path.join(process.cwd(), "app/sw.ts"),
     useNativeEsbuild: true,
+    // Define process.env at build time for the SW context (no runtime process object)
+    define: {
+      "process.env.NEXT_PUBLIC_API_URL": JSON.stringify(
+        process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
+      ),
+    },
   });

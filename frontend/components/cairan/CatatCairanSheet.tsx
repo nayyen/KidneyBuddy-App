@@ -9,7 +9,6 @@
  * Receives isOpen/setIsOpen from AppShell so FAB and Sidebar can both control it.
  */
 
-import { Toaster } from "@/components/ui/sonner";
 import {
   Sheet,
   SheetContent,
@@ -38,7 +37,6 @@ export default function CatatCairanSheet({
 
   return (
     <>
-      <Toaster position="bottom-center" />
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
         <SheetContent
           side="bottom"

@@ -6,6 +6,7 @@
  */
 import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import * as medicationLogRepository from "../repositories/medicationLog.repository.js";
+import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import type { MedicationLog } from "../repositories/medicationLog.repository.js";
 import { _confirmCore } from "./reminders.service.js";
 
@@ -41,5 +42,36 @@ export async function getTodayUnconfirmed(userId: string): Promise<MedicationLog
  * Used by GET /api/medication-log/today.
  */
 export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
-  return medicationLogRepository.findTodayByUser(userId);
+  // Get existing medication log entries
+  const logs = await medicationLogRepository.findTodayByUser(userId);
+
+  // Get today's WIB day name
+  const INDONESIAN_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const jakartaNow = new Date(Date.now() + 7 * 3600 * 1000);
+  const todayDayName = INDONESIAN_DAYS[jakartaNow.getUTCDay()];
+  const todayDayLower = todayDayName.toLowerCase();
+
+  // Get scheduled reminders for today that don't have a log entry yet
+  // Use findActiveObatByUser + JS filter instead of raw SQL (avoids jsonb operator issues)
+  const allActive = await reminderScheduleRepository.findActiveObatByUser(userId);
+  const scheduled = allActive.filter((r) => {
+    const hariAktif = (r.hariAktif as string[]) ?? [];
+    return hariAktif.includes(todayDayLower);
+  });
+
+  // Convert scheduled reminders to MedicationLog-like shape
+  const scheduledAsLogs: MedicationLog[] = scheduled.map((r) => ({
+    id: `scheduled-${r.id}`,
+    userId: r.userId,
+    reminderId: r.id,
+    namaObat: r.nama,
+    dosis: r.dosis,
+    jenisObat: r.jenisObat,
+    status: "tertunda" as const,
+    waktuPengingat: new Date(),
+    confirmedAt: null,
+  }));
+
+  // Merge: scheduled first (not yet dispatched), then logs (already dispatched or confirmed)
+  return [...scheduledAsLogs, ...logs];
 }
