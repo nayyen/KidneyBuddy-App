@@ -103,7 +103,7 @@ export default function MedicationReminderForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
       {/* ── Nama Obat ── */}
       <div>
         <label

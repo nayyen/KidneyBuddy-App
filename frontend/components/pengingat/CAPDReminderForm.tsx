@@ -73,7 +73,7 @@ export default function CAPDReminderForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
       {/* ── Nama Pengingat Terapi ── */}
       <div>
         <label

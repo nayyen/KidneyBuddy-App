@@ -77,9 +77,9 @@ export default function AddReminderSheet({
     >
       <SheetContent
         side="bottom"
-        className="max-h-[92dvh] overflow-y-auto rounded-t-2xl"
+        className="max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:max-w-md sm:mx-auto sm:rounded-2xl"
       >
-        <SheetHeader className="pb-3">
+        <SheetHeader className="pb-3 sm:px-6 sm:pt-5 sm:pb-3">
           <SheetTitle className="font-heading text-base font-bold text-foreground text-left">
             {selectedType
               ? `Pengingat ${TYPE_LABELS[selectedType]}`
@@ -87,105 +87,107 @@ export default function AddReminderSheet({
           </SheetTitle>
         </SheetHeader>
 
-        {/* Type selection — shown when no type chosen yet */}
-        {!selectedType && (
-          <div className="space-y-2 pb-4">
-            <p
-              className="font-sans font-medium mb-4"
-              style={{ fontSize: 12, color: "#7a8c8a" }}
-            >
-              Pilih jenis pengingat yang ingin ditambahkan:
-            </p>
-            {availableTypes.map((type) => (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className="w-full flex items-center gap-3 rounded-[13px] transition-colors"
-                style={{
-                  padding: "12px 14px",
-                  border: "0.5px solid #f0faf9",
-                  backgroundColor: "#ffffff",
-                  cursor: "pointer",
-                  textAlign: "left",
-                }}
+        <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+          {/* Type selection — shown when no type chosen yet */}
+          {!selectedType && (
+            <div className="space-y-2">
+              <p
+                className="font-sans font-medium mb-4"
+                style={{ fontSize: 12, color: "#7a8c8a" }}
               >
-                {/* Type badge */}
-                <span
-                  className="font-sans font-medium shrink-0"
+                Pilih jenis pengingat yang ingin ditambahkan:
+              </p>
+              {availableTypes.map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedType(type)}
+                  className="w-full flex items-center gap-3 rounded-[13px] transition-colors"
                   style={{
-                    fontSize: 10,
-                    paddingLeft: 8,
-                    paddingRight: 8,
-                    paddingTop: 3,
-                    paddingBottom: 3,
-                    borderRadius: 6,
-                    backgroundColor:
-                      type === "obat"
-                        ? "#f0faf9"
-                        : type === "capd"
-                        ? "#f0faf9"
-                        : "#fdf3e3",
-                    color:
-                      type === "obat"
-                        ? "#2a9d8f"
-                        : type === "capd"
-                        ? "#2a9d8f"
-                        : "#7a4c0a",
+                    padding: "12px 14px",
+                    border: "0.5px solid #f0faf9",
+                    backgroundColor: "#ffffff",
+                    cursor: "pointer",
+                    textAlign: "left",
                   }}
                 >
-                  {TYPE_LABELS[type]}
-                </span>
-                <div>
-                  <p
-                    className="font-sans font-medium"
-                    style={{ fontSize: 12, color: "#1a2e2c" }}
+                  {/* Type badge */}
+                  <span
+                    className="font-sans font-medium shrink-0"
+                    style={{
+                      fontSize: 10,
+                      paddingLeft: 8,
+                      paddingRight: 8,
+                      paddingTop: 3,
+                      paddingBottom: 3,
+                      borderRadius: 6,
+                      backgroundColor:
+                        type === "obat"
+                          ? "#f0faf9"
+                          : type === "capd"
+                          ? "#f0faf9"
+                          : "#fdf3e3",
+                      color:
+                        type === "obat"
+                          ? "#2a9d8f"
+                          : type === "capd"
+                          ? "#2a9d8f"
+                          : "#7a4c0a",
+                    }}
                   >
-                    {type === "obat"
-                      ? "Pengingat Obat"
-                      : type === "capd"
-                      ? "Exchange CAPD"
-                      : "Jadwal Hemodialisis"}
-                  </p>
-                  <p
-                    className="font-sans"
-                    style={{ fontSize: 10, color: "#7a8c8a", marginTop: 2 }}
-                  >
-                    {type === "obat"
-                      ? "Atur dosis, cara minum, dan jadwal harian"
-                      : type === "capd"
-                      ? "Atur jadwal penggantian cairan CAPD"
-                      : "Atur jadwal sesi dialisis mingguan"}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
+                    {TYPE_LABELS[type]}
+                  </span>
+                  <div>
+                    <p
+                      className="font-sans font-medium"
+                      style={{ fontSize: 12, color: "#1a2e2c" }}
+                    >
+                      {type === "obat"
+                        ? "Pengingat Obat"
+                        : type === "capd"
+                        ? "Exchange CAPD"
+                        : "Jadwal Hemodialisis"}
+                    </p>
+                    <p
+                      className="font-sans"
+                      style={{ fontSize: 10, color: "#7a8c8a", marginTop: 2 }}
+                    >
+                      {type === "obat"
+                        ? "Atur dosis, cara minum, dan jadwal harian"
+                        : type === "capd"
+                        ? "Atur jadwal penggantian cairan CAPD"
+                        : "Atur jadwal sesi dialisis mingguan"}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
 
-        {/* Form — shown after type selected */}
-        {selectedType === "obat" && (
-          <MedicationReminderForm
-            accessToken={accessToken}
-            onSuccess={handleSuccess}
-            onCancel={() => setSelectedType(null)}
-          />
-        )}
+          {/* Forms — shown after type selected */}
+          {selectedType === "obat" && (
+            <MedicationReminderForm
+              accessToken={accessToken}
+              onSuccess={handleSuccess}
+              onCancel={() => setSelectedType(null)}
+            />
+          )}
 
-        {selectedType === "capd" && (
-          <CAPDReminderForm
-            accessToken={accessToken}
-            onSuccess={handleSuccess}
-            onCancel={() => setSelectedType(null)}
-          />
-        )}
+          {selectedType === "capd" && (
+            <CAPDReminderForm
+              accessToken={accessToken}
+              onSuccess={handleSuccess}
+              onCancel={() => setSelectedType(null)}
+            />
+          )}
 
-        {selectedType === "hd" && (
-          <HDReminderForm
-            accessToken={accessToken}
-            onSuccess={handleSuccess}
-            onCancel={() => setSelectedType(null)}
-          />
-        )}
+          {selectedType === "hd" && (
+            <HDReminderForm
+              accessToken={accessToken}
+              onSuccess={handleSuccess}
+              onCancel={() => setSelectedType(null)}
+            />
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );
