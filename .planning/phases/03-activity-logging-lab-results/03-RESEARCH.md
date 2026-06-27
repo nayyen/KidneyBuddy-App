@@ -826,22 +826,19 @@ const TABS: Tab[] = [
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `catatan_perasaan` in `daily_activities` be encrypted?**
    - What we know: CLAUDE.md explicitly lists `fluid_log, medication_log, lab_result` as encrypted tables. `daily_activities` is not listed.
-   - What's unclear: Whether the spirit of the requirement covers all user-entered free text about health
-   - Recommendation: Encrypt as a conservative default (uses the same `encrypt()` helper already in place, negligible overhead); planner can downgrade if overhead is a concern
+   - RESOLVED: Encrypt `catatan_perasaan` as a conservative default using the existing `encrypt()` helper — plan 03-01 applies AES-256-GCM encryption to this column, consistent with all other user-entered health text.
 
 2. **Does `backend/src/app.ts` already serve `/app/uploads/` as a static route?**
-   - What we know: medication photo uploads are stored there, but how they are served to frontend is not clear from the code read
-   - What's unclear: Whether medication photos are currently accessible at a URL, or are served differently
-   - Recommendation: Planner must check if `app.use("/uploads", express.static(...))` exists in `app.ts` or if a dedicated file-serving route exists. If not, it must be added as part of this phase.
+   - What we know: medication photo uploads are stored there, but how they are served to frontend is not clear from the code read.
+   - RESOLVED: Plan 03-05 Task 1 explicitly adds `app.use("/uploads", express.static(path.join(process.cwd(), "uploads")))` to `app.ts` if not already present, covering both medication photos and lab files.
 
 3. **What is the `GET /api/activities` list scope — just today, or recent history?**
    - What we know: CONTEXT.md D-02 says "detail view and history for activities lives in Catatan/Aktivitas sub-tab"; UI-SPEC says "sorted: active activities first, then by most recent descending" with "Group label 'Hari ini'"
-   - What's unclear: Whether the list endpoint should return only today's activities, or a paginated history (last 7 days, etc.)
-   - Recommendation: Return today's activities by default (`tanggal = today`), plus optional `?date=YYYY-MM-DD` param for history navigation. Keeps the endpoint simple and consistent with `/api/fluid?date=...` pattern.
+   - RESOLVED: Plan 03-01 Task 3 returns today's activities by default (`tanggal = today in WIB`) with an optional `?date=YYYY-MM-DD` param for history navigation, consistent with the `/api/fluid?date=...` pattern.
 
 ---
 
