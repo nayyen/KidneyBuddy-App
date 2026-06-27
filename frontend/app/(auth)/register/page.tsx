@@ -25,7 +25,7 @@ export default function RegisterPage() {
         body: JSON.stringify(data),
       });
       // Refresh cookie is set by backend — navigate to dashboard, useAuth will restore session
-      router.push("/dashboard");
+      router.push("/beranda");
     } catch (err: any) {
       if (err?.code === "EMAIL_EXISTS") {
         setError("email", { message: "Email sudah terdaftar" });

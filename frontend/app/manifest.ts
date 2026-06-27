@@ -9,7 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "KidneyBuddy",
     short_name: "KidneyBuddy",
     description: "Pendamping harian pasien gagal ginjal kronis di Indonesia",
-    start_url: "/dashboard",
+    start_url: "/beranda",
     display: "standalone",
     background_color: "#fdf9f3",
     theme_color: "#2a9d8f",

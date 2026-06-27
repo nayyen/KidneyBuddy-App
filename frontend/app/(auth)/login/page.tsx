@@ -26,7 +26,7 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormData) {
     try {
       const result = await login(data);
-      router.push("/dashboard");
+      router.push("/beranda");
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         if (err.status === 423 && err.extra?.lockedUntil) {

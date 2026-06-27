@@ -7,7 +7,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Beranda", href: "/dashboard", icon: House },
+  { label: "Beranda", href: "/beranda", icon: House },
   { label: "Catatan", href: "/catatan", icon: ClipboardPen },
   { label: "Pengingat", href: "/pengingat", icon: Bell },
   { label: "Edukasi", href: "/edukasi", icon: BookOpen },

@@ -82,7 +82,7 @@ export default function OnboardingPage() {
             return;
           }
           // Fully complete → redirect to dashboard
-          router.replace("/dashboard");
+          router.replace("/beranda");
           return;
         }
         setCurrentStep(lastStep + 1); // step 0 → show step 1, step 1 → show step 2, etc.

@@ -11,7 +11,7 @@ export default function OnboardingSuccess() {
     // Stagger entrance animation
     const t1 = setTimeout(() => setShow(true), 100);
     // Auto-redirect after 2.5s
-    const t2 = setTimeout(() => router.replace("/dashboard"), 2500);
+    const t2 = setTimeout(() => router.replace("/beranda"), 2500);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
