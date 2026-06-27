@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import FluidLogList from "@/components/catatan/FluidLogList";
+import MedicationLogList from "@/components/catatan/MedicationLogList";
 
 type TabId = "cairan" | "obat" | "aktivitas" | "lab";
 
@@ -113,21 +114,8 @@ export default function CatatanPage() {
           />
         )}
 
-        {activeTab === "obat" && (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-            <h2
-              className="font-heading font-bold"
-              style={{ fontSize: 14, color: "#1a2e2c" }}
-            >
-              Belum ada log obat hari ini
-            </h2>
-            <p
-              className="font-sans font-medium max-w-xs"
-              style={{ fontSize: 12, color: "#7a8c8a" }}
-            >
-              Konfirmasi dosis dari notifikasi pengingat akan muncul di sini.
-            </p>
-          </div>
+        {activeTab === "obat" && accessToken && (
+          <MedicationLogList accessToken={accessToken} />
         )}
       </div>
     </>
