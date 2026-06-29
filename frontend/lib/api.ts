@@ -41,17 +41,59 @@ export async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
+// Module-level promise to prevent concurrent refresh calls
+let _refreshPromise: Promise<string | null> | null = null;
+
+/**
+ * Try to refresh the access token by calling POST /api/auth/refresh.
+ * Uses httpOnly cookie (sent automatically with credentials: "include").
+ */
+async function tryRefreshToken(): Promise<string | null> {
+  if (_refreshPromise) return _refreshPromise;
+  _refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) return null;
+      const body = await res.json();
+      return body?.accessToken ?? null;
+    } catch {
+      return null;
+    } finally {
+      _refreshPromise = null;
+    }
+  })();
+  return _refreshPromise;
+}
+
 /** Convenience helper — calls apiFetch with an Authorization header. */
 export async function authFetch<T>(
   path: string,
   accessToken: string,
   init?: RequestInit,
 ): Promise<T> {
-  return apiFetch<T>(path, {
-    ...init,
-    headers: {
-      ...init?.headers,
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const doFetch = (token: string) =>
+    apiFetch<T>(path, {
+      ...init,
+      headers: {
+        ...init?.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+  try {
+    return await doFetch(accessToken);
+  } catch (err) {
+    // If 401, try refreshing the token and retry once
+    if (err instanceof ApiError && err.status === 401) {
+      const newToken = await tryRefreshToken();
+      if (newToken) {
+        return doFetch(newToken);
+      }
+    }
+    throw err;
+  }
 }

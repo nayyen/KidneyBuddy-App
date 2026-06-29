@@ -490,6 +490,26 @@
 			"label": "commit-phase2",
 			"type": "shell",
 			"command": "git add -A 2>&1 ; Write-Host 'Staged all files' ; git commit -m 'Phase 2: Fluid and Medication Tracking with Reminders' -m '- Responsive UI shell (AppShell, BottomNav, Sidebar, FAB) - PWA: Serwist service worker, manifest, push subscription client, iOS gate - AES-256-GCM encryption + VAPID push infrastructure - Fluid tracking: CatatCairanSheet/Form, CAPD effluent alert, offline queue - Daily balance: DeltaCairanCard with real-time calculation - Medication reminders: CRUD API, type-aware forms (Obat/CAPD/HD) - Reminder dispatch: node-cron every minute, WIB timezone, 30-min follow-up - Beranda D-04: ObatCard, PengingatBerikutnyaCard, AiPlaceholderCard - Catatan page: FluidLogList, MedicationLogList with inline confirm - Token refresh mechanism for expired access tokens - Fix: sw.ts process.env crash, SW API intercept, double toast, ObatCard day filter' 2>&1 ; Write-Host '' ; Write-Host 'COMMIT_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "push-phase2",
+			"type": "shell",
+			"command": "git push --set-upstream origin phase/1-foundation-auth-onboarding 2>&1 ; Write-Host '' ; Write-Host 'PUSH_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "create-pr-phase2",
+			"type": "shell",
+			"command": "gh pr create --base main --head phase/1-foundation-auth-onboarding --title 'Phase 2: Fluid and Medication Tracking with Reminders' --body-file .pr_body.md 2>&1 ; Write-Host '' ; Write-Host 'PR_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "update-pr",
+			"type": "shell",
+			"command": "gh pr edit 1 --title 'Phase 1-2: Foundation, Auth, Onboarding + Fluid, Medication, Reminders' --body-file .pr_body.md 2>&1 ; Write-Host '' ; Write-Host 'PR_EXIT:' $LASTEXITCODE"
+		},
+		{
+			"label": "cleanup-phase2",
+			"type": "shell",
+			"command": "Remove-Item .pr_body.md -Force ; Remove-Item tmp_q.sql -Force ; Write-Host 'Cleaned up'"
 		}
 	]
 }

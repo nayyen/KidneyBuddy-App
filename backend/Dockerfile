@@ -17,7 +17,9 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 express
+    adduser --system --uid 1001 express && \
+    mkdir -p /app/uploads/lab-files && \
+    chown -R express:nodejs /app/uploads
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./

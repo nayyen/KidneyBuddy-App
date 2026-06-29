@@ -88,7 +88,25 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. User can view a trend chart of a selected lab parameter over a chosen date range, built from manually entered data
   5. Lab results can be archived but never permanently deleted
 
-**Plans**: TBD
+**Plans**: 6 plans (vertical-MVP slices, two feature verticals)
+
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Activity backend core: daily_activities schema + push + service/routes (start/active/list/complete, encrypted feelings note) (ACTIVITY-01, ACTIVITY-03)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 03-02-PLAN.md — Activity pre-end-time push cron (WIB, reminderSent dedupe, restart-safe) (ACTIVITY-02)
+- [ ] 03-03-PLAN.md — Activity frontend: Beranda module + Aktivitas tab list + start/feelings sheets, amber "Masih aktif" in-app (ACTIVITY-01/02/03)
+- [ ] 03-04-PLAN.md — Lab backend core: lab_results schema + push + manual entry/list/archive (soft-delete, encrypted note) (LAB-02, LAB-04)
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 03-05-PLAN.md — Lab backend: PDF upload (multer + static serve) + JSONB trend/parameters queries (LAB-01, LAB-03)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 03-06-PLAN.md — Lab frontend: recharts trend chart + list/archive + two-tab add sheet, enable Lab tab (LAB-01/02/03/04)
 
 ### Phase 4: Caregiver Dashboard & Doctor Reports
 
@@ -145,7 +163,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation, Auth & Onboarding | 0/5 | Planned | - |
 | 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
-| 3. Activity Logging & Lab Results | 0/TBD | Not started | - |
+| 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/TBD | Not started | - |
 | 5. AI Insights & Anomaly Detection | 0/TBD | Not started | - |
 | 6. Community & Education | 0/TBD | Not started | - |

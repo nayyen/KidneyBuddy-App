@@ -12,6 +12,8 @@ import pushRoutes from "./routes/push.routes.js";
 import fluidRoutes from "./routes/fluid.routes.js";
 import remindersRoutes from "./routes/reminders.routes.js";
 import medicationLogRoutes from "./routes/medicationLog.routes.js";
+import activitiesRoutes from "./routes/activities.routes.js";
+import labResultRoutes from "./routes/labResult.routes.js";
 
 export const app = express();
 
@@ -39,6 +41,8 @@ app.use("/api/push", pushRoutes);
 app.use("/api/fluid", fluidRoutes);
 app.use("/api/reminders", remindersRoutes);
 app.use("/api/medication-log", medicationLogRoutes);
+app.use("/api/activities", activitiesRoutes);
+app.use("/api/lab", labResultRoutes);
 
 // --- Health check ---
 app.get("/api/health", (_req, res) => {

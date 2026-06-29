@@ -9,6 +9,7 @@ import { ensureFreshSubscription } from "@/lib/pushClient";
 import NotificationPermissionBanner from "@/components/push/NotificationPermissionBanner";
 import ChangeTherapyDialog from "./_components/ChangeTherapyDialog";
 import ReplayTutorialButton from "./_components/ReplayTutorialButton";
+import LogoutButton from "@/components/LogoutButton";
 
 interface ProfileData {
   userId: string;
@@ -265,6 +266,11 @@ export default function ProfilePage() {
 
         {/* Replay tutorial */}
         <ReplayTutorialButton />
+
+        {/* Logout */}
+        <div className="pt-2">
+          <LogoutButton />
+        </div>
 
         {/* Change therapy dialog */}
         {profile && (

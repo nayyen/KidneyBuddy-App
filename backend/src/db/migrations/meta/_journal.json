@@ -43,6 +43,20 @@
       "when": 1782527839083,
       "tag": "0005_phase2_fluid_push_medication_reminder_ext",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782585322448,
+      "tag": "0006_even_butterfly",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1782619999523,
+      "tag": "0007_lethal_tigra",
+      "breakpoints": true
     }
   ]
 }
