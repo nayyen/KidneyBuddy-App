@@ -26,7 +26,7 @@ created: 2026-06-29
 | Preset | Manual CSS variables in `frontend/app/globals.css` — no shadcn preset string | globals.css (verified) |
 | Component library | Radix UI (via shadcn) | components.json + installed packages |
 | Icon library | `lucide-react` | components.json `iconLibrary: "lucide"` |
-| Font — Heading | Plus Jakarta Sans, weights 700/800 | DESIGN_SYSTEM_KidneyBuddy_v3.md + globals.css `--font-heading` |
+| Font — Heading | Plus Jakarta Sans, weight 700 | DESIGN_SYSTEM_KidneyBuddy_v3.md + globals.css `--font-heading` |
 | Font — Body | DM Sans, weights 400/500 | DESIGN_SYSTEM_KidneyBuddy_v3.md + globals.css `--font-sans` |
 | Charting library | recharts@3.x (already installed from Phase 3) | Phase 3 UI-SPEC |
 
@@ -57,7 +57,7 @@ Inherited from Phases 2 and 3 — no changes.
 |-----------|-----------|------|
 | Date range preset button | height 36px, padding 0 16px | Pill toggle, same as "Tambah" button on Pengingat page |
 | Custom date picker inputs | 100% width each, height 40px | Native `<input type="date">`, matches existing form input style |
-| Medication adherence % display | font-size 28px (PJS 800) | Metric value, matches Delta Cairan card numeric style |
+| Medication adherence % display | font-size 28px (PJS 700) | Metric value, matches Delta Cairan card numeric style |
 | Report section card | same as standard card: bg #ffffff, border 0.5px #f0faf9, radius 14px, padding 16px | — |
 | Doctor note textarea | min-height 96px (4 rows), max-height 200px | Resizable, scrolls internally |
 | Print report container | max-width 800px, margin 0 auto | Screen-only constraint; print ignores max-width |
@@ -71,18 +71,14 @@ Inherited from Phases 2 and 3 — no changes to screen typography.
 
 | Role | Size | Font | Weight | Line Height | Phase 4 Usage |
 |------|------|------|--------|-------------|--------------|
-| Display | 20px | Plus Jakarta Sans | 700 | 1.2 | Adherence percentage number (special: 28px — see below) |
-| Heading | 14px | Plus Jakarta Sans | 700 | 1.25 | Page titles ("Buat Laporan", "Pratinjau Laporan"), section headers in report |
+| Display | 28px | Plus Jakarta Sans | 700 | 1.2 | Adherence percentage metric (medication adherence %) — matches `DeltaCairanCard` metric number pattern |
+| Heading | 14px | Plus Jakarta Sans | 700 | 1.25 | Page titles ("Buat Laporan", "Pratinjau Laporan"), section headers in report, "Laporan Kunjungan Dokter" report title |
 | Body | 12px | DM Sans | 500 | 1.5 | Report data rows, labels, doctor note textarea text, date pickers |
 | Caption | 10px | DM Sans | 500 | 1.4 | Help text, report footnote, section description text, timestamps |
 
-**Exception — Adherence metric:**
-
-The medication adherence percentage uses 28px Plus Jakarta Sans 800 (matches `DeltaCairanCard` metric number pattern). This is the primary metric displayed on the Kepatuhan Obat section and warrants the extra size to give caregivers / doctors an instant read at a glance.
-
 **Weight groups — two weights only (inherited):**
 
-- **Bold group:** Plus Jakarta Sans 700/800 — headings, metric values, report section titles
+- **Bold group:** Plus Jakarta Sans 700 — headings, metric values, report section titles
 - **Regular group:** DM Sans 500 — body text, captions, labels, table cell text
 
 ---
@@ -160,7 +156,7 @@ Base palette inherited from Phases 2 and 3. Phase 4 adds no new color tokens.
 |---------|-------|-----------|
 | Generate report | "Buat Laporan" | Primary button, `/laporan/page.tsx`, full-width on mobile or right-aligned on desktop |
 | Print/save PDF | "Cetak / Simpan PDF" | Primary button, `/laporan/preview/page.tsx`, fixed in page header (screen only) |
-| Back to report setup | "Kembali" | Ghost/secondary button, `/laporan/preview/page.tsx` header (screen only, hidden in print) |
+| Back to report setup | "Kembali ke Laporan" | Ghost/secondary button, `/laporan/preview/page.tsx` header (screen only, hidden in print) |
 
 ### Empty States
 
@@ -223,7 +219,7 @@ Dibuat: [today's date, formatted as "D MMMM YYYY"]
 | Custom date range: end date before start date | "Tanggal akhir harus setelah tanggal mulai" | Inline below "Sampai" date input, `#d4183d` 10px DMS 500 |
 | Custom date range: start date empty when end date filled | "Tanggal mulai wajib diisi" | Inline below "Dari" date input |
 | Custom date range: range > 90 days | "Rentang maksimum adalah 90 hari" | Inline below "Sampai" date input — prevents excessively large report queries |
-| Report API failure | "Gagal memuat data laporan. Periksa koneksi, lalu coba lagi." | Inline error with "Coba Lagi" secondary button, centered in the preview content area |
+| Report API failure | "Gagal memuat data laporan. Periksa koneksi, lalu coba lagi." | Inline error with "Muat Ulang Laporan" secondary button, centered in the preview content area |
 | Doctor note exceeds character limit | "Catatan terlalu panjang (maks. 500 karakter)" | Inline below textarea with character counter `[X/500]` shown at all times |
 
 ### Destructive Actions
@@ -442,7 +438,7 @@ onClick:
 
 **Two rendering contexts:**
 
-1. **Screen context:** Shows the screen header with "Kembali" + "Cetak / Simpan PDF" buttons, then the preview content in a scrollable white card
+1. **Screen context:** Shows the screen header with "Kembali ke Laporan" + "Cetak / Simpan PDF" buttons, then the preview content in a scrollable white card
 2. **Print context (`@media print`):** Hides the screen header, footer, AppShell, BottomNav, Sidebar, FAB. Prints only `.laporan-preview-content` at full page width
 
 ---
@@ -456,9 +452,9 @@ padding: 0 16px
 border-bottom: 0.5px solid #f0faf9
 bg: #ffffff
 
-Left: "Kembali" ghost button
+Left: "Kembali ke Laporan" ghost button
   onClick: router.back()
-  Icon: ChevronLeft (Lucide 16px #7a8c8a) + text "Kembali" (12px DMS 500 #7a8c8a)
+  Icon: ChevronLeft (Lucide 16px #7a8c8a) + text "Kembali ke Laporan" (12px DMS 500 #7a8c8a)
   height: 36px, padding: 0 12px, border-radius: 20px
 
 Center: "Pratinjau Laporan" (14px PJS 700 #1a2e2c)
@@ -500,7 +496,7 @@ Inner white card (wraps the actual report):
 
 ```
 "Laporan Kunjungan Dokter"
-  font: Plus Jakarta Sans 700, 20px (screen) / 18pt (print)
+  font: Plus Jakarta Sans 700, 14px (screen) / 18pt (print)
   color: #1a2e2c
   margin-bottom: 12px
 
@@ -597,7 +593,7 @@ Section heading: "Kepatuhan Obat"
 
 Adherence metric display (primary visual):
   Large number: "[XX]%"
-    font: Plus Jakarta Sans 800 28px #1a2e2c (screen) / Plus Jakarta Sans 700 20pt (print)
+    font: Plus Jakarta Sans 700 28px #1a2e2c (screen) / Plus Jakarta Sans 700 20pt (print)
     display: inline-block, margin-right: 8px
 
   Label beside number: "dosis terkonfirmasi"
@@ -896,7 +892,7 @@ Verify before assuming: `ls frontend/components/ui/textarea.tsx`
 | "Catatan untuk dokter" help text "Tidak disimpan ke sistem." | Claude's Discretion — D-06 (not persisted) |
 | Date range preset pill active state uses teal (#2a9d8f) | DESIGN_SYSTEM Pill Toggle active pattern |
 | "Pilih Tanggal" pill active state uses amber-tinted bg (#f3ede5) | Claude's Discretion — distinguishes mode toggle from preset selection without adding a new color |
-| Adherence % shown as 28px PJS 800 metric display | Claude's Discretion — matches DeltaCairanCard metric number pattern for visual consistency |
+| Adherence % shown as 28px PJS 700 metric display | Claude's Discretion — matches DeltaCairanCard metric number pattern for visual consistency |
 | Report section teal left border (3px #2a9d8f) | Claude's Discretion — provides visual hierarchy in the report without introducing new colors |
 | Doctor note rendered in amber-tinted box (bg #f3ede5, border-left #ef9f27) | Claude's Discretion — distinguishes user-added note from system-generated data; amber communicates "patient input" vs teal for data |
 | Berada row table alternating rows (#ffffff / #fdf9f3) | DESIGN_SYSTEM background tokens |
