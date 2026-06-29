@@ -70,3 +70,105 @@ h1, h2, h3, h4, h5, h6 {
 * {
   border-color: var(--color-border);
 }
+
+/* ============================================================
+   @media print — Laporan / Report print styles (Phase 4)
+   ============================================================ */
+@media print {
+  /* --- Page setup: A4 portrait --- */
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm 20mm 15mm;
+  }
+
+  /* --- Hide shell/navigation elements --- */
+  [data-print-hidden="true"],
+  .no-print {
+    display: none !important;
+  }
+
+  /* --- Reset backgrounds to white --- */
+  html,
+  body,
+  main {
+    background: #ffffff !important;
+    color: #1a2e2c;
+  }
+
+  /* Remove fixed positioning constraints from content area */
+  main {
+    padding-bottom: 0 !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* --- Report content wrapper --- */
+  .laporan-preview-content {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* --- Section cards --- */
+  .laporan-section-card {
+    page-break-inside: avoid;
+    border: 1px solid #e5e5e5 !important;
+    border-left: 3px solid #2a9d8f !important;
+    border-radius: 0;
+    padding: 12pt;
+    margin-bottom: 16pt;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  /* --- Adherence metric number (20pt in print) --- */
+  .adherence-metric-number {
+    font-size: 20pt !important;
+  }
+
+  /* --- Typography scale --- */
+  body {
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  h1 {
+    font-size: 18pt !important;
+  }
+
+  h2 {
+    font-size: 13pt !important;
+  }
+
+  /* --- Table styles --- */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th,
+  td {
+    border-bottom: 0.5pt solid #cccccc !important;
+    padding: 4pt 6pt !important;
+    font-size: 9pt !important;
+  }
+
+  /* --- Color overrides for better print contrast --- */
+  /* Muted text #7a8c8a → darker #555555 */
+  [style*="color: #7a8c8a"] {
+    color: #555555 !important;
+  }
+
+  /* Teal surface #f0faf9 → light gray #f8f8f8 */
+  [style*="background-color: #f0faf9"],
+  [style*="background: #f0faf9"] {
+    background: #f8f8f8 !important;
+  }
+
+  /* --- Separator override for print --- */
+  hr {
+    margin: 12pt 0 !important;
+    border-color: #cccccc !important;
+  }
+}

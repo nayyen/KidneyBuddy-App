@@ -21,4 +21,7 @@ export const reminderSchedule = pgTable("reminder_schedule", {
   konsentrasiCapd: text("konsentrasi_capd"),       // CAPD exchange concentration (capd only)
   followUpSent: boolean("follow_up_sent").notNull().default(false), // 30-min follow-up sent flag
   lastNotificationSentAt: timestamp("last_notification_sent_at"), // last push time for dedup
+
+  // Phase 4 (04-01): caregiver cross-device change detection
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

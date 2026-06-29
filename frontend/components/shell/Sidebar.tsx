@@ -15,6 +15,7 @@ export default function Sidebar({ onCatatCairan }: SidebarProps) {
 
   return (
     <aside
+      data-print-hidden="true"
       className="hidden lg:flex flex-col bg-white"
       style={{
         width: 256,

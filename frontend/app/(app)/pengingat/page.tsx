@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { authFetch } from "@/lib/api";
 import ReminderList from "@/components/pengingat/ReminderList";
 import AddReminderSheet from "@/components/pengingat/AddReminderSheet";
 import { toast } from "sonner";
@@ -20,6 +21,29 @@ export default function PengingatPage() {
       router.replace("/login");
     }
   }, [isLoading, isAuthenticated, router]);
+
+  // CAREGIVER-02: cross-device sync polling (30s)
+  useEffect(() => {
+    if (!accessToken) return;
+    let lastMaxUpdatedAt = "";
+    const interval = setInterval(async () => {
+      try {
+        const reminders: any[] = await authFetch("/api/reminders", accessToken);
+        const maxDate = reminders.reduce((max, r) => {
+          const d = r.updatedAt ?? r.updated_at ?? "";
+          return d > max ? d : max;
+        }, "");
+        if (lastMaxUpdatedAt && maxDate > lastMaxUpdatedAt) {
+          toast("Jadwal pengingat diperbarui dari perangkat lain.");
+          setReminderRefreshKey((k) => k + 1);
+        }
+        lastMaxUpdatedAt = maxDate || lastMaxUpdatedAt;
+      } catch {
+        // silent
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [accessToken]);
 
   const handleReminderAdded = () => {
     setReminderRefreshKey((k) => k + 1);

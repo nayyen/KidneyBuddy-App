@@ -106,6 +106,7 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Mobile/tablet bottom nav + FAB — hidden at lg: */}
         <nav
+          data-print-hidden="true"
           className="lg:hidden fixed bottom-0 inset-x-0 z-40"
           style={{ position: "fixed" }}
         >

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-06-29T12:52:29.565Z"
-last_activity: 2026-06-27 -- Phase 02 complete (7/7 plans executed, 113/113 tests passing)
+stopped_at: Phase 4 code complete — Wave 0/1/2 all executed
+last_updated: "2026-06-30T00:00:00.000Z"
+last_activity: 2026-06-30 -- Phase 04 complete (4/4 plans executed, report service 9/9 passing)
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 18
-  completed_plans: 14
-  percent: 17
+  completed_phases: 2
+  total_plans: 22
+  completed_plans: 18
+  percent: 33
 ---
 
 # Project State
@@ -26,11 +26,13 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 02 (fluid-medication-tracking-with-reminders) — COMPLETE ✓
-Phase: 03 (activity-logging-lab-results) — NEXT
-Status: Phase 02 done; awaiting Phase 03 plan + execute
-Last activity: 2026-06-27 -- Phase 02 complete (7/7 plans executed, 113/113 tests passing)
+Phase: 03 (activity-logging-lab-results) — COMPLETE ✓
+Phase: 04 (caregiver-dashboard-doctor-reports) — COMPLETE ✓
+Phase: 05 (ai-copilot-anomaly-detection) — NEXT
+Status: Phase 04 done (4/4 plans executed, report service 9/9 passing, frontend build OK)
+Last activity: 2026-06-30 -- Phase 04 complete — Wave 0 (foundation) + Wave 1 (CAREGIVER-02 + REPORT-01 backend) + Wave 2 (REPORT-02 frontend)
 
-Progress: [██░░░░░░░░] 33%
+Progress: [████░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -71,6 +73,10 @@ Recent decisions affecting current work:
 - [Phase ?]: catatan encrypted AES-256-GCM in Node before INSERT — key never enters Postgres query logs
 - [Phase ?]: getDailyBalance returns hasAbnormalCondition in same SQL query to avoid second round-trip for CAPD banner
 - [Phase ?]: CatatCairanSheet mounted in AppShell so FAB and Sidebar share sheet state across navigation
+- [Phase 4]: Report data aggregation queries use WIB-correct time bounds (T00:00:00+07:00 / T23:59:59+07:00) to align with patient's local Jakarta timezone — same pattern established in Phase 2 CR-02 fix
+- [Phase 4]: Report `catatan` (doctor note) is NEVER persisted to DB — it lives only in component state and URL-encoded search params (D-06), keeping the report endpoint stateless and avoiding PII storage concerns
+- [Phase 4]: Print CSS targets `[data-print-hidden="true"]` attribute on shell components rather than fragile class-name selectors, ensuring the print layout reliably hides navigation chrome regardless of responsive state
+- [Phase 4]: `/laporan/preview` wraps `useSearchParams()` in `<Suspense>` boundary — required by Next.js 16 for static generation with CSR bailout, discovered during build verification
 
 ### Pending Todos
 
@@ -95,7 +101,40 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-06-29T08:50:41.112Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-caregiver-dashboard-doctor-reports/04-UI-SPEC.md
-</content>
+Last session: 2026-06-30T00:00:00.000Z
+Stopped at: Phase 4 code complete — all waves executed
+Resume file: .planning/phases/05-ai-copilot-anomaly-detection/05-01-PLAN.md (pending)
+
+## Phase 4 Summary
+
+Phase 4 delivered the Caregiver Dashboard & Doctor Reports vertical slice:
+
+### Wave 0 (04-01): Foundation
+- `reminder_schedule.updated_at` schema + migration 0008
+- shadcn textarea component installed
+- RED test scaffolds for report.service and reminders.controller
+
+### Wave 1a (04-02): Caregiver Sync
+- Repository `update()` fix (missing brace)
+- Controller `sendToAllDevices` fire-and-forget
+- Frontend 30s polling with change detection + Sonner toast
+
+### Wave 1b (04-03): Report Backend
+- `report.repository.ts` — 3 aggregation queries (fluid, medication, CAPD)
+- `report.service.ts` — Zod schema + injectable core
+- `report.controller.ts` + routes + app.ts mount
+- 9/9 tests GREEN
+
+### Wave 2 (04-04): Report Frontend
+- Date range selector with presets
+- `/laporan` generation screen with doctor note
+- 4 section components (RingkasanCairan, KepatuhanObat, KondisiCAPD, Anomali)
+- `/laporan/preview` print preview with `window.print()`
+- `@media print` CSS (A4, page-break, typography)
+- Shell components marked with `data-print-hidden`
+- Suspense boundary fix for `useSearchParams()` prerendering
+
+### Key Metrics
+- New files: 15 (5 backend + 8 frontend + 2 docs)
+- Tests: 9/9 passing (report.service.test.ts)
+- Frontend: builds successfully

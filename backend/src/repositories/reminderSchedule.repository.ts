@@ -139,7 +139,7 @@ export async function update(
 ): Promise<ReminderSchedule | undefined> {
   const [row] = await db
     .update(reminderSchedule)
-    .set(data)
+    .set({ ...data, updatedAt: new Date() })
     .where(
       and(
         eq(reminderSchedule.id, id as any),

@@ -9,6 +9,7 @@ interface MobileHeaderProps {
 export default function MobileHeader({ onNotificationClick }: MobileHeaderProps) {
   return (
     <header
+      data-print-hidden="true"
       className="flex lg:hidden items-center justify-between w-full bg-white shrink-0"
       style={{
         height: 56,

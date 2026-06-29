@@ -30,6 +30,7 @@ export default function TopBar({ onNotificationClick }: TopBarProps) {
 
   return (
     <header
+      data-print-hidden="true"
       className="hidden lg:flex items-center justify-between w-full bg-white/80 backdrop-blur-sm shrink-0"
       style={{
         height: 56,

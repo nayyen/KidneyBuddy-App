@@ -14,6 +14,7 @@ import remindersRoutes from "./routes/reminders.routes.js";
 import medicationLogRoutes from "./routes/medicationLog.routes.js";
 import activitiesRoutes from "./routes/activities.routes.js";
 import labResultRoutes from "./routes/labResult.routes.js";
+import reportRoutes from "./routes/report.routes.js";
 
 export const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/reminders", remindersRoutes);
 app.use("/api/medication-log", medicationLogRoutes);
 app.use("/api/activities", activitiesRoutes);
 app.use("/api/lab", labResultRoutes);
+app.use("/api/report", reportRoutes);
 
 // --- Health check ---
 app.get("/api/health", (_req, res) => {

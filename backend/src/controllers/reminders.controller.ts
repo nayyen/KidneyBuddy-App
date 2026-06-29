@@ -4,6 +4,7 @@
  */
 import type { Request, Response, NextFunction } from "express";
 import * as remindersService from "../services/reminders.service.js";
+import { sendToAllDevices } from "../services/notification.service.js";
 
 export async function createReminder(
   req: Request,
@@ -59,6 +60,13 @@ export async function updateReminder(
     const data = { ...req.body, ...(fotoObat !== undefined && { fotoObat }) };
 
     const updated = await remindersService.updateReminder(req.user!.id, id, data);
+
+    // CAREGIVER-02: fire-and-forget push to all devices
+    sendToAllDevices(req.user!.id, {
+      title: "Pengingat Diperbarui",
+      body: "Jadwal pengingat telah diperbarui dari perangkat lain.",
+    }).catch(() => {});
+
     res.json(updated);
   } catch (err) {
     next(err);
