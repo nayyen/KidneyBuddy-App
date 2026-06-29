@@ -8,6 +8,41 @@
       "when": 1782368270547,
       "tag": "0000_loving_peter_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782370958987,
+      "tag": "0001_nappy_micromax",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782379191257,
+      "tag": "0002_fixed_darkhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782404664064,
+      "tag": "0003_thankful_slapstick",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782490000000,
+      "tag": "0004_add_informed_consent",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782527839083,
+      "tag": "0005_phase2_fluid_push_medication_reminder_ext",
+      "breakpoints": true
     }
   ]
 }

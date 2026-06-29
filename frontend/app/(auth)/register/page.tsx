@@ -20,11 +20,12 @@ export default function RegisterPage() {
 
   async function onSubmit(data: RegisterFormData) {
     try {
-      const result = await apiFetch<{ email: string }>("/api/auth/register", {
+      await apiFetch<{ accessToken: string; user: { email: string } }>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(data),
       });
-      router.push(`/dashboard?email=${encodeURIComponent(result.email)}`);
+      // Refresh cookie is set by backend — navigate to dashboard, useAuth will restore session
+      router.push("/beranda");
     } catch (err: any) {
       if (err?.code === "EMAIL_EXISTS") {
         setError("email", { message: "Email sudah terdaftar" });
@@ -159,6 +160,32 @@ export default function RegisterPage() {
               </p>
             )}
           </div>
+
+          {/* Informed Consent */}
+          <div className="flex items-start gap-3">
+            <input
+              {...register("informedConsent")}
+              type="checkbox"
+              id="informedConsent"
+              className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+            />
+            <label htmlFor="informedConsent" className="text-sm text-foreground font-sans leading-relaxed">
+              Saya telah membaca dan menyetujui{" "}
+              <a href="/syarat-ketentuan" className="text-primary font-medium hover:underline">
+                Syarat & Ketentuan
+              </a>{" "}
+              serta{" "}
+              <a href="/kebijakan-privasi" className="text-primary font-medium hover:underline">
+                Kebijakan Privasi
+              </a>{" "}
+              KidneyBuddy, dan memberikan persetujuan (informed consent) untuk pemrosesan data kesehatan saya.
+            </label>
+          </div>
+          {errors.informedConsent && (
+            <p className="text-xs text-destructive font-sans">
+              {errors.informedConsent.message}
+            </p>
+          )}
 
           {/* Root error */}
           {errors.root && (

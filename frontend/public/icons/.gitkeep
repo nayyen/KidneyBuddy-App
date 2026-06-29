@@ -1,0 +1,11 @@
+# PWA Icons Placeholder
+#
+# Place the following icon files in this directory:
+#   icon-192.png        — 192x192, teal theme, standard icon
+#   icon-512.png        — 512x512, teal theme, standard icon
+#   icon-512-maskable.png — 512x512, teal theme, maskable (safe zone: inner 75%)
+#   badge-72.png        — 72x72, white monochrome, used for notification badge
+#
+# All icons should use the KidneyBuddy teal theme (#2a9d8f).
+# Solid teal PNGs are acceptable for MVP testing.
+# See DESIGN_SYSTEM_KidneyBuddy_v3.md for brand assets.

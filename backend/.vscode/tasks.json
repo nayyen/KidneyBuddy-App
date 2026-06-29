@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "run-unit-tests",
+			"type": "shell",
+			"command": "npm test 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
+		}
+	]
+}

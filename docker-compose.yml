@@ -29,8 +29,16 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://kidneybuddy:kidneybuddy@db:5432/kidneybuddy}
       NODE_ENV: ${NODE_ENV:-development}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:naykim426@gmail.com}
     ports:
       - "4000:4000"
+    volumes:
+      - uploads:/app/uploads
     networks:
       - backend-network
 
@@ -51,6 +59,7 @@ services:
 
 volumes:
   pgdata:
+  uploads:  # Persists medication photo uploads across backend container restarts (CLAUDE.md: local Docker volume for file storage)
 
 networks:
   backend-network:

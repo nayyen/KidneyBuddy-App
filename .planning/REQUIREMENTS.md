@@ -27,16 +27,16 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Fluid Tracking (FLUID)
 
-- [ ] **FLUID-01**: User can log a fluid entry with type (masuk/keluar), source (minuman/makanan/cairan CAPD/lainnya — CAPD option only for CAPD patients), CAPD concentration if applicable, decimal volume, and unit (ml/kg)
-- [ ] **FLUID-02**: System automatically calculates and displays the daily fluid in/out delta on the dashboard, updated on every new entry
-- [ ] **FLUID-03**: CAPD patient can record outgoing fluid condition (jernih/keruh/keruh dengan gumpalan putih/berdarah) and sees an immediate red warning banner that cannot be dismissed without active interaction if abnormal
-- [ ] **FLUID-04**: User can log a fluid entry retroactively with a past date/time, flagged as a late entry, still included in anomaly analysis
-- [ ] **FLUID-05**: If connection drops while saving an entry, it's stored locally and synced automatically once connection returns
+- [x] **FLUID-01**: User can log a fluid entry with type (masuk/keluar), source (minuman/makanan/cairan CAPD/lainnya — CAPD option only for CAPD patients), CAPD concentration if applicable, decimal volume, and unit (ml/kg)
+- [x] **FLUID-02**: System automatically calculates and displays the daily fluid in/out delta on the dashboard, updated on every new entry
+- [x] **FLUID-03**: CAPD patient can record outgoing fluid condition (jernih/keruh/keruh dengan gumpalan putih/berdarah) and sees an immediate red warning banner that cannot be dismissed without active interaction if abnormal
+- [x] **FLUID-04**: User can log a fluid entry retroactively with a past date/time, flagged as a late entry, still included in anomaly analysis
+- [x] **FLUID-05**: If connection drops while saving an entry, it's stored locally and synced automatically once connection returns
 
 ### Medication & Therapy Reminders (REMIND)
 
 - [ ] **REMIND-01**: User can create a medication reminder with name, dose, type (minum/suntik), free-text timing note, active days + time, and optional photo
-- [ ] **REMIND-02**: User receives a push notification at the scheduled reminder time showing medication name and photo if available
+- [x] **REMIND-02**: User receives a push notification at the scheduled reminder time showing medication name and photo if available
 - [ ] **REMIND-03**: User can confirm a medication dose was taken directly from the notification; confirmation is logged
 - [ ] **REMIND-04**: If a medication reminder isn't confirmed within 30 minutes, system sends one follow-up reminder
 - [ ] **REMIND-05**: CAPD patient can set exchange reminders with time and fluid concentration
@@ -94,18 +94,18 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Notifications & PWA (NOTIF)
 
-- [ ] **NOTIF-01**: User can install KidneyBuddy to home screen as a PWA and grant browser notification permission to receive push reminders
+- [x] **NOTIF-01**: User can install KidneyBuddy to home screen as a PWA and grant browser notification permission to receive push reminders
 - [ ] **NOTIF-02**: Each device a user (patient or caregiver) logs in on registers its own push subscription, so reminders deliver independently per device on the same account
-- [ ] **NOTIF-03**: On iOS, the app prompts the user to Add to Home Screen before enabling notifications, since push requires this
+- [x] **NOTIF-03**: On iOS, the app prompts the user to Add to Home Screen before enabling notifications, since push requires this
 
 ### Responsive Layout (RESPONSIVE)
 
 Per `PRD.md` section 7.2 (Design Consideration 2 — Platform Requirement): mobile-first but fully responsive with distinct layouts per breakpoint, not just scaling.
 
-- [ ] **RESPONSIVE-01**: On mobile (375–767px), app renders single-column layout with 5-tab bottom navigation, centered FAB ("Catat Cairan"), and a compact header
-- [ ] **RESPONSIVE-02**: On tablet (768–1023px), app renders a 2-column layout for dashboard and list views (e.g., metric cards side by side), with bottom navigation unchanged from mobile
-- [ ] **RESPONSIVE-03**: On desktop (1024px and above), primary navigation moves to a left sidebar (replacing bottom navigation entirely), main content uses a multi-column layout with max-width 1280px, header becomes a top bar with persistent Lab/Laporan/Profil shortcuts, and the FAB becomes a regular primary button fixed in the sidebar or bottom-right corner
-- [ ] **RESPONSIVE-04**: Layout correctness is verified via browser testing on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly the 375px, 768px, 1024px, and 1280px breakpoints
+- [x] **RESPONSIVE-01**: On mobile (375–767px), app renders single-column layout with 5-tab bottom navigation, centered FAB ("Catat Cairan"), and a compact header
+- [x] **RESPONSIVE-02**: On tablet (768–1023px), app renders a 2-column layout for dashboard and list views (e.g., metric cards side by side), with bottom navigation unchanged from mobile
+- [x] **RESPONSIVE-03**: On desktop (1024px and above), primary navigation moves to a left sidebar (replacing bottom navigation entirely), main content uses a multi-column layout with max-width 1280px, header becomes a top bar with persistent Lab/Laporan/Profil shortcuts, and the FAB becomes a regular primary button fixed in the sidebar or bottom-right corner
+- [x] **RESPONSIVE-04**: Layout correctness is verified via browser testing on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly the 375px, 768px, 1024px, and 1280px breakpoints
 
 ## v2 Requirements
 
@@ -161,26 +161,26 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | ONBOARD-04 | Phase 1 | Pending |
 | ONBOARD-05 | Phase 1 | Pending |
 | ONBOARD-06 | Phase 1 | Pending |
-| FLUID-01 | Phase 2 | Pending |
-| FLUID-02 | Phase 2 | Pending |
-| FLUID-03 | Phase 2 | Pending |
-| FLUID-04 | Phase 2 | Pending |
-| FLUID-05 | Phase 2 | Pending |
+| FLUID-01 | Phase 2 | Complete |
+| FLUID-02 | Phase 2 | Complete |
+| FLUID-03 | Phase 2 | Complete |
+| FLUID-04 | Phase 2 | Complete |
+| FLUID-05 | Phase 2 | Complete |
 | REMIND-01 | Phase 2 | Pending |
-| REMIND-02 | Phase 2 | Pending |
+| REMIND-02 | Phase 2 | Complete |
 | REMIND-03 | Phase 2 | Pending |
 | REMIND-04 | Phase 2 | Pending |
 | REMIND-05 | Phase 2 | Pending |
 | REMIND-06 | Phase 2 | Pending |
 | REMIND-07 | Phase 2 | Pending |
 | REMIND-08 | Phase 2 | Pending |
-| NOTIF-01 | Phase 2 | Pending |
+| NOTIF-01 | Phase 2 | Complete |
 | NOTIF-02 | Phase 2 | Pending |
-| NOTIF-03 | Phase 2 | Pending |
-| RESPONSIVE-01 | Phase 2 | Pending |
-| RESPONSIVE-02 | Phase 2 | Pending |
-| RESPONSIVE-03 | Phase 2 | Pending |
-| RESPONSIVE-04 | Phase 2 | Pending |
+| NOTIF-03 | Phase 2 | Complete |
+| RESPONSIVE-01 | Phase 2 | Complete |
+| RESPONSIVE-02 | Phase 2 | Complete |
+| RESPONSIVE-03 | Phase 2 | Complete |
+| RESPONSIVE-04 | Phase 2 | Complete |
 | ACTIVITY-01 | Phase 3 | Pending |
 | ACTIVITY-02 | Phase 3 | Pending |
 | ACTIVITY-03 | Phase 3 | Pending |
@@ -207,6 +207,7 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | EDU-01 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 56 total
 - Mapped to phases: 56
 - Unmapped: 0

@@ -1,0 +1,44 @@
+/**
+ * medicationLog.controller.ts — Thin Express controller for /api/medication-log.
+ * Business logic lives in medicationLog.service.ts.
+ */
+import type { Request, Response, NextFunction } from "express";
+import * as medicationLogService from "../services/medicationLog.service.js";
+
+/**
+ * confirm — POST /api/medication-log/confirm
+ * Body: { reminderId: string }
+ * Marks the matching medication_log row (or creates one) as dikonfirmasi.
+ * T-02-05-02: rejects if reminder doesn't belong to req.user.id.
+ */
+export async function confirm(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { reminderId } = req.body;
+    const result = await medicationLogService.confirm(req.user!.id, reminderId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * today — GET /api/medication-log/today
+ * Returns all medication log entries for today (all statuses).
+ * Used by D-04 Obat card on the dashboard.
+ */
+export async function today(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const logs = await medicationLogService.getTodayLogs(req.user!.id);
+    res.json(logs);
+  } catch (err) {
+    next(err);
+  }
+}
