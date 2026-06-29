@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Droplets } from "lucide-react";
+import { Droplets, Play } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -79,8 +79,24 @@ export default function Sidebar({ onCatatCairan }: SidebarProps) {
         })}
       </nav>
 
-      {/* Catat Cairan button — bottom-anchored */}
+      {/* Action buttons — bottom-anchored */}
       <div style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}>
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("activity:start"))}
+          className="flex items-center justify-center gap-2 w-full font-sans font-medium cursor-pointer transition-colors hover:opacity-90 active:opacity-75 mb-2"
+          style={{
+            height: 44,
+            borderRadius: 20,
+            backgroundColor: "#fff8e6",
+            color: "#1a2e2c",
+            border: "1px solid #ef9f27",
+            fontSize: 14,
+          }}
+          aria-label="Mulai Kegiatan"
+        >
+          <Play size={16} color="#ef9f27" />
+          Mulai Kegiatan
+        </button>
         <button
           onClick={onCatatCairan}
           className="flex items-center justify-center gap-2 w-full font-sans font-medium cursor-pointer transition-colors hover:opacity-90 active:opacity-75"

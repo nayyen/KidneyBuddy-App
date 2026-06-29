@@ -76,12 +76,12 @@ const serwist = new Serwist({
   // cross-origin fetch() calls to port 4000. Use a minimal allowlist instead.
   runtimeCaching: [
     {
-      urlPattern: ({ request }) =>
+      urlPattern: ({ request }: { request: Request }) =>
         request.destination === "style" ||
         request.destination === "script" ||
         request.destination === "font" ||
         request.destination === "image",
-      handler: "CacheFirst",
+      handler: "CacheFirst" as unknown as any,
       options: {
         cacheName: "static-assets",
         expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },

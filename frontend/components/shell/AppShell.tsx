@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
 import MobileHeader from "./MobileHeader";
 import TopBar from "./TopBar";
 import FAB from "./FAB";
 import CatatCairanSheet from "@/components/cairan/CatatCairanSheet";
+import MulaiKegiatanSheet from "@/components/aktivitas/MulaiKegiatanSheet";
+import FeelingsRatingSheet from "@/components/aktivitas/FeelingsRatingSheet";
+import CatatLabSheet from "@/components/lab/CatatLabSheet";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 interface AppShellProps {
@@ -15,16 +18,63 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const [catatCairanOpen, setCatatCairanOpen] = useState(false);
+  const [mulaiKegiatanOpen, setMulaiKegiatanOpen] = useState(false);
+  const [feelingsOpen, setFeelingsOpen] = useState(false);
+  const [completingActivityId, setCompletingActivityId] = useState<string | null>(null);
+  const [completingActivityName, setCompletingActivityName] = useState<string | null>(null);
+  const [catatLabOpen, setCatatLabOpen] = useState(false);
   const { accessToken, user } = useAuth();
 
   const handleCatatCairan = useCallback(() => {
     setCatatCairanOpen(true);
   }, []);
 
+  const handleMulaiKegiatan = useCallback(() => {
+    setMulaiKegiatanOpen(true);
+  }, []);
+
+  const handleCompleteActivity = useCallback((activityId: string, namaKegiatan: string) => {
+    setCompletingActivityId(activityId);
+    setCompletingActivityName(namaKegiatan);
+    setFeelingsOpen(true);
+  }, []);
+
   // Called by CatatCairanSheet after a successful save — children refresh via
   // the custom event so DashboardPage can re-fetch the daily balance
-  const handleSaved = useCallback(() => {
+  const handleFluidSaved = useCallback(() => {
     window.dispatchEvent(new CustomEvent("fluid:saved"));
+  }, []);
+
+  // Called by activity sheets after a successful save — children refresh
+  const handleActivitySaved = useCallback(() => {
+    window.dispatchEvent(new CustomEvent("activity:saved"));
+  }, []);
+
+  // Called by CatatLabSheet after a successful save — children refresh
+  const handleLabSaved = useCallback(() => {
+    window.dispatchEvent(new CustomEvent("lab:saved"));
+  }, []);
+
+  // Listen for custom events from KegiatanModuleInline and ActivityList
+  useEffect(() => {
+    const handleStart = () => setMulaiKegiatanOpen(true);
+    const handleComplete = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.id) {
+        setCompletingActivityId(detail.id);
+        setCompletingActivityName(detail.namaKegiatan ?? null);
+        setFeelingsOpen(true);
+      }
+    };
+    const handleLabOpen = () => setCatatLabOpen(true);
+    window.addEventListener("activity:start", handleStart);
+    window.addEventListener("activity:complete", handleComplete);
+    window.addEventListener("lab:open", handleLabOpen);
+    return () => {
+      window.removeEventListener("activity:start", handleStart);
+      window.removeEventListener("activity:complete", handleComplete);
+      window.removeEventListener("lab:open", handleLabOpen);
+    };
   }, []);
 
   return (
@@ -73,7 +123,33 @@ export default function AppShell({ children }: AppShellProps) {
         onOpenChange={setCatatCairanOpen}
         accessToken={accessToken}
         metodeTerapiAktif={user?.metodeTerapiAktif ?? null}
-        onSaved={handleSaved}
+        onSaved={handleFluidSaved}
+      />
+
+      {/* MulaiKegiatanSheet — mounted here so it works from any page */}
+      <MulaiKegiatanSheet
+        isOpen={mulaiKegiatanOpen}
+        onOpenChange={setMulaiKegiatanOpen}
+        accessToken={accessToken}
+        onSaved={handleActivitySaved}
+      />
+
+      {/* FeelingsRatingSheet — shown after completing an activity */}
+      <FeelingsRatingSheet
+        isOpen={feelingsOpen}
+        onOpenChange={setFeelingsOpen}
+        accessToken={accessToken}
+        activityId={completingActivityId}
+        namaKegiatan={completingActivityName}
+        onCompleted={handleActivitySaved}
+      />
+
+      {/* CatatLabSheet — two-tab sheet for lab results */}
+      <CatatLabSheet
+        isOpen={catatLabOpen}
+        onOpenChange={setCatatLabOpen}
+        accessToken={accessToken}
+        onSaved={handleLabSaved}
       />
     </div>
   );

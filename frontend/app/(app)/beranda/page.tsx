@@ -10,6 +10,7 @@ import NoReminderBanner from "@/components/beranda/NoReminderBanner";
 import AiPlaceholderCard from "@/components/beranda/AiPlaceholderCard";
 import ObatCard from "@/components/beranda/ObatCard";
 import PengingatBerikutnyaCard from "@/components/beranda/PengingatBerikutnyaCard";
+import KegiatanModuleInline from "@/components/aktivitas/KegiatanModuleInline";
 
 interface OnboardingProgress {
   onboardingComplete: boolean;
@@ -33,6 +34,7 @@ export default function DashboardPage() {
     useState<OnboardingProgress | null>(null);
   const [showCAPDBanner, setShowCAPDBanner] = useState(false);
   const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
+  const [activityRefreshKey, setActivityRefreshKey] = useState(0);
 
   // Auth guard + onboarding check
   useEffect(() => {
@@ -64,6 +66,15 @@ export default function DashboardPage() {
     };
     window.addEventListener("fluid:saved", handleFluidSaved);
     return () => window.removeEventListener("fluid:saved", handleFluidSaved);
+  }, []);
+
+  // Listen for activity:saved events to refresh KegiatanModuleInline
+  useEffect(() => {
+    const handleActivitySaved = () => {
+      setActivityRefreshKey((k) => k + 1);
+    };
+    window.addEventListener("activity:saved", handleActivitySaved);
+    return () => window.removeEventListener("activity:saved", handleActivitySaved);
   }, []);
 
   // Called by DeltaCairanCard when it receives balance data
@@ -100,6 +111,12 @@ export default function DashboardPage() {
        *   ObatCard: lg:col-span-2
        *   AiPlaceholderCard: 1 col
        */}
+
+      {/* Activity module — always shown (full width) */}
+      <KegiatanModuleInline
+        accessToken={accessToken}
+        refreshKey={activityRefreshKey}
+      />
 
       {/* Banner: CAPD effluent anomaly (full width, always on top) */}
       {showCAPDBanner && (

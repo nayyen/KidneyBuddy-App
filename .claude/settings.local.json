@@ -75,7 +75,9 @@
       "Bash(npx web-push *)",
       "Bash(xargs -I{} bash -c 'python3 -c \"import sys; d=open\\(\\\\\"$1\\\\\",\\\\\"rb\\\\\"\\).read\\(\\); print\\(\\\\\"BOM\\\\\" if d[:3]==b\\\\\"\\\\\\\\xef\\\\\\\\xbb\\\\\\\\xbf\\\\\" else \\\\\"OK\\\\\", \\\\\"$1\\\\\"\\)\"' _ {})",
       "Bash(DATABASE_URL=\"postgresql://dummy:dummy@localhost:5432/dummy\" npx drizzle-kit generate --name=\"phase2_fluid_push_medication_reminder_ext\")",
-      "Skill(gsd-code-review)"
+      "Skill(gsd-code-review)",
+      "Skill(gsd-discuss-phase)",
+      "Skill(gsd-plan-phase)"
     ]
   }
 }

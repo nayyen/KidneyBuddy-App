@@ -6,6 +6,10 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { toast } from "sonner";
 import FluidLogList from "@/components/catatan/FluidLogList";
 import MedicationLogList from "@/components/catatan/MedicationLogList";
+import ActivityList from "@/components/aktivitas/ActivityList";
+import LabResultList from "@/components/lab/LabResultList";
+import LabTrendChart from "@/components/lab/LabTrendChart";
+import LabArchivedList from "@/components/lab/LabArchivedList";
 
 type TabId = "cairan" | "obat" | "aktivitas" | "lab";
 
@@ -18,8 +22,8 @@ interface Tab {
 const TABS: Tab[] = [
   { id: "cairan", label: "Cairan", enabled: true },
   { id: "obat", label: "Obat", enabled: true },
-  { id: "aktivitas", label: "Aktivitas", enabled: false },
-  { id: "lab", label: "Lab", enabled: false },
+  { id: "aktivitas", label: "Aktivitas", enabled: true },
+  { id: "lab", label: "Lab", enabled: true },
 ];
 
 export default function CatatanPage() {
@@ -27,6 +31,9 @@ export default function CatatanPage() {
   const { accessToken, isLoading, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("cairan");
   const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
+  const [activityRefreshKey, setActivityRefreshKey] = useState(0);
+  const [labRefreshKey, setLabRefreshKey] = useState(0);
+  const [showArchivedLab, setShowArchivedLab] = useState(false);
 
   // Auth redirect guard
   useEffect(() => {
@@ -42,6 +49,24 @@ export default function CatatanPage() {
     };
     window.addEventListener("fluid:saved", handleFluidSaved);
     return () => window.removeEventListener("fluid:saved", handleFluidSaved);
+  }, []);
+
+  // Listen for activity:saved to refresh list
+  useEffect(() => {
+    const handleActivitySaved = () => {
+      setActivityRefreshKey((k) => k + 1);
+    };
+    window.addEventListener("activity:saved", handleActivitySaved);
+    return () => window.removeEventListener("activity:saved", handleActivitySaved);
+  }, []);
+
+  // Listen for lab:saved to refresh list and trend
+  useEffect(() => {
+    const handleLabSaved = () => {
+      setLabRefreshKey((k) => k + 1);
+    };
+    window.addEventListener("lab:saved", handleLabSaved);
+    return () => window.removeEventListener("lab:saved", handleLabSaved);
   }, []);
 
   if (isLoading) {
@@ -114,6 +139,74 @@ export default function CatatanPage() {
 
         {activeTab === "obat" && accessToken && (
           <MedicationLogList accessToken={accessToken} />
+        )}
+
+        {activeTab === "aktivitas" && accessToken && (
+          <ActivityList
+            accessToken={accessToken}
+            refreshKey={activityRefreshKey}
+          />
+        )}
+
+        {activeTab === "lab" && accessToken && (
+          <div className="space-y-4">
+            {/* Add button */}
+            <button
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent("lab:open"))
+              }
+              className="w-full font-sans font-semibold transition-opacity hover:opacity-90"
+              style={{
+                height: 44,
+                borderRadius: 22,
+                fontSize: 14,
+                backgroundColor: "#2a9d8f",
+                color: "#ffffff",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              + Catat Hasil Lab
+            </button>
+
+            {/* Trend chart */}
+            <LabTrendChart
+              accessToken={accessToken}
+              refreshKey={labRefreshKey}
+            />
+
+            {/* Lab results list */}
+            <LabResultList
+              accessToken={accessToken}
+              refreshKey={labRefreshKey}
+            />
+
+            {/* Archive link */}
+            <button
+              onClick={() => setShowArchivedLab(!showArchivedLab)}
+              className="w-full font-sans text-sm text-center transition-opacity hover:opacity-80"
+              style={{
+                color: "#7a8c8a",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "8px 0",
+              }}
+            >
+              {showArchivedLab ? "Sembunyikan Arsip" : "Lihat Arsip"}
+            </button>
+
+            {/* Archived lab results */}
+            {showArchivedLab && (
+              <LabArchivedList
+                accessToken={accessToken}
+                refreshKey={labRefreshKey}
+                onRestored={() => {
+                  setLabRefreshKey((k) => k + 1);
+                }}
+              />
+            )}
+          </div>
         )}
       </div>
     </>
