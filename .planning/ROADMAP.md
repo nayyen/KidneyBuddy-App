@@ -121,7 +121,20 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can generate a doctor-visit report for a selected date range summarizing fluid in/out, medication adherence, CAPD condition frequency, and detected anomalies
   4. User can add an optional note to a generated report before showing it to the doctor, without being able to edit the underlying data
 
-**Plans**: TBD
+**Plans**: 4 plans (vertical-MVP slices)
+
+**Wave 0** *(BLOCKING foundation)*
+
+- [ ] 04-01-PLAN.md — Foundation: add reminder_schedule.updated_at + migration 0008 + drizzle-kit push, install shadcn textarea, create REPORT-01/CAREGIVER-02 failing test scaffolds
+
+**Wave 1** *(blocked on Wave 0; 04-02 and 04-03 run in parallel — no file overlap)*
+
+- [ ] 04-02-PLAN.md — CAREGIVER-02 sync slice: updatedAt mutation + push fan-out on reminder update + 30s polling on Pengingat page (CAREGIVER-01, CAREGIVER-02)
+- [ ] 04-03-PLAN.md — REPORT-01 backend: report repository (WIB-correct date-range aggregation) + service (injectable core, 90-day cap) + controller/route + /api/report mount (REPORT-01)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 04-04-PLAN.md — REPORT-02 report UI: /laporan date-range + doctor note, /laporan/preview print-friendly 4-section report, window.print() + @media print CSS (REPORT-01, REPORT-02)
 
 ### Phase 5: AI Insights & Anomaly Detection
 
@@ -164,6 +177,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation, Auth & Onboarding | 0/5 | Planned | - |
 | 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
-| 4. Caregiver Dashboard & Doctor Reports | 0/TBD | Not started | - |
+| 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
 | 5. AI Insights & Anomaly Detection | 0/TBD | Not started | - |
 | 6. Community & Education | 0/TBD | Not started | - |
