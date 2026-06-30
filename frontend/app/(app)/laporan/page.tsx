@@ -12,6 +12,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import LaporanDateRangeSelector from "@/components/laporan/LaporanDateRangeSelector";
 
@@ -65,10 +66,20 @@ export default function LaporanPage() {
 
   return (
     <div className="p-4 space-y-6">
+      {/* Back button + page heading */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-[#f0faf9] transition-colors"
+          aria-label="Kembali"
+        >
+          <ChevronLeft className="w-5 h-5 text-[#7a8c8a]" />
+        </button>
       {/* Page heading */}
-      <div>
         <h1 className="text-sm font-bold text-[#1a2e2c]">Buat Laporan</h1>
-        <p className="text-xs font-medium text-[#7a8c8a] mt-1">
+      </div>
+        <p className="text-xs font-medium text-[#7a8c8a]" style={{ marginTop: 2 }}>
           Pilih periode untuk laporan kunjungan dokter kamu.
         </p>
       </div>
