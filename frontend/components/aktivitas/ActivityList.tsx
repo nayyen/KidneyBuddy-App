@@ -239,8 +239,7 @@ export default function ActivityList({
             <div className="shrink-0">
               {activity.status === "selesai" ? (
               <div className="flex flex-col items-end gap-1">
-              {activity.status === "selesai" ? (
-                activity.perasaan ? (
+                {activity.perasaan ? (
                 <>
                   <span
                     className="font-sans font-medium"
@@ -259,12 +258,14 @@ export default function ActivityList({
                   )}
                 </>
                 ) : (
+                <>
                   <span
                     className="font-sans"
                     style={{ fontSize: 11, color: "#2a9d8f" }}
                   >
                     ✅ Selesai
                   </span>
+                </>
                 )
               </div>
               ) : (
