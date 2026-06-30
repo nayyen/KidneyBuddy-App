@@ -65,16 +65,15 @@ function formatWIB(isoStr: string): string {
  * Returns null if the activity is still within the estimated time or completed.
  */
 function getElapsedMinutesPastEnd(estimasiSelesai: string): number | null {
-
-  function isPastEstimasi(estimasiSelesai: string): boolean {
-    if (!estimasiSelesai) return false;
-    return Date.now() > new Date(estimasiSelesai).getTime();
-  }
-
   const now = Date.now() + 7 * 3600 * 1000; // WIB offset
   const end = new Date(estimasiSelesai).getTime();
   const elapsed = Math.floor((now - end) / 60000);
   return elapsed > 0 ? elapsed : null;
+}
+
+function isPastEstimasi(estimasiSelesai: string): boolean {
+  if (!estimasiSelesai) return false;
+  return Date.now() > new Date(estimasiSelesai).getTime();
 }
 
 export default function ActivityList({
