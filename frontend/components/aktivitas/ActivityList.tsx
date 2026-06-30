@@ -237,56 +237,26 @@ export default function ActivityList({
 
             {/* Status badge or complete button */}
             <div className="shrink-0">
-              {activity.status === "selesai" ? (
-              <div className="flex flex-col items-end gap-1">
-                {activity.perasaan ? (
-                <>
-                  <span
-                    className="font-sans font-medium"
-                    style={{
-                      fontSize: 11,
-                      color: PERASAAN_COLOR[activity.perasaan] ?? "#7a8c8a",
-                      textAlign: "right",
-                    }}
-                  >
-                    {PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}
-                  </span>
-                  {activity.catatanPerasaan && (
-                    <span className="font-sans text-right" style={{ fontSize: 10, color: "#7a8c8a", maxWidth: 120, lineHeight: 1.3 }}>
-                      {activity.catatanPerasaan}
+              {activity.status === "selesai" && (
+                <div className="flex flex-col items-end gap-1">
+                  {activity.perasaan ? (
+                    <span className="font-sans font-medium" style={{ fontSize: 11, color: PERASAAN_COLOR[activity.perasaan] ?? "#7a8c8a", textAlign: "right" }}>
+                      {PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}
                     </span>
+                  ) : (
+                    <span className="font-sans" style={{ fontSize: 11, color: "#2a9d8f" }}>Selesai</span>
                   )}
-                </>
-                ) : (
-                <>
-                  <span
-                    className="font-sans"
-                    style={{ fontSize: 11, color: "#2a9d8f" }}
-                  >
-                    ✅ Selesai
-                  </span>
-                </>
-                )
-              </div>
-              ) : (
+                  {activity.catatanPerasaan && (
+                    <span className="font-sans text-right" style={{ fontSize: 10, color: "#7a8c8a", maxWidth: 120, lineHeight: 1.3 }}>{activity.catatanPerasaan}</span>
+                  )}
+                </div>
+              )}
+              {activity.status !== "selesai" && (
                 <button
-                  onClick={() =>
-                    window.dispatchEvent(
-                      new CustomEvent("activity:complete", {
-                        detail: { id: activity.id, namaKegiatan: activity.namaKegiatan },
-                      }),
-                    )
-                  }
+                  onClick={() => window.dispatchEvent(new CustomEvent("activity:complete", { detail: { id: activity.id, namaKegiatan: activity.namaKegiatan } }))}
                   className="flex items-center gap-1 font-sans font-medium cursor-pointer active:scale-95 transition-transform"
-                  style={{
-                    fontSize: 11,
-                    borderRadius: 20,
-                    padding: "4px 12px",
-                    backgroundColor: "#ef9f27",
-                    color: "#ffffff",
-                    border: "none",
-                  }}
-                  aria-label={`Selesaikan ${activity.namaKegiatan}`}
+                  style={{ fontSize: 11, borderRadius: 20, padding: "4px 12px", backgroundColor: "#ef9f27", color: "#ffffff", border: "none" }}
+                  aria-label={"Selesaikan " + activity.namaKegiatan}
                 >
                   <Play size={12} fill="white" />
                   Selesaikan
