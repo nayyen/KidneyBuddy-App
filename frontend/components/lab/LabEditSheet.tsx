@@ -49,55 +49,9 @@ export default function LabEditSheet({
   onSaved,
 }: LabEditSheetProps) {
   const [open, setOpen] = useState(false);
-  const [tanggal, setTanggal] = useState(entry.tanggalPemeriksaan);
-  const [kategori, setKategori] = useState(entry.kategori ?? "");
-  const [parameter, setParameter] = useState(entry.namaParameter);
-  const [nilai, setNilai] = useState(entry.nilai);
-  const [satuan, setSatuan] = useState(entry.satuan ?? "");
-  const [rujukan, setRujukan] = useState(entry.nilaiRujukan ?? "");
-  const [catatan, setCatatan] = useState(entry.catatan ?? "");
-  const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState("");
 
   const isUpload = entry.sumber === "upload";
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setServerError("");
-    try {
-      const body: Record<string, unknown> = {
-        tanggalPemeriksaan: tanggal,
-        namaParameter: parameter,
-        nilai,
-        satuan: satuan || null,
-        nilaiRujukan: rujukan || null,
-        catatan: catatan || null,
-      };
-      if (kategori) body.kategori = kategori;
-
-      const res = await authFetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/lab/${entry.id}`,
-        accessToken,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        },
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Gagal menyimpan" }));
-        throw new Error(err.message ?? "Gagal menyimpan");
-      }
-      toast.success("Hasil lab berhasil diperbarui");
-      setOpen(false);
-      onSaved?.();
-    } catch (err) {
-      setServerError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   return (
     <>
@@ -119,84 +73,54 @@ export default function LabEditSheet({
             </SheetDescription>
           </SheetHeader>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 overflow-y-auto pr-2">
+                      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 overflow-y-auto pr-2">
             {/* Tanggal Pemeriksaan */}
-            <div className="space-y-1.5">
-              <Label htmlFor="lab-edit-tanggal">Tanggal Pemeriksaan</Label>
-              <Input
-                id="lab-edit-tanggal"
-                type="date"
-                value={tanggal}
-                onChange={(e) => setTanggal(e.target.value)}
-                required
-              />
+            <div>
+              <label htmlFor="lab-edit-tanggal" className="block text-sm font-medium font-sans text-foreground mb-1">Tanggal Pemeriksaan <span className="text-destructive">*</span></label>
+              <input {...register("tanggalPemeriksaan")} type="date" id="lab-edit-tanggal" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+              {errors.tanggalPemeriksaan && <p className="mt-1 text-xs text-destructive">{errors.tanggalPemeriksaan.message}</p>}
             </div>
 
+              {serverError && (
+                <div className="bg-destructive/10 border border-destructive/30 rounded-[10px] p-3 text-sm text-destructive font-sans">{serverError}</div>
+              )}
+              {/* Tanggal Pemeriksaan */}
             {/* Kategori */}
-            <div className="space-y-1.5">
-              <Label htmlFor="lab-edit-kategori">Kategori (opsional)</Label>
-              <Input
-                id="lab-edit-kategori"
-                value={kategori}
-                onChange={(e) => setKategori(e.target.value)}
-                placeholder="Cth: Darah, Urine"
-              />
+            <div>
+              <label htmlFor="lab-edit-kategori" className="block text-sm font-medium font-sans text-foreground mb-1">Kategori <span className="text-muted-foreground font-normal">(opsional)</span></label>
+              <input {...register("kategori")} type="text" id="lab-edit-kategori" placeholder="Mis: Fungsi Ginjal, Elektrolit" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
 
             {/* Parameter */}
-            <div className="space-y-1.5">
-              <Label htmlFor="lab-edit-parameter">Nama Parameter</Label>
-              <Input
-                id="lab-edit-parameter"
-                value={parameter}
-                onChange={(e) => setParameter(e.target.value)}
-                required
-                placeholder="Cth: Kreatinin"
-              />
+            <div>
+              <label htmlFor="lab-edit-parameter" className="block text-sm font-medium font-sans text-foreground mb-1">Nama Parameter <span className="text-destructive">*</span></label>
+              <input {...register("namaParameter")} type="text" id="lab-edit-parameter" placeholder="Mis: Kreatinin, Hemoglobin" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+              {errors.namaParameter && <p className="mt-1 text-xs text-destructive">{errors.namaParameter.message}</p>}
             </div>
 
             {/* Nilai + Satuan */}
-            <div className="flex gap-2">
-              <div className="flex-1 space-y-1.5">
-                <Label htmlFor="lab-edit-nilai">Nilai</Label>
-                <Input
-                  id="lab-edit-nilai"
-                  value={nilai}
-                  onChange={(e) => setNilai(e.target.value)}
-                  required
-                />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="lab-edit-nilai" className="block text-sm font-medium font-sans text-foreground mb-1">Nilai <span className="text-destructive">*</span></label>
+                <input {...register("nilai")} type="text" id="lab-edit-nilai" placeholder="Mis: 1.2" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                {errors.nilai && <p className="mt-1 text-xs text-destructive">{errors.nilai.message}</p>}
               </div>
-              <div className="flex-1 space-y-1.5">
-                <Label htmlFor="lab-edit-satuan">Satuan</Label>
-                <Input
-                  id="lab-edit-satuan"
-                  value={satuan}
-                  onChange={(e) => setSatuan(e.target.value)}
-                  placeholder="Cth: mg/dL"
-                />
+              <div>
+                <label htmlFor="lab-edit-satuan" className="block text-sm font-medium font-sans text-foreground mb-1">Satuan <span className="text-muted-foreground font-normal">(opsional)</span></label>
+                <input {...register("satuan")} type="text" id="lab-edit-satuan" placeholder="Mis: mg/dL" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
               </div>
             </div>
 
             {/* Nilai Rujukan */}
-            <div className="space-y-1.5">
-              <Label htmlFor="lab-edit-rujukan">Nilai Rujukan (opsional)</Label>
-              <Input
-                id="lab-edit-rujukan"
-                value={rujukan}
-                onChange={(e) => setRujukan(e.target.value)}
-                placeholder="Cth: 0.6 - 1.2"
-              />
+            <div>
+              <label htmlFor="lab-edit-rujukan" className="block text-sm font-medium font-sans text-foreground mb-1">Nilai Rujukan <span className="text-muted-foreground font-normal">(opsional)</span></label>
+              <input {...register("nilaiRujukan")} type="text" id="lab-edit-rujukan" placeholder="Cth: 0.6 - 1.2" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
 
             {/* Catatan */}
-            <div className="space-y-1.5">
-              <Label htmlFor="lab-edit-catatan">Catatan (opsional)</Label>
-              <textarea
-                id="lab-edit-catatan"
-                value={catatan}
-                onChange={(e) => setCatatan(e.target.value)}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm"
-                placeholder="Catatan tambahan"
-              />
+            <div>
+              <label htmlFor="lab-edit-catatan" className="block text-sm font-medium font-sans text-foreground mb-1">Catatan <span className="text-muted-foreground font-normal">(opsional)</span></label>
+              <textarea {...register("catatan")} id="lab-edit-catatan" rows={3} className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Catatan tambahan" />
             </div>
 
             {isUpload && (
@@ -209,8 +133,8 @@ export default function LabEditSheet({
               <p className="text-sm text-destructive">{serverError}</p>
             )}
 
-            <Button type="submit" disabled={saving} className="w-full">
-              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                          <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </form>
         </SheetContent>

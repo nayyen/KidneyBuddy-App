@@ -4,11 +4,14 @@
  * FluidEditSheet.tsx — Edit an existing fluid log entry
  *
  * Opens a Sheet pre-filled with the current entry's data.
- * Allows editing: volume, sumber, konsentrasiCapd, kondisiKeluar, catatan.
+ * Uses react-hook-form + zod validation matching CatatCairanForm styling.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { authFetch } from "@/lib/api";
 import {
   Sheet,
@@ -19,15 +22,8 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Pencil } from "lucide-react";
+import { Pencil, AlertTriangle } from "lucide-react";
+import { SUMBER_LABELS, CAPD_KONSENTRASI_LABELS, KONDISI_KELUAR_LABELS, ABNORMAL_KONDISI } from "@/lib/validators/fluid.schema";
 
 interface FluidEntry {
   id: string;
@@ -55,13 +51,44 @@ export default function FluidEditSheet({
   onSaved,
 }: FluidEditSheetProps) {
   const [open, setOpen] = useState(false);
-  const [volume, setVolume] = useState(String(entry.volume));
-  const [sumber, setSumber] = useState(entry.sumber ?? "");
-  const [konsentrasiCapd, setKonsentrasiCapd] = useState(entry.konsentrasiCapd ?? "");
-  const [kondisiKeluar, setKondisiKeluar] = useState(entry.kondisiKeluar ?? "");
-  const [catatan, setCatatan] = useState(entry.catatan ?? "");
-  const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState("");
+
+
+  const editSchema = z.object({
+    sumber: z.string().optional().nullable(),
+    konsentrasiCapd: z.string().optional().nullable(),
+    volume: z.number({ required_error: "Volume wajib diisi", invalid_type_error: "Volume harus angka" }).positive("Volume harus > 0"),
+    satuan: z.string().default("ml"),
+    kondisiKeluar: z.string().optional().nullable(),
+    catatan: z.string().max(2000).optional().nullable(),
+  });
+  type EditFormData = z.infer<typeof editSchema>;
+
+  const { register, handleSubmit, control, watch, reset, formState: { errors, isSubmitting } } = useForm<EditFormData>({
+    resolver: zodResolver(editSchema) as any,
+    defaultValues: {
+      volume: entry.volume,
+      satuan: entry.satuan ?? "ml",
+      sumber: entry.sumber ?? null,
+      konsentrasiCapd: entry.konsentrasiCapd ?? null,
+      kondisiKeluar: entry.kondisiKeluar ?? null,
+      catatan: entry.catatan ?? null,
+    },
+  });
+
+  useEffect(() => {
+    reset({
+      volume: entry.volume,
+      satuan: entry.satuan ?? "ml",
+      sumber: entry.sumber ?? null,
+      konsentrasiCapd: entry.konsentrasiCapd ?? null,
+      kondisiKeluar: entry.kondisiKeluar ?? null,
+      catatan: entry.catatan ?? null,
+    });
+  }, [entry, reset]);
+
+  const watchedKondisiKeluar = watch("kondisiKeluar");
+  const isAbnormal = watchedKondisiKeluar ? ABNORMAL_KONDISI.has(watchedKondisiKeluar) : false;
 
   const isCAPD = metodeTerapi === "CAPD";
   const isKeluar = entry.tipe === "keluar";
@@ -80,40 +107,23 @@ export default function FluidEditSheet({
         body.konsentrasiCapd = konsentrasiCapd || null;
         body.kondisiKeluar = kondisiKeluar || null;
       }
-      const res = await authFetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/api/fluid/${entry.id}`,
-        accessToken,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        },
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Gagal menyimpan" }));
-        throw new Error(err.message ?? "Gagal menyimpan");
-      }
+  const onSubmit = async (data: EditFormData) => {
+    setServerError("");
+    const body: Record<string, unknown> = {
+      volume: data.volume,
+      sumber: data.sumber || null,
+      catatan: data.catatan || null,
+    };
+    if (isCAPD && isKeluar) {
+      body.konsentrasiCapd = data.konsentrasiCapd || null;
+      body.kondisiKeluar = data.kondisiKeluar || null;
+    }
+    try {
+      await authFetch(`/api/fluid/${entry.id}`, accessToken, { method: "PATCH", body: JSON.stringify(body) });
       toast.success("Catatan cairan berhasil diperbarui");
       setOpen(false);
       onSaved?.();
-    } catch (err) {
-      setServerError(err instanceof Error ? err.message : "Terjadi kesalahan");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800 transition-colors"
-        aria-label="Edit catatan cairan"
-      >
-        <Pencil className="h-3.5 w-3.5" />
-        Edit
-      </button>
+    } catch (err: any) { setServerError(err?.message ?? "Gagal"); }
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl">
           <SheetHeader className="mb-4">
@@ -157,6 +167,12 @@ export default function FluidEditSheet({
                 </Select>
               ) : (
                 <Select value={sumber} onValueChange={setSumber}>
+                {isAbnormal && (
+                  <div className="flex items-start gap-2 p-3 rounded-[10px]" style={{ background: "#fdecee", border: "1px solid #d4183d40" }}>
+                    <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: "#d4183d" }} />
+                    <p className="text-xs font-sans" style={{ color: "#9c1530" }}>Kondisi cairan tidak normal. Segera hubungi dokter.</p>
+                  </div>
+                )}
                   <SelectTrigger id="edit-sumber">
                     <SelectValue placeholder="Pilih sumber" />
                   </SelectTrigger>
