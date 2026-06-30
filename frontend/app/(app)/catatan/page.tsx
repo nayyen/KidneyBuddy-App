@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { FileText } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { toast } from "sonner";
 import FluidLogList from "@/components/catatan/FluidLogList";
@@ -93,6 +94,25 @@ export default function CatatanPage() {
   return (
     <>
       <div className="space-y-4">
+                {/* Laporan button — navigates to report generation page */}
+                <button
+                  onClick={() => router.push("/laporan")}
+                  className="flex items-center justify-between w-full rounded-xl border border-border bg-card p-3.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#f0faf9] flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-[#2a9d8f]" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-sans font-semibold text-foreground">Buat Laporan Dokter</p>
+                      <p className="text-[11px] font-sans text-muted-foreground mt-0.5">Ringkasan data untuk kontrol</p>
+                    </div>
+                  </div>
+                  <svg className="w-4 h-4 text-muted-foreground shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
         {/* Sub-tab pill row */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {TABS.map((tab) => {
