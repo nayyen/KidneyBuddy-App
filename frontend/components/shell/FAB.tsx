@@ -8,20 +8,11 @@ interface FABProps {
 
 export default function FAB({ onClick }: FABProps) {
   return (
-    <div
-      className="lg:hidden flex flex-col items-center"
-      style={{
-        position: "absolute",
-        top: -28,
-        left: "50%",
-        transform: "translateX(-50%)",
-        zIndex: 50,
-      }}
-    >
+    <>
       <button
         onClick={onClick}
         aria-label="Catat Cairan"
-        className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+        className="lg:hidden flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
         style={{
           width: 44,
           height: 44,
@@ -33,13 +24,6 @@ export default function FAB({ onClick }: FABProps) {
       >
         <Droplets size={20} color="#ffffff" />
       </button>
-      {/* Label below the circle */}
-      <span
-        className="font-sans font-medium text-center"
-        style={{ fontSize: 10, color: "#2a9d8f", marginTop: 2 }}
-      >
-        Catat
-      </span>
-    </div>
+    </>
   );
 }
