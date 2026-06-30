@@ -54,6 +54,13 @@ export type FluidSummary = {
   totalIn: number;
   totalOut: number;
   balance: number;
+  /** Per-day breakdown — one row per day in the range with daily balance */
+  dailyBreakdown: Array<{
+    tanggal: string;
+    totalIn: number;
+    totalOut: number;
+    selisih: number;
+  }>;
 };
 
 export type MedicationAdherence = {
@@ -107,6 +114,12 @@ export async function _generateReportCore(
   const totalIn = fluidRows.reduce((sum, row) => sum + row.masuk, 0);
   const totalOut = fluidRows.reduce((sum, row) => sum + row.keluar, 0);
   const balance = totalIn - totalOut;
+  const dailyBreakdown = fluidRows.map((row) => ({
+    tanggal: row.tanggal,
+    totalIn: row.masuk,
+    totalOut: row.keluar,
+    selisih: row.masuk - row.keluar,
+  }));
 
   // Compute medication adherence percentage
   const taken = medicationData.confirmed;
@@ -114,7 +127,7 @@ export async function _generateReportCore(
   const pct = scheduled === 0 ? 0 : Math.round((taken / scheduled) * 100);
 
   return {
-    fluidSummary: { totalIn, totalOut, balance },
+    fluidSummary: { totalIn, totalOut, balance, dailyBreakdown },
     medicationAdherence: { taken, scheduled, pct },
     capdFrequency: capdCounts,
     anomalies: [], // Phase 4 placeholder — Phase 5 fills with real detection data

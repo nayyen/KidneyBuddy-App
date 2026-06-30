@@ -12,6 +12,12 @@ export interface FluidSummaryData {
   totalIn: number;
   totalOut: number;
   balance: number;
+  dailyBreakdown: Array<{
+    tanggal: string;
+    totalIn: number;
+    totalOut: number;
+    selisih: number;
+  }>;
 }
 
 interface Props {
@@ -20,6 +26,7 @@ interface Props {
 
 export default function RingkasanCairan({ fluidSummary }: Props) {
   const { totalIn, totalOut, balance } = fluidSummary;
+  const { dailyBreakdown } = fluidSummary;
   const hasData = totalIn > 0 || totalOut > 0;
 
   return (
@@ -73,6 +80,53 @@ export default function RingkasanCairan({ fluidSummary }: Props) {
               </p>
             </div>
           </div>
+          {/* Per-day breakdown table */}
+          {dailyBreakdown && dailyBreakdown.length > 0 && (
+            <div className="mt-4">
+              <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider mb-2">
+                Rincian Harian
+              </p>
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-[#cccccc]" style={{ borderBottomWidth: 0.5 }}>
+                    <th className="text-left font-bold text-[#7a8c8a] py-1.5 pr-2">Tanggal</th>
+                    <th className="text-right font-bold text-[#7a8c8a] py-1.5 px-2">Masuk</th>
+                    <th className="text-right font-bold text-[#7a8c8a] py-1.5 px-2">Keluar</th>
+                    <th className="text-right font-bold text-[#7a8c8a] py-1.5 pl-2">Selisih</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyBreakdown.map((day) => {
+                    const dayBalance = day.selisih;
+                    return (
+                      <tr key={day.tanggal} className="border-b border-[#cccccc]" style={{ borderBottomWidth: 0.5 }}>
+                        <td className="py-1.5 pr-2 text-[#1a2e2c]">
+                          {new Date(day.tanggal + "T12:00:00").toLocaleDateString("id-ID", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </td>
+                        <td className="text-right py-1.5 px-2 text-[#1a2e2c]">{day.totalIn} ml</td>
+                        <td className="text-right py-1.5 px-2 text-[#1a2e2c]">{day.totalOut} ml</td>
+                        <td
+                          className={`text-right py-1.5 pl-2 font-bold ${
+                            dayBalance > 0
+                              ? "text-[#2a9d8f]"
+                              : dayBalance < 0
+                                ? "text-[#d4183d]"
+                                : "text-[#7a8c8a]"
+                          }`}
+                        >
+                          {dayBalance > 0 ? "+" : ""}{dayBalance} ml
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

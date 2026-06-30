@@ -128,6 +128,13 @@ describe("_generateReportCore aggregation", () => {
     assert.strictEqual(result.fluidSummary.totalIn, 5300); // 1500+1800+2000
     assert.strictEqual(result.fluidSummary.totalOut, 4300); // 1200+1500+1600
     assert.strictEqual(result.fluidSummary.balance, 1000); // 5300-4300
+    assert.ok(Array.isArray(result.fluidSummary.dailyBreakdown), "dailyBreakdown should be an array");
+    assert.strictEqual(result.fluidSummary.dailyBreakdown.length, 3, "should have 3 days");
+    const day1 = result.fluidSummary.dailyBreakdown[0];
+    assert.strictEqual(day1.tanggal, "2026-06-01");
+    assert.strictEqual(day1.totalIn, 1500);
+    assert.strictEqual(day1.totalOut, 1200);
+    assert.strictEqual(day1.selisih, 300, "day1: 1500-1200 = 300");
   });
 
   it("returns medication adherence with pct = (confirmed/total)*100", async () => {
