@@ -105,15 +105,15 @@ export default function AppShell({ children }: AppShellProps) {
         </main>
 
         {/* Mobile/tablet bottom nav + FAB — hidden at lg: */}
+        {/* FAB: fixed above bottom nav — separated to prevent overlap */}
+        <div data-print-hidden="true" className="lg:hidden fixed z-50" style={{ bottom: "calc(64px + env(safe-area-inset-bottom))", left: "50%", transform: "translateX(-50%)" }}>
+          <FAB onClick={handleCatatCairan} />
+        </div>
         <nav
           data-print-hidden="true"
           className="lg:hidden fixed bottom-0 inset-x-0 z-40"
           style={{ position: "fixed" }}
         >
-          {/* FAB: absolutely positioned above the bottom nav */}
-          <div className="relative">
-            <FAB onClick={handleCatatCairan} />
-          </div>
           <BottomNav />
         </nav>
       </div>
