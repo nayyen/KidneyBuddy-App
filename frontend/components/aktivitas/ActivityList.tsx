@@ -16,6 +16,14 @@ import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { Clock, CheckCircle2, Play } from "lucide-react";
 import { toast } from "sonner";
+/**
+ * Calculate duration in minutes since the activity started.
+ */
+function computeDurationMinutes(waktuMulai: string): number {
+  const start = new Date(waktuMulai).getTime();
+  const now = Date.now();
+  return Math.floor((now - start) / 60000);
+}
 
 interface ActivityResult {
   id: string;
@@ -57,6 +65,12 @@ function formatWIB(isoStr: string): string {
  * Returns null if the activity is still within the estimated time or completed.
  */
 function getElapsedMinutesPastEnd(estimasiSelesai: string): number | null {
+
+  function isPastEstimasi(estimasiSelesai: string): boolean {
+    if (!estimasiSelesai) return false;
+    return Date.now() > new Date(estimasiSelesai).getTime();
+  }
+
   const now = Date.now() + 7 * 3600 * 1000; // WIB offset
   const end = new Date(estimasiSelesai).getTime();
   const elapsed = Math.floor((now - end) / 60000);
@@ -167,21 +181,25 @@ export default function ActivityList({
               {activity.status !== "selesai" && (
                 <div className="flex items-center gap-1.5 mb-1">
                   {(() => {
-                    const elapsed = getElapsedMinutesPastEnd(activity.estimasiSelesai);
-                    if (elapsed !== null) {
+                    const dur = computeDurationMinutes(activity.waktuMulai);
+                    const hours = Math.floor(dur / 60);
+                    const mins = dur % 60;
+                    const durText = hours > 0 ? `${hours}j ${mins}m` : `${mins}m`;
+                    const overdue = activity.estimasiSelesai && isPastEstimasi(activity.estimasiSelesai);
+                    if (overdue) {
                       return (
                         <span
                           className="font-sans font-medium inline-flex items-center gap-1"
                           style={{
                             fontSize: 10,
-                            color: "#7a4c0a",
-                            backgroundColor: "#fdf3e3",
+                            color: "#d4183d",
+                            backgroundColor: "#fdecee",
                             borderRadius: 10,
                             padding: "2px 8px",
                           }}
                         >
-                          <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#ef9f27", display: "inline-block" }} />
-                          Masih aktif · {elapsed} menit lebih
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#d4183d", display: "inline-block" }} />
+                          {durText} · Terlambat
                         </span>
                       );
                     }
@@ -190,14 +208,14 @@ export default function ActivityList({
                         className="font-sans font-medium inline-flex items-center gap-1"
                         style={{
                           fontSize: 10,
-                          color: "#7a4c0a",
-                          backgroundColor: "#fdf3e3",
+                          color: "#2a9d8f",
+                          backgroundColor: "#f0faf9",
                           borderRadius: 10,
                           padding: "2px 8px",
                         }}
                       >
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#ef9f27", display: "inline-block" }} />
-                        Berlangsung
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#2a9d8f", display: "inline-block" }} />
+                        {durText}
                       </span>
                     );
                   })()}
@@ -220,16 +238,26 @@ export default function ActivityList({
             {/* Status badge or complete button */}
             <div className="shrink-0">
               {activity.status === "selesai" ? (
+              <div className="flex flex-col items-end gap-1">
+              {activity.status === "selesai" ? (
                 activity.perasaan ? (
+                <>
                   <span
                     className="font-sans font-medium"
                     style={{
                       fontSize: 11,
                       color: PERASAAN_COLOR[activity.perasaan] ?? "#7a8c8a",
+                      textAlign: "right",
                     }}
                   >
                     {PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}
                   </span>
+                  {activity.catatanPerasaan && (
+                    <span className="font-sans text-right" style={{ fontSize: 10, color: "#7a8c8a", maxWidth: 120, lineHeight: 1.3 }}>
+                      {activity.catatanPerasaan}
+                    </span>
+                  )}
+                </>
                 ) : (
                   <span
                     className="font-sans"
@@ -238,6 +266,7 @@ export default function ActivityList({
                     ✅ Selesai
                   </span>
                 )
+              </div>
               ) : (
                 <button
                   onClick={() =>

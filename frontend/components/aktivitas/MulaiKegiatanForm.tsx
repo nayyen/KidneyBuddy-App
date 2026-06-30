@@ -27,6 +27,7 @@ export default function MulaiKegiatanForm({
 }: MulaiKegiatanFormProps) {
   const [namaKegiatan, setNamaKegiatan] = useState("");
   const [estimasiSelesai, setEstimasiSelesai] = useState("");
+    const [tanggal, setTanggal] = useState(new Date().toISOString().slice(0, 10));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,6 +50,7 @@ export default function MulaiKegiatanForm({
         body: JSON.stringify({
           namaKegiatan: namaKegiatan.trim(),
           estimasiSelesai,
+          tanggal, // YYYY-MM-DD
         }),
       });
 
@@ -92,6 +94,22 @@ export default function MulaiKegiatanForm({
             color: "#1a2e2c",
           }}
           autoFocus
+        />
+      </div>
+
+      {/* Tanggal */}
+      <div className="space-y-1.5">
+        <label htmlFor="tanggalKegiatan" className="font-sans font-medium" style={{ fontSize: 13, color: "#1a2e2c" }}>
+          Tanggal
+        </label>
+        <input
+          id="tanggalKegiatan"
+          type="date"
+          value={tanggal}
+          onChange={(e) => setTanggal(e.target.value)}
+          className="w-full font-sans rounded-xl border px-4 py-3 outline-none transition-colors"
+          style={{ fontSize: 14, borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c" }}
+          disabled={isSubmitting}
         />
       </div>
 

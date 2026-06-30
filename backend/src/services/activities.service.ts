@@ -73,6 +73,10 @@ export const createActivitySchema = z.object({
     .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
       message: "Format estimasi waktu harus HH:mm (contoh: 14:30)",
     }),
+  tanggal: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD")
+    .optional(),
 });
 
 export type CreateActivityPayload = z.infer<typeof createActivitySchema>;
@@ -161,10 +165,12 @@ export async function _createActivityCore(
   const parsed = createActivitySchema.parse(rawPayload);
 
   // Combine today's WIB date with the HH:mm estimasiSelesai
-  const estimasiSelesaiUTC = combineWIBDateAndTime(parsed.estimasiSelesai);
+  const estimasiSelesaiUTC = parsed.tanggal
+    ? new Date(`${parsed.tanggal}T${parsed.estimasiSelesai}:00+07:00`)
+    : combineWIBDateAndTime(parsed.estimasiSelesai);
 
-  // Reject if estimasiSelesai is in the past (WIB comparison)
-  if (Date.now() > estimasiSelesaiUTC.getTime()) {
+  // Reject if estimasiSelesai is in the past (WIB comparison) — skip for past dates
+  if (!parsed.tanggal && Date.now() > estimasiSelesaiUTC.getTime()) {
     throw new Error("Estimasi waktu tidak boleh di masa lalu");
   }
 
