@@ -82,7 +82,6 @@ export default function LaporanPage() {
         <p className="text-xs font-medium text-[#7a8c8a]" style={{ marginTop: 2 }}>
           Pilih periode untuk laporan kunjungan dokter kamu.
         </p>
-      </div>
 
       {/* Date range selector */}
       <LaporanDateRangeSelector onChange={handleRangeChange} />
