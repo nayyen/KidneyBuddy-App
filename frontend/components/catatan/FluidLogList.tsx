@@ -36,6 +36,8 @@ interface FluidLogListProps {
   date?: string;
   /** Increment to trigger a refetch */
   refreshKey?: number;
+  /** Active therapy method for CAPD-specific fields */
+  metodeTerapi?: string;
 }
 
 function todayDateString(): string {
@@ -56,6 +58,7 @@ export default function FluidLogList({
   accessToken,
   date,
   refreshKey = 0,
+  metodeTerapi,
 }: FluidLogListProps) {
   const targetDate = date ?? todayDateString();
   const [entries, setEntries] = useState<FluidEntry[]>([]);
@@ -185,7 +188,7 @@ export default function FluidLogList({
 
       {/* Entry list */}
       {entries.map((entry) => (
-        <FluidLogItem key={entry.id} entry={entry} />
+        <FluidLogItem key={entry.id} entry={entry} accessToken={accessToken} metodeTerapi={metodeTerapi} onEdited={fetchEntries} />
       ))}
 
       {/* Entry count footer */}

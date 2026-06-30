@@ -3,6 +3,8 @@
 /**
  * FluidLogItem.tsx — Single fluid log entry row
  *
+
+import FluidEditSheet from "@/components/cairan/FluidEditSheet";
  * Per UI-SPEC FluidLogItem spec:
  * - Time (10px DM Sans muted), type badge pill, volume, condition dot, Terlambat badge
  */
@@ -24,6 +26,9 @@ interface FluidEntry {
 
 interface FluidLogItemProps {
   entry: FluidEntry;
+  accessToken?: string;     // Needed for edit sheet
+  metodeTerapi?: string;    // Needed for CAPD-specific fields
+  onEdited?: () => void;   // Called after successful edit
 }
 
 function getConditionDotColor(kondisi: string | null): string {
@@ -55,11 +60,12 @@ function formatSumber(sumber: string | null, konsentrasi: string | null): string
   return labels[sumber] ?? sumber;
 }
 
-export default function FluidLogItem({ entry }: FluidLogItemProps) {
+export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdited }: FluidLogItemProps) {
   const isMasuk = entry.tipe === "masuk";
   const dotColor = entry.kondisiKeluar
     ? getConditionDotColor(entry.kondisiKeluar)
     : "";
+  const showEdit = !!accessToken;
 
   return (
     <div
@@ -177,6 +183,15 @@ export default function FluidLogItem({ entry }: FluidLogItemProps) {
             {entry.satuan}
           </span>
         </div>
+        {/* Edit button */}
+        {showEdit && (
+          <FluidEditSheet
+            entry={entry}
+            accessToken={accessToken}
+            metodeTerapi={metodeTerapi ?? ""}
+            onSaved={onEdited}
+          />
+        )}
       </div>
     </div>
   );

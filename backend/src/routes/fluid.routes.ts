@@ -22,4 +22,7 @@ router.post("/acknowledge-abnormal", authenticate, fluidController.acknowledgeAb
 // GET /api/fluid?date=YYYY-MM-DD — list entries for a date
 router.get("/", authenticate, fluidController.list);
 
+// PATCH /api/fluid/:id — update an existing fluid entry
+router.patch("/:id", authenticate, fluidController.update);
+
 export default router;

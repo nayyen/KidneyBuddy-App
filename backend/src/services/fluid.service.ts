@@ -254,3 +254,39 @@ export async function getEntriesByDate(
     createdAt: row.createdAt,
   }));
 }
+
+  /**
+   * Update an existing fluid log entry.
+   * Only allows updating volume, sumber, konsentrasiCapd, kondisiKeluar, and catatan.
+   * Returns the updated entry or undefined if not found.
+   */
+  export async function updateEntry(
+    userId: string,
+    id: string,
+    data: Record<string, unknown>,
+  ) {
+    const allowed: Record<string, unknown> = {};
+    const EDITABLE_FIELDS = ["volume", "sumber", "konsentrasiCapd", "kondisiKeluar", "catatan"];
+    for (const key of EDITABLE_FIELDS) {
+      if (data[key] !== undefined) {
+        allowed[key] = key === "catatan" && data[key] ? realEncrypt(String(data[key])) : data[key];
+      }
+    }
+    if (Object.keys(allowed).length === 0) return undefined;
+      const updated = await fluidLogRepository.updateById(userId, id, allowed as any);
+    if (!updated) return undefined;
+    return {
+      id: updated.id,
+      waktu: updated.waktu,
+      tipe: updated.tipe,
+      sumber: updated.sumber,
+      konsentrasiCapd: updated.konsentrasiCapd,
+      volume: Number(updated.volume),
+      satuan: updated.satuan,
+      kondisiKeluar: updated.kondisiKeluar,
+      catatan: updated.catatan ? realDecrypt(updated.catatan) : null,
+      isLateEntry: updated.isLateEntry,
+      hasAbnormalCondition: computeHasAbnormalCondition(updated.kondisiKeluar),
+      createdAt: updated.createdAt,
+    };
+  }

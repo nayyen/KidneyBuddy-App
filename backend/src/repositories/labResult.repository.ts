@@ -125,6 +125,32 @@ export async function findById(
   }
 
 /**
+ * Update a non-archived lab result's editable fields (IDOR-safe).
+ */
+export async function updateById(
+  userId: string,
+  id: string,
+  data: Partial<{
+    tanggalPemeriksaan: string;
+    kategori: string | null;
+    namaParameter: string;
+    nilai: string;
+    satuan: string | null;
+    nilaiRujukan: string | null;
+    catatan: string | null;
+  }>,
+): Promise<LabResult | null> {
+  const [row] = await db
+    .update(labResults)
+    .set(data)
+    .where(
+      and(eq(labResults.userId, userId as any), eq(labResults.id, id as any), eq(labResults.diarsipkan, false)),
+    )
+    .returning();
+  return row ?? null;
+}
+
+/**
  * Find lab results for trend chart — ordered by date ascending within a lookback window.
  * Only returns non-archived manual entries (not file upload placeholders).
  */

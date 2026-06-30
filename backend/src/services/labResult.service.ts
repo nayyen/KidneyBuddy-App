@@ -124,6 +124,51 @@ function formatLabRow(
 }
 
 /**
+ * Update an existing manual lab result entry (editable fields).
+ * Does NOT allow updating fileId or sumber fields.
+ */
+export async function updateEntry(
+  userId: string,
+  id: string,
+  data: Record<string, unknown>,
+) {
+  const allowed: Record<string, unknown> = {};
+  const EDITABLE = [
+    "tanggalPemeriksaan",
+    "kategori",
+    "namaParameter",
+    "nilai",
+    "satuan",
+    "nilaiRujukan",
+    "catatan",
+  ];
+  for (const key of EDITABLE) {
+    if (data[key] !== undefined) {
+      allowed[key] = key === "catatan" && data[key]
+        ? realEncrypt(String(data[key]))
+        : data[key];
+    }
+  }
+  if (Object.keys(allowed).length === 0) return undefined;
+  const updated = await labResultRepository.updateById(userId, id, allowed);
+  if (!updated) return undefined;
+  return {
+    id: updated.id,
+    tanggalPemeriksaan: updated.tanggalPemeriksaan,
+    kategori: updated.kategori,
+    namaParameter: updated.namaParameter,
+    nilai: updated.nilai,
+    satuan: updated.satuan,
+    nilaiRujukan: updated.nilaiRujukan,
+    sumber: updated.sumber,
+    fileId: updated.fileId,
+    catatan: updated.catatan ? realDecrypt(updated.catatan) : null,
+    diarsipkan: updated.diarsipkan,
+    createdAt: updated.createdAt,
+  };
+}
+
+/**
  * Core create-lab logic with injectable dependencies.
  * Exported for unit testing without a live DB.
  */

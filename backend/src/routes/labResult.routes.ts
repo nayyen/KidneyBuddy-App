@@ -43,4 +43,7 @@ router.patch("/:id/archive", authenticate, labResultController.archive);
 // PATCH /api/lab/:id/restore — restore an archived lab result
 router.patch("/:id/restore", authenticate, labResultController.restore);
 
+// PUT /api/lab/:id — update a manual lab result entry
+router.put("/:id", authenticate, labResultController.update);
+
 export default router;

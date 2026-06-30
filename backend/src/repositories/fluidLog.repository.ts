@@ -66,3 +66,26 @@ export async function getDailyBalance(
 
   return { masuk, keluar, delta: masuk - keluar, unit: "ml", hasAbnormalCondition };
 }
+
+/**
+ * Update a fluid log entry's editable fields (IDOR-safe).
+ * Returns undefined if no row was found (wrong userId or id).
+ */
+export async function updateById(
+  userId: string,
+  id: string,
+  data: Partial<{
+    volume: string | null;
+    sumber: string | null;
+    konsentrasiCapd: string | null;
+    kondisiKeluar: string | null;
+    catatan: string | null;
+  }>,
+): Promise<FluidLog | undefined> {
+  const [row] = await db
+    .update(fluidLog)
+    .set(data as any)
+    .where(and(eq(fluidLog.userId, userId as any), eq(fluidLog.id, id as any)))
+    .returning();
+  return row;
+}

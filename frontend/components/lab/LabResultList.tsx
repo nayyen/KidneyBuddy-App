@@ -13,6 +13,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { Archive, FlaskConical, ChevronRight } from "lucide-react";
+import LabEditSheet from "./LabEditSheet";
 import { toast } from "sonner";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
@@ -170,6 +171,15 @@ export default function LabResultList({
                   </div>
 
                   {/* Archive button */}
+                                    {/* Edit button */}
+                                    {result.sumber !== "upload" && (
+                                      <LabEditSheet
+                                        entry={result}
+                                        accessToken={accessToken}
+                                        onSaved={fetchResults}
+                                      />
+                                    )}
+                                    {/* Archive button */}
                   <button
                     onClick={() => handleArchive(result.id)}
                     disabled={archiving === result.id}

@@ -98,3 +98,24 @@ export async function list(
     next(err);
   }
 }
+
+/**
+ * PUT /api/fluid/:id
+ * Update an existing fluid log entry for the authenticated user.
+ */
+export async function update(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await fluidService.updateEntry(req.user!.id, req.params.id as string, req.body);
+    if (!result) {
+      res.status(404).json({ code: "NOT_FOUND", message: "Catatan cairan tidak ditemukan" });
+      return;
+    }
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}

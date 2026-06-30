@@ -136,6 +136,31 @@ export async function listArchived(
   }
 }
 
+/**
+ * PUT /api/lab/:id
+ * Update an existing manual lab result entry (editable fields only).
+ */
+export async function update(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await labResultService.updateEntry(
+      req.user!.id,
+      req.params.id as string,
+      req.body,
+    );
+    if (!result) {
+      res.status(404).json({ code: "NOT_FOUND", message: "Lab result tidak ditemukan" });
+      return;
+    }
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // ─── Upload (LAB-05) ──────────────────────────────────────────────────────────
 
 /**

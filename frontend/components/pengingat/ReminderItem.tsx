@@ -14,8 +14,9 @@
  */
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil, Check, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import DeleteReminderConfirm from "./DeleteReminderConfirm";
 import { authFetch } from "@/lib/api";
 
@@ -72,6 +73,38 @@ export default function ReminderItem({
   const [isToggling, setIsToggling] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editNama, setEditNama] = useState(reminder.nama);
+  const [editDosis, setEditDosis] = useState(reminder.dosis ?? "");
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const handleSaveEdit = async () => {
+    setSavingEdit(true);
+    try {
+      const body: Record<string, unknown> = { nama: editNama };
+      if (reminder.jenis === "obat") {
+        body.dosis = editDosis || null;
+      }
+      const updated = await authFetch<Reminder>(
+        `/api/reminders/${reminder.id}`,
+        accessToken,
+        { method: "PATCH", body: JSON.stringify(body) },
+      );
+      onUpdated?.(updated);
+      setEditing(false);
+    } catch {
+      // Revert on error
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditNama(reminder.nama);
+    setEditDosis(reminder.dosis ?? "");
+    setEditing(false);
+  };
+
 
   const handleToggle = async (checked: boolean) => {
     if (isToggling) return;
@@ -143,6 +176,40 @@ export default function ReminderItem({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
+          {editing ? (
+            <div className="space-y-2">
+              <Input
+                value={editNama}
+                onChange={(e) => setEditNama(e.target.value)}
+                className="h-8 text-sm"
+                placeholder="Nama pengingat"
+              />
+              {reminder.jenis === "obat" && (
+                <Input
+                  value={editDosis}
+                  onChange={(e) => setEditDosis(e.target.value)}
+                  className="h-8 text-sm"
+                  placeholder="Dosis (opsional)"
+                />
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={savingEdit || !editNama.trim()}
+                  className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800"
+                >
+                  <Check className="h-3.5 w-3.5" /> Simpan
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" /> Batal
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
           {/* Name + type badge row */}
           <div className="flex items-center gap-2 flex-wrap">
             <p
@@ -223,6 +290,8 @@ export default function ReminderItem({
               );
             })}
           </div>
+            </>
+          )}
         </div>
 
         {/* Right controls */}
@@ -235,6 +304,18 @@ export default function ReminderItem({
             aria-label={aktif ? "Nonaktifkan pengingat" : "Aktifkan pengingat"}
           />
           {/* Delete button */}
+                    {/* Edit button */}
+                    {!editing && (
+                      <button
+                        type="button"
+                        onClick={() => setEditing(true)}
+                        className="p-1 rounded hover:bg-gray-100 transition-colors"
+                        aria-label="Edit pengingat"
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    )}
+                    {/* Delete button */}
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
