@@ -7,6 +7,7 @@
  * Pattern: follows fluidLog.repository.ts (InferInsertModel, InferSelectModel).
  */
 import { and, eq, lte, gte } from "drizzle-orm";
+import { and, eq, lte, gte, desc } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { dailyActivities } from "../db/schema/dailyActivity.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -62,6 +63,8 @@ export async function findByDate(
       ),
     )
     .orderBy(dailyActivities.waktuMulai);
+import { desc } from "drizzle-orm";
+  .orderBy(desc(dailyActivities.waktuMulai));
 }
 
 /**
@@ -86,6 +89,63 @@ export async function completeById(
     )
     .returning();
   return row;
+}
+
+/**
+ * Soft-delete an activity (set status to 'dibatalkan').
+ * IDOR-safe: filters by userId AND id.
+ */
+export async function deleteById(
+  userId: string,
+  id: string,
+): Promise<DailyActivity | null> {
+  const [row] = await db
+    .update(dailyActivities)
+    .set({ status: "dibatalkan" })
+    .where(
+      and(eq(dailyActivities.userId, userId as any), eq(dailyActivities.id, id as any)),
+    )
+    .returning();
+  return row ?? null;
+}
+
+/**
+ * Update an activity's editable fields (namaKegiatan, estimasiSelesai).
+ * IDOR-safe: filters by userId AND id.
+ */
+export async function updateById(
+  userId: string,
+  id: string,
+  data: Partial<{
+    namaKegiatan: string;
+    estimasiSelesai: Date;
+  }>,
+): Promise<DailyActivity | null> {
+  const [row] = await db
+    .update(dailyActivities)
+    .set({ ...data, status: "berlangsung" })
+    .where(
+      and(eq(dailyActivities.userId, userId as any), eq(dailyActivities.id, id as any)),
+    )
+    .returning();
+  return row ?? null;
+}
+
+/**
+ * Find ALL activities for a user, ordered by waktuMulai descending.
+ * Used by ActivityList to show history across dates.
+ */
+export async function findAllByUser(
+  userId: string,
+  limit = 50,
+): Promise<DailyActivity[]> {
+  return db
+    .select()
+    .from(dailyActivities)
+    .where(
+      eq(dailyActivities.userId, userId as any),
+    )
+    .orderBy(dailyActivities.waktuMulai);
 }
 
 /**

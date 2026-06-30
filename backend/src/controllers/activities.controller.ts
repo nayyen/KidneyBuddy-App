@@ -67,6 +67,23 @@ export async function getActive(
 }
 
 /**
+ * GET /api/activities/all
+ * List ALL activities across all dates.
+ */
+export async function listAll(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const activities = await activitiesService.listAllActivities(req.user!.id);
+    res.json({ activities });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * PATCH /api/activities/:id/complete
  * Mark an activity as complete with optional feelings and catatan.
  * Expects optional { perasaan, catatan } in the request body.
@@ -82,6 +99,55 @@ export async function complete(
       req.params.id as string,
       req.body,
     );
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * DELETE /api/activities/:id
+ * Cancel/delete an activity by ID.
+ */
+export async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await activitiesService.deleteActivity(
+      req.user!.id,
+      req.params.id as string,
+    );
+    if (!result) {
+      res.status(404).json({ code: "NOT_FOUND", message: "Aktivitas tidak ditemukan" });
+      return;
+    }
+    res.json({ message: "Aktivitas dibatalkan" });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PUT /api/activities/:id
+ * Update an activity's namaKegiatan and/or estimasiSelesai.
+ */
+export async function update(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await activitiesService.updateActivity(
+      req.user!.id,
+      req.params.id as string,
+      req.body,
+    );
+    if (!result) {
+      res.status(404).json({ code: "NOT_FOUND", message: "Aktivitas tidak ditemukan" });
+      return;
+    }
     res.json(result);
   } catch (err) {
     next(err);

@@ -306,3 +306,46 @@ export async function listActivities(
   const rows = await dailyActivityRepository.findByDate(userId, dateStart, dateEnd);
   return rows.map((row) => formatActivity(row, realDecrypt));
 }
+
+/**
+ * Delete (cancel) an activity by ID.
+ * Returns the updated activity or null if not found.
+ */
+export async function deleteActivity(
+  userId: string,
+  id: string,
+): Promise<ActivityResult | null> {
+  const row = await dailyActivityRepository.deleteById(userId, id);
+  if (!row) return null;
+  return formatActivity(row, realDecrypt);
+}
+
+/**
+ * Update activity namaKegiatan and/or estimasiSelesai.
+ * Returns updated activity or null if not found.
+ */
+export async function updateActivity(
+  userId: string,
+  id: string,
+  data: { namaKegiatan?: string; estimasiSelesai?: string },
+): Promise<ActivityResult | null> {
+  const updateData: Record<string, unknown> = {};
+  if (data.namaKegiatan) updateData.namaKegiatan = data.namaKegiatan;
+  if (data.estimasiSelesai) {
+    updateData.estimasiSelesai = combineWIBDateAndTime(data.estimasiSelesai);
+  }
+  if (Object.keys(updateData).length === 0) return null;
+  const row = await dailyActivityRepository.updateById(userId, id, updateData as any);
+  if (!row) return null;
+  return formatActivity(row, realDecrypt);
+}
+
+/**
+ * List ALL activities for a user (across all dates), ordered by waktuMulai desc.
+ */
+export async function listAllActivities(
+  userId: string,
+): Promise<ActivityResult[]> {
+  const rows = await dailyActivityRepository.findAllByUser(userId);
+  return rows.map((row) => formatActivity(row, realDecrypt));
+}
