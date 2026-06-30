@@ -1,13 +1,11 @@
 "use client";
-
 /**
  * FluidLogItem.tsx — Single fluid log entry row
- *
-
-import FluidEditSheet from "@/components/cairan/FluidEditSheet";
  * Per UI-SPEC FluidLogItem spec:
  * - Time (10px DM Sans muted), type badge pill, volume, condition dot, Terlambat badge
  */
+
+import FluidEditSheet from "@/components/cairan/FluidEditSheet";
 
 interface FluidEntry {
   id: string;

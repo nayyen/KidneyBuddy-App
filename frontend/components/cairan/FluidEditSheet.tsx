@@ -4,7 +4,7 @@
  * FluidEditSheet.tsx — Edit an existing fluid log entry
  *
  * Opens a Sheet pre-filled with the current entry's data.
- * Uses react-hook-form + zod validation matching CatatCairanForm styling.
+ * Uses react-hook-form + zod matching CatatCairanForm styling.
  */
 
 import { useState, useEffect } from "react";
@@ -21,7 +21,6 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Pencil, AlertTriangle } from "lucide-react";
 import { SUMBER_LABELS, CAPD_KONSENTRASI_LABELS, KONDISI_KELUAR_LABELS, ABNORMAL_KONDISI } from "@/lib/validators/fluid.schema";
 
@@ -44,6 +43,16 @@ interface FluidEditSheetProps {
   onSaved?: () => void;
 }
 
+const editSchema = z.object({
+  sumber: z.string().optional().nullable(),
+  konsentrasiCapd: z.string().optional().nullable(),
+  volume: z.number({ required_error: "Volume wajib diisi", invalid_type_error: "Volume harus angka" }).positive("Volume harus > 0"),
+  kondisiKeluar: z.string().optional().nullable(),
+  catatan: z.string().max(2000).optional().nullable(),
+});
+
+type EditFormData = z.infer<typeof editSchema>;
+
 export default function FluidEditSheet({
   entry,
   accessToken,
@@ -52,23 +61,13 @@ export default function FluidEditSheet({
 }: FluidEditSheetProps) {
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState("");
-
-
-  const editSchema = z.object({
-    sumber: z.string().optional().nullable(),
-    konsentrasiCapd: z.string().optional().nullable(),
-    volume: z.number({ required_error: "Volume wajib diisi", invalid_type_error: "Volume harus angka" }).positive("Volume harus > 0"),
-    satuan: z.string().default("ml"),
-    kondisiKeluar: z.string().optional().nullable(),
-    catatan: z.string().max(2000).optional().nullable(),
-  });
-  type EditFormData = z.infer<typeof editSchema>;
+  const isCAPD = metodeTerapi === "CAPD";
+  const isKeluar = entry.tipe === "keluar";
 
   const { register, handleSubmit, control, watch, reset, formState: { errors, isSubmitting } } = useForm<EditFormData>({
     resolver: zodResolver(editSchema) as any,
     defaultValues: {
       volume: entry.volume,
-      satuan: entry.satuan ?? "ml",
       sumber: entry.sumber ?? null,
       konsentrasiCapd: entry.konsentrasiCapd ?? null,
       kondisiKeluar: entry.kondisiKeluar ?? null,
@@ -79,7 +78,6 @@ export default function FluidEditSheet({
   useEffect(() => {
     reset({
       volume: entry.volume,
-      satuan: entry.satuan ?? "ml",
       sumber: entry.sumber ?? null,
       konsentrasiCapd: entry.konsentrasiCapd ?? null,
       kondisiKeluar: entry.kondisiKeluar ?? null,
@@ -90,23 +88,6 @@ export default function FluidEditSheet({
   const watchedKondisiKeluar = watch("kondisiKeluar");
   const isAbnormal = watchedKondisiKeluar ? ABNORMAL_KONDISI.has(watchedKondisiKeluar) : false;
 
-  const isCAPD = metodeTerapi === "CAPD";
-  const isKeluar = entry.tipe === "keluar";
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setServerError("");
-    try {
-      const body: Record<string, unknown> = {
-        volume: volume ? parseFloat(volume) : undefined,
-        sumber: sumber || null,
-        catatan: catatan || null,
-      };
-      if (isCAPD && isKeluar) {
-        body.konsentrasiCapd = konsentrasiCapd || null;
-        body.kondisiKeluar = kondisiKeluar || null;
-      }
   const onSubmit = async (data: EditFormData) => {
     setServerError("");
     const body: Record<string, unknown> = {
@@ -123,7 +104,22 @@ export default function FluidEditSheet({
       toast.success("Catatan cairan berhasil diperbarui");
       setOpen(false);
       onSaved?.();
-    } catch (err: any) { setServerError(err?.message ?? "Gagal"); }
+    } catch (err: any) {
+      setServerError(err?.message ?? "Gagal menyimpan");
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800 transition-colors"
+        aria-label="Edit catatan cairan"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+        Edit
+      </button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl">
           <SheetHeader className="mb-4">
@@ -133,110 +129,70 @@ export default function FluidEditSheet({
               {entry.waktu.slice(0, 5)}
             </SheetDescription>
           </SheetHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 overflow-y-auto pr-2">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+            {serverError && (
+              <div className="bg-destructive/10 border border-destructive/30 rounded-[10px] p-3 text-sm text-destructive font-sans">{serverError}</div>
+            )}
+
             {/* Volume */}
-            <div className="space-y-1.5">
-              <Label htmlFor="edit-volume">Volume</Label>
-              <div className="flex gap-2 items-center">
-                <Input
-                  id="edit-volume"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={volume}
-                  onChange={(e) => setVolume(e.target.value)}
-                  required
-                  className="flex-1"
-                />
-                <span className="text-sm text-muted-foreground">ml</span>
-              </div>
+            <div>
+              <label htmlFor="edit-volume" className="block text-sm font-medium font-sans text-foreground mb-1">Volume <span className="text-destructive">*</span></label>
+              <input {...register("volume", { valueAsNumber: true })} type="number" step="0.01" min="0" id="edit-volume" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+              {errors.volume && <p className="mt-1 text-xs text-destructive">{errors.volume.message}</p>}
             </div>
 
-            {/* Sumber (masuk) / Sumber (keluar) */}
-            <div className="space-y-1.5">
-              <Label htmlFor="edit-sumber">Sumber</Label>
-              {isKeluar && isCAPD ? (
-                <Select value={sumber} onValueChange={setSumber}>
-                  <SelectTrigger id="edit-sumber">
-                    <SelectValue placeholder="Pilih sumber" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="capd">CAPD</SelectItem>
-                    <SelectItem value="lainnya">Lainnya</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Select value={sumber} onValueChange={setSumber}>
-                {isAbnormal && (
-                  <div className="flex items-start gap-2 p-3 rounded-[10px]" style={{ background: "#fdecee", border: "1px solid #d4183d40" }}>
-                    <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: "#d4183d" }} />
-                    <p className="text-xs font-sans" style={{ color: "#9c1530" }}>Kondisi cairan tidak normal. Segera hubungi dokter.</p>
-                  </div>
-                )}
-                  <SelectTrigger id="edit-sumber">
-                    <SelectValue placeholder="Pilih sumber" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="minuman">Minuman</SelectItem>
-                    <SelectItem value="makanan">Makanan</SelectItem>
-                    {isCAPD && <SelectItem value="capd">CAPD</SelectItem>}
-                    <SelectItem value="lainnya">Lainnya</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+            {/* Sumber */}
+            <div>
+              <label htmlFor="edit-sumber" className="block text-sm font-medium font-sans text-foreground mb-1">Sumber <span className="text-muted-foreground font-normal">(opsional)</span></label>
+              <Controller name="sumber" control={control} render={({ field }) => (
+                <select {...field} value={field.value ?? ""} id="edit-sumber" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                  <option value="">Pilih sumber</option>
+                  {Object.entries(SUMBER_LABELS).map(([v, lbl]) => {
+                    if (v === "capd" && !isCAPD) return null;
+                    return <option key={v} value={v}>{lbl}</option>;
+                  })}
+                </select>
+              )} />
             </div>
 
-            {/* CAPD-specific fields */}
+            {/* CAPD fields */}
             {isCAPD && isKeluar && (
               <>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-konsentrasi">Konsentrasi Cairan</Label>
-                  <Select value={konsentrasiCapd} onValueChange={setKonsentrasiCapd}>
-                    <SelectTrigger id="edit-konsentrasi">
-                      <SelectValue placeholder="Pilih konsentrasi" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1.5%">1.5%</SelectItem>
-                      <SelectItem value="2.5%">2.5%</SelectItem>
-                      <SelectItem value="4.25%">4.25%</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div>
+                  <label htmlFor="edit-konsentrasi" className="block text-sm font-medium font-sans text-foreground mb-1">Konsentrasi Cairan</label>
+                  <Controller name="konsentrasiCapd" control={control} render={({ field }) => (
+                    <select {...field} value={field.value ?? ""} id="edit-konsentrasi" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                      <option value="">Pilih konsentrasi</option>
+                      {Object.entries(CAPD_KONSENTRASI_LABELS).map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}
+                    </select>
+                  )} />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-kondisi">Kondisi Cairan Keluar</Label>
-                  <Select value={kondisiKeluar} onValueChange={setKondisiKeluar}>
-                    <SelectTrigger id="edit-kondisi">
-                      <SelectValue placeholder="Pilih kondisi" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="jernih">Jernih</SelectItem>
-                      <SelectItem value="keruh">Keruh</SelectItem>
-                      <SelectItem value="keruh_gumpalan">Keruh dengan Gumpalan Putih</SelectItem>
-                      <SelectItem value="berdarah">Berdarah</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div>
+                  <label htmlFor="edit-kondisi" className="block text-sm font-medium font-sans text-foreground mb-1">Kondisi Cairan Keluar</label>
+                  <Controller name="kondisiKeluar" control={control} render={({ field }) => (
+                    <select {...field} value={field.value ?? ""} id="edit-kondisi" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                      <option value="">Pilih kondisi</option>
+                      {Object.entries(KONDISI_KELUAR_LABELS).map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}
+                    </select>
+                  )} />
+                  {isAbnormal && (
+                    <div className="flex items-start gap-2 mt-2 p-3 rounded-[10px]" style={{ background: "#fdecee", border: "1px solid #d4183d40" }}>
+                      <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: "#d4183d" }} />
+                      <p className="text-xs font-sans" style={{ color: "#9c1530" }}>Kondisi cairan tidak normal. Segera hubungi dokter.</p>
+                    </div>
+                  )}
                 </div>
               </>
             )}
 
             {/* Catatan */}
-            <div className="space-y-1.5">
-              <Label htmlFor="edit-catatan">Catatan</Label>
-              <textarea
-                id="edit-catatan"
-                value={catatan}
-                onChange={(e) => setCatatan(e.target.value)}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                placeholder="Catatan tambahan (opsional)"
-              />
+            <div>
+              <label htmlFor="edit-catatan" className="block text-sm font-medium font-sans text-foreground mb-1">Catatan <span className="text-muted-foreground font-normal">(opsional)</span></label>
+              <textarea {...register("catatan")} id="edit-catatan" rows={3} className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Catatan tambahan" />
             </div>
 
-            {serverError && (
-              <p className="text-sm text-destructive">{serverError}</p>
-            )}
-
-            <Button type="submit" disabled={saving} className="w-full">
-              {saving ? "Menyimpan..." : "Simpan Perubahan"}
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>
           </form>
         </SheetContent>
