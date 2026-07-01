@@ -221,12 +221,12 @@ export default function ReminderItem({
             <span
               className="font-sans font-medium"
               style={{
-                fontSize: 8,
-                paddingLeft: 6,
-                paddingRight: 6,
-                paddingTop: 2,
-                paddingBottom: 2,
-                borderRadius: 5,
+                fontSize: 13,
+                paddingLeft: 12,
+                paddingRight: 12,
+                paddingTop: 6,
+                paddingBottom: 6,
+                borderRadius: 8,
                 backgroundColor: badgeStyle.bg,
                 color: badgeStyle.text,
               }}
@@ -267,7 +267,7 @@ export default function ReminderItem({
           )}
 
           {/* Active day chips */}
-          <div className="flex gap-1 mt-1.5 flex-wrap">
+          <div className="flex gap-1.5 mt-1.5 flex-wrap">
             {ALL_HARI.map((hari) => {
               const isActive = reminder.hariAktif.includes(hari);
               return (
@@ -275,14 +275,14 @@ export default function ReminderItem({
                   key={hari}
                   className="font-sans font-medium"
                   style={{
-                    fontSize: 8,
-                    paddingLeft: 5,
-                    paddingRight: 5,
-                    paddingTop: 2,
-                    paddingBottom: 2,
-                    borderRadius: 4,
+                    fontSize: 13,
+                    paddingLeft: 8,
+                    paddingRight: 8,
+                    paddingTop: 4,
+                    paddingBottom: 4,
+                    borderRadius: 6,
                     backgroundColor: isActive ? "#f0faf9" : "#f3f3f5",
-                    color: isActive ? "#2a9d8f" : "#cfe8e4",
+                    color: isActive ? "#2a9d8f" : "#3d6b66",
                   }}
                 >
                   {HARI_SHORT[hari] ?? hari}

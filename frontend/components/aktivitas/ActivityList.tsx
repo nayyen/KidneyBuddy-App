@@ -305,11 +305,11 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                       </div>
 
                       {/* Right side */}
-                      <div className="flex flex-col items-end gap-1 shrink-0">
+                      <div className="flex flex-col items-end gap-2 shrink-0">
                         {activity.status === "selesai" && !editingId ? (
                           <>
                             {activity.perasaan && <span className="font-sans font-medium" style={{ fontSize: 13, color: PERASAAN_COLOR[activity.perasaan] ?? "#3d6b66", textAlign: "right" }}>{PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}</span>}
-                            {activity.catatanPerasaan && <span className="font-sans text-right" style={{ fontSize: 10, color: "#3d6b66", maxWidth: 120, lineHeight: 1.3 }}>{activity.catatanPerasaan}</span>}
+                            {activity.catatanPerasaan && <span className="font-sans text-right" style={{ fontSize: 16, fontWeight: 500, color: "#1a2e2c", maxWidth: 140, lineHeight: 1.4 }}>{activity.catatanPerasaan}</span>}
                           </>
                         ) : activity.status !== "selesai" && editingId !== activity.id ? (
                           <button onClick={() => window.dispatchEvent(new CustomEvent("activity:complete", { detail: { id: activity.id, namaKegiatan: activity.namaKegiatan } }))}
@@ -319,12 +319,12 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                         ) : <div style={{ minHeight: 32 }} />}
 
                         {/* Edit & Delete buttons */}
-                        <div className="flex items-center gap-1 mt-1">
-                          <button onClick={() => startEdit(activity)} className="p-1 rounded hover:bg-gray-100 transition-colors" aria-label="Edit aktivitas">
-                            <Pencil className="h-3 w-3 text-muted-foreground" />
+                        <div className="flex items-center gap-2 mt-1">
+                          <button onClick={() => startEdit(activity)} className="p-3 rounded-lg hover:bg-teal-50 transition-colors flex items-center justify-center" aria-label="Edit aktivitas" style={{ minHeight: 44, minWidth: 44 }}>
+                            <Pencil className="h-5 w-5" style={{ color: "#3d6b66" }} />
                           </button>
-                          <button onClick={() => handleDelete(activity.id)} className="p-1 rounded hover:bg-red-50 transition-colors" aria-label="Hapus aktivitas">
-                            <Trash2 className="h-3 w-3 text-red-400" />
+                          <button onClick={() => handleDelete(activity.id)} className="p-3 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center" aria-label="Hapus aktivitas" style={{ minHeight: 44, minWidth: 44 }}>
+                            <Trash2 className="h-5 w-5" style={{ color: "#d4183d" }} />
                           </button>
                         </div>
                       </div>

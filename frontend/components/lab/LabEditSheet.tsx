@@ -132,7 +132,7 @@ export default function LabEditSheet({
               {entry.namaParameter} — {entry.tanggalPemeriksaan}
             </SheetDescription>
           </SheetHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-6 pb-6">
             {serverError && (
               <div className="bg-destructive/10 border border-destructive/30 rounded-[10px] p-3 text-sm text-destructive font-sans">{serverError}</div>
             )}

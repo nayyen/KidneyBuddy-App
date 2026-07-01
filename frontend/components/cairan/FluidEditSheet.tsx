@@ -129,7 +129,7 @@ export default function FluidEditSheet({
               {entry.waktu.slice(0, 5)}
             </SheetDescription>
           </SheetHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5 px-6 pb-6">
             {serverError && (
               <div className="bg-destructive/10 border border-destructive/30 rounded-[10px] p-3 text-sm text-destructive font-sans">{serverError}</div>
             )}
