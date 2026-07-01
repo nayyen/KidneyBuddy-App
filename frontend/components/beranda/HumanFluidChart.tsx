@@ -18,6 +18,12 @@
  *   delta < -1000      → red #d4183d @ 20% + "Output berlebih" label
  *
  * Size: ~200px mobile, ~240px desktop (responsive via viewBox)
+ *
+ * SVG anatomy:
+ *   - clipPath#hfc-body-clip: contains the clean human silhouette path
+ *   - Fluid wave group: clipped to body so waves stay inside the silhouette
+ *   - Body outline path: same path with stroke=#2a9d8f, fill=none (on top)
+ *   - Silhouette is perfectly symmetrical around x=60 with smooth bezier curves
  */
 
 interface HumanFluidChartProps {
@@ -38,43 +44,62 @@ interface HumanFluidChartProps {
 }
 
 // ── Body silhouette path (viewBox 0 0 120 260) ──────────────────────────
-// A front-facing human body outline: head, torso, arms, legs.
+// A front-facing human body outline: head, neck, shoulders, torso, arms, legs.
+// Perfectly symmetrical around x=60. Clean cubic-bezier curves, no jagged edges.
+//
+// Anatomy (right half, mirrored on left):
+//   Head:    y=9–39,  widest at x=76 (rx=16 from center)
+//   Neck:    y=39–44, width ~13 (x=53–66)
+//   Shoulder:y=44–53, span x=29–91 (62 units wide)
+//   Arm:     y=53–130, outer x=91→85 (tapered), inner x=80 (armpit)
+//   Torso:   y=130–155, waist x=41–79, hip x=40–80
+//   Leg:     y=155–251, two legs with gap at crotch x=57–63
+//   Foot:    y=246–251
 const BODY_PATH = `
-M 60 10
-C 76 10, 82 22, 82 32
-L 82 40
-L 96 46
-L 100 54
-L 96 110
-L 90 114
-L 86 112
-L 84 62
-L 78 140
-L 82 150
-L 78 248
-L 64 250
-L 62 160
-L 60 162
-L 58 160
-L 56 250
-L 42 248
-L 38 150
-L 42 140
-L 36 62
-L 34 112
-L 30 114
-L 24 110
-L 20 54
-L 24 46
-L 38 40
-C 38 22, 44 10, 60 10
+M 60 9
+C 70 9 76 16 76 25
+C 76 32 72 37 67 39
+L 66 44
+C 72 45 87 48 91 53
+L 89 56
+C 88 58 87 60 86 62
+L 85 125
+C 85 128 83 130 80 130
+L 78 135
+L 79 145
+L 80 155
+L 81 195
+L 82 225
+L 83 246
+C 83 249 81 251 78 251
+L 64 251
+L 63 248
+C 62 246 61 244 60 244
+C 59 244 58 246 57 248
+L 56 251
+L 42 251
+C 39 251 37 249 37 246
+L 38 225
+L 39 195
+L 40 155
+L 41 145
+L 42 135
+L 40 130
+C 37 130 35 128 35 125
+L 34 62
+C 33 60 32 58 31 56
+L 29 53
+C 33 48 48 45 54 44
+L 53 39
+C 48 37 44 32 44 25
+C 44 16 50 9 60 9
 Z
 `.trim();
 
 // Body vertical bounds for fill calculation
-const BODY_TOP = 10;
-const BODY_BOTTOM = 250;
-const BODY_HEIGHT = BODY_BOTTOM - BODY_TOP; // 240
+const BODY_TOP = 9;
+const BODY_BOTTOM = 251;
+const BODY_HEIGHT = BODY_BOTTOM - BODY_TOP; // 242
 
 // Wave path (wider than body for seamless animation, clipped by body)
 const WAVE_PATH = `
@@ -230,7 +255,7 @@ export default function HumanFluidChart({
               aria-label={`Visual cairan tubuh: ${deltaDisplay}, masuk ${formatVolume(masuk)}, keluar ${formatVolume(keluar)}`}
             >
               <defs>
-                {/* Clip path = body silhouette (for fluid fill) */}
+                {/* Clip path = body silhouette (fluid fill stays inside body) */}
                 <clipPath id="hfc-body-clip">
                   <path d={BODY_PATH} />
                 </clipPath>
@@ -250,7 +275,7 @@ export default function HumanFluidChart({
                 </linearGradient>
               </defs>
 
-              {/* Fluid fill (clipped to body) */}
+              {/* Fluid fill (clipped to body silhouette) */}
               <g clipPath="url(#hfc-body-clip)">
                 {/* Back wave layer (slower, semi-transparent) */}
                 <g
@@ -278,7 +303,7 @@ export default function HumanFluidChart({
                   />
                 </g>
 
-                {/* Solid fluid below wave (ensures full fill) */}
+                {/* Solid fluid below wave (ensures full fill to bottom) */}
                 <rect
                   x={0}
                   y={fillY + 2}
@@ -289,13 +314,14 @@ export default function HumanFluidChart({
                 />
               </g>
 
-              {/* Body outline (on top of fluid) */}
+              {/* Body outline (on top of fluid, same path as clip) */}
               <path
                 d={BODY_PATH}
                 fill="none"
                 stroke="#2a9d8f"
                 strokeWidth={2}
                 strokeLinejoin="round"
+                strokeLinecap="round"
               />
             </svg>
 
