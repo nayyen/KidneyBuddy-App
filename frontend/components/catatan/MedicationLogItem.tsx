@@ -33,8 +33,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  dikonfirmasi: { bg: "#f0faf9", text: "#2a9d8f" },
-  tertunda: { bg: "#fdf3e3", text: "#7a4c0a" },
+  dikonfirmasi: { bg: "#f0faf9", text: "#0d4a44" },
+  tertunda: { bg: "#fdf3e3", text: "#7a4c00" },
   terlewat: { bg: "#fdecee", text: "#9c1530" },
 };
 
@@ -94,13 +94,13 @@ export default function MedicationLogItem({
       <div className="flex-1 min-w-0">
         <p
           className="font-sans font-medium truncate"
-          style={{ fontSize: 12, color: "#1a2e2c" }}
+          style={{ fontSize: 14, color: "#1a2e2c" }}
         >
           {log.namaObat}
         </p>
         <p
           className="font-sans mt-0.5"
-          style={{ fontSize: 10, color: "#7a8c8a" }}
+          style={{ fontSize: 13, color: "#3d6b66" }}
         >
           {formatTime(log.waktuPengingat)}
         </p>
@@ -110,7 +110,7 @@ export default function MedicationLogItem({
       <span
         className="font-sans font-medium shrink-0"
         style={{
-          fontSize: 10,
+          fontSize: 13,
           paddingLeft: 8,
           paddingRight: 8,
           paddingTop: 3,

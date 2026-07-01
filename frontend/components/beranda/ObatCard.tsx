@@ -128,13 +128,13 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
           <button
             onClick={fetchEntries}
             className="font-sans mt-1"
-            style={{ fontSize: 12, color: "#2a9d8f", textDecoration: "underline" }}
+            style={{ fontSize: 14, color: "#0d4a44", textDecoration: "underline" }}
           >
             Coba Lagi
           </button>
         </div>
       ) : entries.length === 0 ? (
-        <p className="font-sans" style={{ fontSize: 12, color: "#7a8c8a" }}>
+        <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
           Tidak ada obat hari ini
         </p>
       ) : (
@@ -176,8 +176,8 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                   <p
                     className="font-sans font-medium truncate"
                     style={{
-                      fontSize: 12,
-                      color: isConfirmed ? "#7a8c8a" : "#1a2e2c",
+                      fontSize: 14,
+                      color: isConfirmed ? "#3d6b66" : "#1a2e2c",
                       textDecoration: isConfirmed ? "line-through" : "none",
                     }}
                   >
@@ -185,7 +185,7 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                   </p>
                   <p
                     className="font-sans"
-                    style={{ fontSize: 10, color: "#7a8c8a" }}
+                    style={{ fontSize: 14, color: "#3d6b66" }}
                   >
                     {formatTime(entry.waktuPengingat)}
                   </p>
@@ -196,8 +196,8 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                   <span
                     className="font-sans font-medium shrink-0"
                     style={{
-                      fontSize: 10,
-                      color: "#2a9d8f",
+                      fontSize: 13,
+                      color: "#0d4a44",
                       paddingLeft: 6,
                       paddingRight: 6,
                       paddingTop: 2,
@@ -217,14 +217,14 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                     onClick={() => handleConfirm(entry.reminderId)}
                     className="font-sans font-medium shrink-0 transition-colors hover:opacity-80"
                     style={{
-                      fontSize: 10,
-                      color: "#2a9d8f",
+                      fontSize: 13,
+                      color: "#0d4a44",
                       paddingLeft: 6,
                       paddingRight: 6,
                       paddingTop: 2,
                       paddingBottom: 2,
                       borderRadius: 5,
-                      border: "0.5px solid #2a9d8f",
+                      border: "0.5px solid #0d4a44",
                       background: "none",
                       cursor: "pointer",
                     }}

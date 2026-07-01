@@ -41,7 +41,7 @@ const FEELINGS_OPTIONS: FeelingsOption[] = [
     value: "biasa",
     label: "Biasa",
     icon: <Meh size={24} />,
-    color: "#7a8c8a",
+    color: "#3d6b66",
   },
   {
     value: "lelah",
@@ -150,7 +150,7 @@ export default function FeelingsRatingSheet({
             Bagaimana perasaanmu?
           </SheetTitle>
           {namaKegiatan && (
-            <p className="font-sans" style={{ fontSize: 13, color: "#7a8c8a" }}>
+            <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66" }}>
               Setelah &quot;{namaKegiatan}&quot;
             </p>
           )}
@@ -173,14 +173,14 @@ export default function FeelingsRatingSheet({
                   }}
                   aria-label={opt.label}
                 >
-                  <span style={{ color: isSelected ? opt.color : "#7a8c8a" }}>
+                  <span style={{ color: isSelected ? opt.color : "#3d6b66" }}>
                     {opt.icon}
                   </span>
                   <span
                     className="font-sans font-medium"
                     style={{
-                      fontSize: 11,
-                      color: isSelected ? opt.color : "#7a8c8a",
+                      fontSize: 13,
+                      color: isSelected ? opt.color : "#3d6b66",
                     }}
                   >
                     {opt.label}
@@ -215,7 +215,7 @@ export default function FeelingsRatingSheet({
                 minHeight: 80,
               }}
             />
-            <p className="font-sans text-right" style={{ fontSize: 11, color: "#7a8c8a" }}>
+            <p className="font-sans text-right" style={{ fontSize: 13, color: "#3d6b66" }}>
               {catatan.length}/200
             </p>
           </div>
@@ -229,7 +229,7 @@ export default function FeelingsRatingSheet({
               style={{
                 fontSize: 14,
                 backgroundColor: "#f0faf9",
-                color: "#7a8c8a",
+                color: "#3d6b66",
                 border: "1px solid #d0e8e4",
               }}
             >

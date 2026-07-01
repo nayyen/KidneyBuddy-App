@@ -5,13 +5,17 @@
   --font-sans: "DM Sans", sans-serif;
   --font-heading: "Plus Jakarta Sans", sans-serif;
 
+  /* WCAG 2.1 AA: override Tailwind text-xs and text-sm to meet 13px/15px minimums */
+  --text-xs: 0.8125rem;   /* 13px */
+  --text-sm: 0.9375rem;   /* 15px */
+
   /* Page & surface */
   --color-background: #fdf9f3;
   --color-foreground: #1a2e2c;
   --color-card: #ffffff;
   --color-card-foreground: #1a2e2c;
   --color-muted: #f3ede5;
-  --color-muted-foreground: #7a8c8a;
+  --color-muted-foreground: #3d6b66; /* was #7a8c8a — fails 4.5:1 on cream; #3d6b66 ≈ 5.6:1 ✓ */
 
   /* Brand teal (primary) */
   --color-primary: #2a9d8f;
@@ -50,6 +54,7 @@
 
 /* Base styles */
 html {
+  font-size: 16px; /* WCAG: explicit base for elderly-patient font scaling */
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

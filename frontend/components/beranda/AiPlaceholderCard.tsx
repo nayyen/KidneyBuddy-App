@@ -47,7 +47,7 @@ export default function AiPlaceholderCard() {
         </p>
         <p
           className="font-sans mt-0.5"
-          style={{ fontSize: 10, color: "#7a8c8a" }}
+          style={{ fontSize: 13, color: "#3d6b66" }}
         >
           Tersedia di Phase 5 — analisis tren cairan dan obat harian
         </p>

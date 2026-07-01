@@ -71,7 +71,7 @@ function LaporanPreviewInner() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-xs font-medium text-[#7a8c8a]">Memuat...</p>
+        <p className="text-xs font-medium text-[#3d6b66]">Memuat...</p>
       </div>
     );
   }
@@ -86,7 +86,7 @@ function LaporanPreviewInner() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex items-center gap-1 text-xs font-medium text-[#7a8c8a] hover:text-[#1a2e2c] transition-colors"
+            className="flex items-center gap-1 text-xs font-medium text-[#3d6b66] hover:text-[#1a2e2c] transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Kembali ke Laporan
@@ -109,7 +109,7 @@ function LaporanPreviewInner() {
       <div className="p-4">
         {loading ? (
           <div className="flex items-center justify-center min-h-[40vh]">
-            <p className="text-xs font-medium text-[#7a8c8a]">
+            <p className="text-xs font-medium text-[#3d6b66]">
               Memuat data laporan...
             </p>
           </div>
@@ -143,7 +143,7 @@ function LaporanPreviewInner() {
 
 export default function LaporanPreviewPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><p className="text-xs font-medium text-[#7a8c8a]">Memuat...</p></div>}>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]"><p className="text-xs font-medium text-[#3d6b66]">Memuat...</p></div>}>
       <LaporanPreviewInner />
     </Suspense>
   );

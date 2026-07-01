@@ -91,13 +91,13 @@ export default function ReminderList({
           textAlign: "center",
         }}
       >
-        <p className="font-sans" style={{ fontSize: 12, color: "#d4183d" }}>
+        <p className="font-sans" style={{ fontSize: 14, color: "#d4183d" }}>
           Gagal memuat data. Periksa koneksi internet Anda, lalu coba lagi.
         </p>
         <button
           onClick={fetchReminders}
           className="font-sans mt-2"
-          style={{ fontSize: 12, color: "#2a9d8f", textDecoration: "underline" }}
+          style={{ fontSize: 14, color: "#0d4a44", textDecoration: "underline" }}
         >
           Coba Lagi
         </button>
@@ -122,7 +122,7 @@ export default function ReminderList({
       ))}
       <p
         className="font-sans text-right mt-1"
-        style={{ fontSize: 10, color: "#7a8c8a" }}
+        style={{ fontSize: 13, color: "#3d6b66" }}
       >
         {reminders.length} pengingat
       </p>

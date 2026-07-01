@@ -54,7 +54,7 @@ export default function LaporanPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-xs font-medium text-[#7a8c8a]">Memuat...</p>
+        <p className="text-xs font-medium text-[#3d6b66]">Memuat...</p>
       </div>
     );
   }
@@ -74,12 +74,12 @@ export default function LaporanPage() {
           className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-[#f0faf9] transition-colors"
           aria-label="Kembali"
         >
-          <ChevronLeft className="w-5 h-5 text-[#7a8c8a]" />
+          <ChevronLeft className="w-5 h-5 text-[#3d6b66]" />
         </button>
       {/* Page heading */}
         <h1 className="text-sm font-bold text-[#1a2e2c]">Buat Laporan</h1>
       </div>
-        <p className="text-xs font-medium text-[#7a8c8a]" style={{ marginTop: 2 }}>
+        <p className="text-xs font-medium text-[#3d6b66]" style={{ marginTop: 2 }}>
           Pilih periode untuk laporan kunjungan dokter kamu.
         </p>
 
@@ -104,16 +104,16 @@ export default function LaporanPage() {
         />
         {/* Character counter */}
         <div className="flex justify-between mt-1">
-          <span className="text-[10px] font-medium text-[#7a8c8a]">
+          <span className="text-[13px] font-medium text-[#3d6b66]">
             Tidak disimpan ke sistem.
           </span>
           <span
-            className={`text-[10px] font-medium ${
+            className={`text-[13px] font-medium ${
               catatan.length >= 500
                 ? "text-[#d4183d]"
                 : catatan.length >= 400
                   ? "text-[#ef9f27]"
-                  : "text-[#7a8c8a]"
+                  : "text-[#3d6b66]"
             }`}
           >
             {catatan.length}/500

@@ -53,7 +53,7 @@ export default function NotificationPermissionBanner({
       >
         <p
           className="text-xs"
-          style={{ fontFamily: "DM Sans", color: "#7a8c8a" }}
+          style={{ fontFamily: "DM Sans", color: "#3d6b66" }}
         >
           Browser Anda tidak mendukung notifikasi push.
         </p>
@@ -86,10 +86,10 @@ export default function NotificationPermissionBanner({
         className="rounded-[12px] px-4 py-3 flex items-start gap-3"
         style={{ backgroundColor: "#f3f3f5" }}
       >
-        <BellOff size={16} style={{ color: "#7a8c8a", flexShrink: 0, marginTop: 2 }} />
+        <BellOff size={16} style={{ color: "#3d6b66", flexShrink: 0, marginTop: 2 }} />
         <p
           className="text-xs leading-relaxed"
-          style={{ fontFamily: "DM Sans", color: "#7a8c8a" }}
+          style={{ fontFamily: "DM Sans", color: "#3d6b66" }}
         >
           Notifikasi tidak diizinkan. Aktifkan di pengaturan browser untuk
           menerima pengingat.

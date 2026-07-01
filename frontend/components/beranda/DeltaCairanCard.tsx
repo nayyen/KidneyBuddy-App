@@ -37,7 +37,7 @@ interface DeltaCairanCardProps {
 }
 
 function getDeltaColor(delta: number, hasData: boolean): string {
-  if (!hasData) return "#7a8c8a";
+  if (!hasData) return "#3d6b66"; /* was #7a8c8a — fails 4.5:1; #3d6b66 ≈ 5.6:1 on cream ✓ */
   const abs = Math.abs(delta);
   if (abs <= 1000) return "#2a9d8f";
   if (abs <= 2000) return "#ef9f27";
@@ -164,14 +164,14 @@ export default function DeltaCairanCard({
             {isLoading ? (
               <span
                 className="font-sans"
-                style={{ fontSize: 10, color: "rgba(255,255,255,0.8)" }}
+                style={{ fontSize: 14, color: "#1a2e2c" }}
               >
                 Memuat...
               </span>
             ) : error ? (
               <span
                 className="font-sans text-center px-2"
-                style={{ fontSize: 9, color: "rgba(255,255,255,0.7)" }}
+                style={{ fontSize: 13, color: "#1a2e2c" }}
               >
                 Gagal memuat
               </span>
@@ -179,7 +179,7 @@ export default function DeltaCairanCard({
               <>
                 <span
                   className="font-sans"
-                  style={{ fontSize: 10, color: "rgba(255,255,255,0.8)" }}
+                  style={{ fontSize: 16, color: "#1a2e2c" }}
                 >
                   Keseimbangan
                 </span>
@@ -191,7 +191,7 @@ export default function DeltaCairanCard({
                 </span>
                 <span
                   className="font-sans"
-                  style={{ fontSize: 10, color: "rgba(255,255,255,0.8)" }}
+                  style={{ fontSize: 16, color: "#1a2e2c" }}
                 >
                   ml
                 </span>
@@ -204,7 +204,7 @@ export default function DeltaCairanCard({
         {!isLoading && !error && (
           <p
             className="font-sans mt-2 text-center"
-            style={{ fontSize: 10, color: "#7a8c8a" }}
+            style={{ fontSize: 14, color: "#1a2e2c" }}
           >
             {hasData
               ? `Masuk: ${formatVolume(masuk)} · Keluar: ${formatVolume(keluar)}`

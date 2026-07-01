@@ -44,7 +44,7 @@ export default function DeleteReminderConfirm({
           <AlertDialogTitle className="font-heading font-bold" style={{ fontSize: 14, color: "#1a2e2c" }}>
             Hapus Pengingat?
           </AlertDialogTitle>
-          <AlertDialogDescription className="font-sans" style={{ fontSize: 12, color: "#7a8c8a" }}>
+          <AlertDialogDescription className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
             Pengingat &apos;{reminderName}&apos; akan dihapus dan tidak akan dikirimkan lagi.
             Tindakan ini tidak dapat dibatalkan.
           </AlertDialogDescription>

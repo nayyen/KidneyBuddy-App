@@ -29,9 +29,9 @@ interface PengingatBerikutnyaCardProps {
 }
 
 const TYPE_COLORS: Record<string, { bg: string; text: string }> = {
-  obat: { bg: "#f0faf9", text: "#2a9d8f" },
-  capd: { bg: "#f0faf9", text: "#2a9d8f" },
-  hd: { bg: "#fdf3e3", text: "#7a4c0a" },
+  obat: { bg: "#f0faf9", text: "#0d4a44" },
+  capd: { bg: "#f0faf9", text: "#0d4a44" },
+  hd: { bg: "#fdf3e3", text: "#7a4c00" },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -83,7 +83,7 @@ export default function PengingatBerikutnyaCard({
     >
       {/* Card title */}
       <div className="flex items-center gap-2 mb-3">
-        <Bell size={14} style={{ color: "#2a9d8f" }} />
+        <Bell size={14} style={{ color: "#0d4a44" }} />
         <p
           className="font-heading font-bold"
           style={{ fontSize: 14, color: "#1a2e2c" }}
@@ -105,19 +105,19 @@ export default function PengingatBerikutnyaCard({
         </div>
       ) : error ? (
         <div>
-          <p className="font-sans" style={{ fontSize: 12, color: "#d4183d" }}>
+          <p className="font-sans" style={{ fontSize: 14, color: "#d4183d" }}>
             Gagal memuat data.
           </p>
           <button
             onClick={fetchNext}
             className="font-sans mt-1"
-            style={{ fontSize: 12, color: "#2a9d8f", textDecoration: "underline" }}
+            style={{ fontSize: 14, color: "#0d4a44", textDecoration: "underline" }}
           >
             Coba Lagi
           </button>
         </div>
       ) : !next ? (
-        <p className="font-sans" style={{ fontSize: 12, color: "#7a8c8a" }}>
+        <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
           Tidak ada pengingat berikutnya
         </p>
       ) : (
@@ -126,7 +126,7 @@ export default function PengingatBerikutnyaCard({
           <div className="flex items-center gap-2 mb-1">
             <span
               className="font-heading font-bold"
-              style={{ fontSize: 20, color: "#2a9d8f", lineHeight: 1.2 }}
+              style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}
             >
               {next.jamPengingat}
             </span>
@@ -134,7 +134,7 @@ export default function PengingatBerikutnyaCard({
               <span
                 className="font-sans font-medium"
                 style={{
-                  fontSize: 10,
+                  fontSize: 14,
                   paddingLeft: 6,
                   paddingRight: 6,
                   paddingTop: 2,
@@ -152,7 +152,7 @@ export default function PengingatBerikutnyaCard({
           {/* Reminder name */}
           <p
             className="font-sans font-medium"
-            style={{ fontSize: 12, color: "#1a2e2c" }}
+            style={{ fontSize: 14, color: "#1a2e2c" }}
           >
             {next.nama}
           </p>
@@ -161,7 +161,7 @@ export default function PengingatBerikutnyaCard({
           {next.catatanWaktu && (
             <p
               className="font-sans mt-0.5"
-              style={{ fontSize: 10, color: "#7a8c8a" }}
+              style={{ fontSize: 14, color: "#3d6b66" }}
             >
               {next.catatanWaktu}
             </p>

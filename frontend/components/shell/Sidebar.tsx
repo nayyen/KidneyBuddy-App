@@ -64,7 +64,7 @@ export default function Sidebar({ onCatatCairan }: SidebarProps) {
               <Icon
                 size={20}
                 strokeWidth={isActive ? 2 : 1.5}
-                color={isActive ? "#2a9d8f" : "#7a8c8a"}
+                color={isActive ? "#2a9d8f" : "#3d6b66"}
               />
               <span
                 className="font-sans font-medium"

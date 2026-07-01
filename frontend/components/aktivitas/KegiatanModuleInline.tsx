@@ -90,7 +90,7 @@ export default function KegiatanModuleInline({
   if (isLoading) {
     return (
       <div className="w-full" style={{ background: "linear-gradient(145deg, #f0faf9, #e0f5f2)", borderRadius: 16, padding: 16 }}>
-        <p className="font-sans text-sm" style={{ color: "#7a8c8a" }}>Memuat...</p>
+        <p className="font-sans text-sm" style={{ color: "#3d6b66" }}>Memuat...</p>
       </div>
     );
   }
@@ -112,7 +112,7 @@ export default function KegiatanModuleInline({
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-heading font-bold" style={{ fontSize: 14, color: "#1a2e2c" }}>Mulai Kegiatan</p>
-            <p className="font-sans" style={{ fontSize: 12, color: "#7a8c8a" }}>Catat aktivitas harianmu</p>
+            <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Catat aktivitas harianmu</p>
           </div>
         </div>
       </div>
@@ -147,7 +147,7 @@ export default function KegiatanModuleInline({
               · {durationText}
             </span>
           </p>
-          <p className="font-sans" style={{ fontSize: 12, color: "#7a8c8a" }}>
+          <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
             Mulai {formatWIB(activeActivity.waktuMulai)} · Estimasi {formatWIB(activeActivity.estimasiSelesai)}
             {pastEnd && <span style={{ color: "#d4183d", marginLeft: 4 }}>· Terlambat</span>}
           </p>
@@ -156,7 +156,7 @@ export default function KegiatanModuleInline({
           onClick={(e) => { e.stopPropagation(); onCompleteActivity?.(activeActivity.id, activeActivity.namaKegiatan); }}
           className="font-sans font-medium cursor-pointer active:scale-95 transition-transform shrink-0"
           style={{
-            fontSize: 11,
+            fontSize: 13,
             borderRadius: 20,
             padding: "6px 14px",
             background: "#2a9d8f",

@@ -95,7 +95,7 @@ export default function CAPDReminderForm({
           }}
         />
         {errors.nama && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.nama.message}
           </p>
         )}
@@ -130,7 +130,7 @@ export default function CAPDReminderForm({
           ))}
         </select>
         {errors.konsentrasiCapd && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.konsentrasiCapd.message}
           </p>
         )}
@@ -159,7 +159,7 @@ export default function CAPDReminderForm({
           }}
         />
         {errors.jamPengingat && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.jamPengingat.message}
           </p>
         )}
@@ -188,9 +188,9 @@ export default function CAPDReminderForm({
                   paddingLeft: 8,
                   paddingRight: 8,
                   borderRadius: 8,
-                  fontSize: 10,
+                  fontSize: 13,
                   backgroundColor: isChecked ? "#2a9d8f" : "#f0faf9",
-                  color: isChecked ? "#ffffff" : "#7a8c8a",
+                  color: isChecked ? "#ffffff" : "#3d6b66",
                   border: "none",
                   cursor: "pointer",
                 }}
@@ -201,7 +201,7 @@ export default function CAPDReminderForm({
           })}
         </div>
         {errors.hariAktif && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.hariAktif.message}
           </p>
         )}
@@ -215,7 +215,7 @@ export default function CAPDReminderForm({
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
           Catatan Waktu{" "}
-          <span style={{ color: "#7a8c8a", fontWeight: 400 }}>(opsional)</span>
+          <span style={{ color: "#3d6b66", fontWeight: 400 }}>(opsional)</span>
         </label>
         <input
           {...register("catatanWaktu")}
@@ -255,7 +255,7 @@ export default function CAPDReminderForm({
             className="w-full font-sans font-medium transition-colors"
             style={{
               fontSize: 12,
-              color: "#7a8c8a",
+              color: "#3d6b66",
               background: "none",
               border: "none",
               cursor: "pointer",

@@ -93,7 +93,7 @@ export default function HDReminderForm({
           }}
         />
         {errors.nama && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.nama.message}
           </p>
         )}
@@ -122,7 +122,7 @@ export default function HDReminderForm({
           }}
         />
         {errors.jamPengingat && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.jamPengingat.message}
           </p>
         )}
@@ -151,7 +151,7 @@ export default function HDReminderForm({
                   paddingLeft: 8,
                   paddingRight: 8,
                   borderRadius: 8,
-                  fontSize: 10,
+                  fontSize: 13,
                   backgroundColor: isChecked ? "#ef9f27" : "#fdf3e3",
                   color: isChecked ? "#ffffff" : "#7a4c0a",
                   border: "none",
@@ -164,7 +164,7 @@ export default function HDReminderForm({
           })}
         </div>
         {errors.hariAktif && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.hariAktif.message}
           </p>
         )}
@@ -178,7 +178,7 @@ export default function HDReminderForm({
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
           Catatan{" "}
-          <span style={{ color: "#7a8c8a", fontWeight: 400 }}>(opsional)</span>
+          <span style={{ color: "#3d6b66", fontWeight: 400 }}>(opsional)</span>
         </label>
         <input
           {...register("catatanWaktu")}
@@ -218,7 +218,7 @@ export default function HDReminderForm({
             className="w-full font-sans font-medium transition-colors"
             style={{
               fontSize: 12,
-              color: "#7a8c8a",
+              color: "#3d6b66",
               background: "none",
               border: "none",
               cursor: "pointer",

@@ -164,7 +164,7 @@ export default function ReminderItem({
           className="font-heading font-bold shrink-0"
           style={{
             fontSize: 14,
-            color: "#2a9d8f",
+            color: "#0d4a44",
             backgroundColor: "#f0faf9",
             borderRadius: 8,
             padding: "4px 8px",
@@ -214,7 +214,7 @@ export default function ReminderItem({
           <div className="flex items-center gap-2 flex-wrap">
             <p
               className="font-sans font-medium"
-              style={{ fontSize: 12, color: "#1a2e2c" }}
+              style={{ fontSize: 14, color: "#1a2e2c" }}
             >
               {reminder.nama}
             </p>
@@ -239,7 +239,7 @@ export default function ReminderItem({
           {reminder.catatanWaktu && (
             <p
               className="font-sans mt-0.5"
-              style={{ fontSize: 10, color: "#7a8c8a" }}
+              style={{ fontSize: 13, color: "#3d6b66" }}
             >
               {reminder.catatanWaktu}
             </p>
@@ -249,7 +249,7 @@ export default function ReminderItem({
           {reminder.jenis === "obat" && reminder.dosis && (
             <p
               className="font-sans mt-0.5"
-              style={{ fontSize: 10, color: "#7a8c8a" }}
+              style={{ fontSize: 13, color: "#3d6b66" }}
             >
               {reminder.dosis}
               {reminder.jenisObat
@@ -260,7 +260,7 @@ export default function ReminderItem({
           {reminder.jenis === "capd" && reminder.konsentrasiCapd && (
             <p
               className="font-sans mt-0.5"
-              style={{ fontSize: 10, color: "#7a8c8a" }}
+              style={{ fontSize: 13, color: "#3d6b66" }}
             >
               {reminder.konsentrasiCapd}
             </p>

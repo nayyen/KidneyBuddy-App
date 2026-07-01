@@ -31,7 +31,7 @@ export default function InstallPrompt() {
           </h3>
           <p
             className="text-xs mt-1 leading-relaxed"
-            style={{ fontFamily: "DM Sans", color: "#7a8c8a" }}
+            style={{ fontFamily: "DM Sans", color: "#3d6b66" }}
           >
             Pada iPhone, KidneyBuddy perlu dipasang ke Home Screen agar dapat
             mengirimkan pengingat terapi.
@@ -100,7 +100,7 @@ export default function InstallPrompt() {
       {/* Helper note */}
       <p
         className="text-xs leading-relaxed"
-        style={{ fontFamily: "DM Sans", color: "#7a8c8a" }}
+        style={{ fontFamily: "DM Sans", color: "#3d6b66" }}
       >
         Setelah terpasang, buka kembali dari ikon dan aktifkan notifikasi di
         halaman Profil.

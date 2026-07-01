@@ -126,13 +126,13 @@ export default function FluidLogList({
           textAlign: "center",
         }}
       >
-        <p className="font-sans" style={{ fontSize: 12, color: "#d4183d" }}>
+        <p className="font-sans" style={{ fontSize: 14, color: "#d4183d" }}>
           {error}
         </p>
         <button
           onClick={fetchEntries}
           className="font-sans mt-2"
-          style={{ fontSize: 12, color: "#2a9d8f", textDecoration: "underline" }}
+          style={{ fontSize: 14, color: "#0d4a44", textDecoration: "underline" }}
         >
           Coba lagi
         </button>
@@ -156,7 +156,7 @@ export default function FluidLogList({
             justifyContent: "center",
           }}
         >
-          <Droplets size={22} style={{ color: "#2a9d8f" }} />
+          <Droplets size={22} style={{ color: "#0d4a44" }} />
         </div>
         <div>
           <p
@@ -167,7 +167,7 @@ export default function FluidLogList({
           </p>
           <p
             className="font-sans mt-1 max-w-[200px] mx-auto"
-            style={{ fontSize: 12, color: "#7a8c8a" }}
+            style={{ fontSize: 14, color: "#3d6b66" }}
           >
             Ketuk tombol Catat di bawah untuk mulai mencatat.
           </p>
@@ -181,7 +181,7 @@ export default function FluidLogList({
       {/* Date header */}
       <p
         className="font-sans mb-2"
-        style={{ fontSize: 10, color: "#7a8c8a", textTransform: "capitalize" }}
+        style={{ fontSize: 13, color: "#3d6b66", textTransform: "capitalize" }}
       >
         {formatDateLabel(targetDate)}
       </p>
@@ -194,7 +194,7 @@ export default function FluidLogList({
       {/* Entry count footer */}
       <p
         className="font-sans text-right mt-1"
-        style={{ fontSize: 10, color: "#7a8c8a" }}
+        style={{ fontSize: 13, color: "#3d6b66" }}
       >
         {entries.length} catatan
       </p>

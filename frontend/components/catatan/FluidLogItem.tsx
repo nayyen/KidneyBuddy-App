@@ -81,7 +81,7 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
       {/* Time */}
       <span
         className="font-sans shrink-0"
-        style={{ fontSize: 10, color: "#7a8c8a", minWidth: 32 }}
+        style={{ fontSize: 14, color: "#1a2e2c", minWidth: 32 }}
       >
         {formatWaktu(entry.waktu)}
       </span>
@@ -89,18 +89,18 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
       {/* Center: type badge + source */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1">
-          {/* Type badge */}
+          {/* Type badge — dark text on teal/amber bg for WCAG AA */}
           <span
             className="font-sans font-medium shrink-0"
             style={{
-              fontSize: 10,
+              fontSize: 14,
               borderRadius: 10,
               paddingLeft: 6,
               paddingRight: 6,
               paddingTop: 2,
               paddingBottom: 2,
               backgroundColor: isMasuk ? "#f0faf9" : "#fdf3e3",
-              color: isMasuk ? "#2a9d8f" : "#ef9f27",
+              color: isMasuk ? "#0d4a44" : "#7a4c00",
             }}
           >
             {isMasuk ? "Masuk" : "Keluar"}
@@ -110,7 +110,7 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
           {entry.sumber && (
             <span
               className="font-sans truncate"
-              style={{ fontSize: 10, color: "#7a8c8a" }}
+              style={{ fontSize: 14, color: "#1a2e2c" }}
             >
               {formatSumber(entry.sumber, entry.konsentrasiCapd)}
             </span>
@@ -121,14 +121,14 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
             <span
               className="font-sans shrink-0"
               style={{
-                fontSize: 8,
+                fontSize: 12,
                 borderRadius: 8,
                 paddingLeft: 5,
                 paddingRight: 5,
                 paddingTop: 2,
                 paddingBottom: 2,
                 background: "#f3ede5",
-                color: "#7a8c8a",
+                color: "#3d6b66",
               }}
             >
               Terlambat
@@ -140,7 +140,7 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
         {entry.catatan && (
           <p
             className="font-sans mt-0.5 truncate"
-            style={{ fontSize: 10, color: "#7a8c8a" }}
+            style={{ fontSize: 14, color: "#1a2e2c" }}
           >
             {entry.catatan}
           </p>
@@ -175,7 +175,7 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
           </span>
           <span
             className="font-sans"
-            style={{ fontSize: 10, color: "#7a8c8a" }}
+            style={{ fontSize: 14, color: "#1a2e2c" }}
           >
             {" "}
             {entry.satuan}

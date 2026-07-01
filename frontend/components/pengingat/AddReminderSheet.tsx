@@ -93,7 +93,7 @@ export default function AddReminderSheet({
             <div className="space-y-2">
               <p
                 className="font-sans font-medium mb-4"
-                style={{ fontSize: 12, color: "#7a8c8a" }}
+                style={{ fontSize: 12, color: "#3d6b66" }}
               >
                 Pilih jenis pengingat yang ingin ditambahkan:
               </p>
@@ -114,7 +114,7 @@ export default function AddReminderSheet({
                   <span
                     className="font-sans font-medium shrink-0"
                     style={{
-                      fontSize: 10,
+                      fontSize: 13,
                       paddingLeft: 8,
                       paddingRight: 8,
                       paddingTop: 3,
@@ -149,7 +149,7 @@ export default function AddReminderSheet({
                     </p>
                     <p
                       className="font-sans"
-                      style={{ fontSize: 10, color: "#7a8c8a", marginTop: 2 }}
+                      style={{ fontSize: 13, color: "#3d6b66", marginTop: 2 }}
                     >
                       {type === "obat"
                         ? "Atur dosis, cara minum, dan jadwal harian"

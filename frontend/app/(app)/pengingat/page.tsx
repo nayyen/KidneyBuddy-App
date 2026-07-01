@@ -160,7 +160,7 @@ function EmptyState({
       </h2>
       <p
         className="font-sans font-medium max-w-xs"
-        style={{ fontSize: 12, color: "#7a8c8a" }}
+        style={{ fontSize: 14, color: "#3d6b66" }}
       >
         Tambahkan pengingat agar tidak melewatkan jadwal terapi atau obat.
       </p>

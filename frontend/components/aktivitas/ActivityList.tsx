@@ -176,7 +176,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   }
 
   if (isLoading) {
-    return <p className="font-sans text-sm" style={{ color: "#7a8c8a" }}>Memuat...</p>;
+    return <p className="font-sans text-sm" style={{ color: "#3d6b66" }}>Memuat...</p>;
   }
   if (error) {
     return <p className="font-sans text-sm" style={{ color: "#d4183d" }}>{error}</p>;
@@ -184,8 +184,8 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   if (activities.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="font-sans font-medium" style={{ fontSize: 14, color: "#7a8c8a" }}>Belum ada aktivitas</p>
-        <p className="font-sans" style={{ fontSize: 12, color: "#cfe8e4", marginTop: 4 }}>Mulai kegiatan dari halaman Beranda</p>
+        <p className="font-sans font-medium" style={{ fontSize: 14, color: "#3d6b66" }}>Belum ada aktivitas</p>
+        <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66", marginTop: 4 }}>Mulai kegiatan dari halaman Beranda</p>
       </div>
     );
   }
@@ -220,7 +220,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                       <div className="flex-1 min-w-0">
                         {activity.status !== "selesai" && (
                           <div className="flex items-center gap-1.5 mb-1">
-                            <span className="font-sans font-medium inline-flex items-center gap-1" style={{ fontSize: 10, color: overdue ? "#d4183d" : "#2a9d8f", backgroundColor: overdue ? "#fdecee" : "#f0faf9", borderRadius: 10, padding: "2px 8px" }}>
+                            <span className="font-sans font-medium inline-flex items-center gap-1" style={{ fontSize: 13, color: overdue ? "#d4183d" : "#0d4a44", backgroundColor: overdue ? "#fdecee" : "#f0faf9", borderRadius: 10, padding: "2px 8px" }}>
                               <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: overdue ? "#d4183d" : "#2a9d8f", display: "inline-block" }} />
                               {durText}{overdue ? " · Terlambat" : ""}
                             </span>
@@ -237,10 +237,10 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                                   <button
                                     key={p}
                                     onClick={() => setEditPerasaan(p)}
-                                    className="font-sans font-medium text-[11px] px-3 py-1.5 rounded-full transition-all"
+                                    className="font-sans font-medium text-[13px] px-3 py-1.5 rounded-full transition-all"
                                     style={{
                                       backgroundColor: editPerasaan === p ? `${PERASAAN_COLOR[p]}20` : "#f0faf9",
-                                      color: editPerasaan === p ? PERASAAN_COLOR[p] : "#7a8c8a",
+                                      color: editPerasaan === p ? PERASAAN_COLOR[p] : "#3d6b66",
                                       border: editPerasaan === p ? `1.5px solid ${PERASAAN_COLOR[p]}` : "1.5px solid transparent",
                                     }}
                                   >
@@ -258,8 +258,8 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                                 style={{ borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c", minHeight: 60 }}
                               />
                               <div className="flex gap-2 justify-end">
-                                <button onClick={() => setEditingId(null)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#f0faf9", color: "#7a8c8a", border: "1px solid #d0e8e4" }}>Batal</button>
-                                <button onClick={() => handleEditSave(activity.id, activity.status)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#2a9d8f", color: "#ffffff", border: "none" }}>Simpan</button>
+                                <button onClick={() => setEditingId(null)} className="font-sans text-[13px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#f0faf9", color: "#3d6b66", border: "1px solid #d0e8e4" }}>Batal</button>
+                                <button onClick={() => handleEditSave(activity.id, activity.status)} className="font-sans text-[13px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#2a9d8f", color: "#ffffff", border: "none" }}>Simpan</button>
                               </div>
                             </div>
                           ) : (
@@ -276,21 +276,21 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                               />
                               <div className="flex gap-2">
                                 <div className="flex-1">
-                                  <label className="font-sans text-[10px] text-muted-foreground block mb-0.5">Tanggal</label>
+                                  <label className="font-sans text-[13px] text-muted-foreground block mb-0.5">Tanggal</label>
                                   <input type="date" value={editTanggal} onChange={(e) => setEditTanggal(e.target.value)}
                                     className="w-full font-sans text-xs rounded-lg border px-3 py-2 outline-none"
                                     style={{ borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c" }} />
                                 </div>
                                 <div className="flex-1">
-                                  <label className="font-sans text-[10px] text-muted-foreground block mb-0.5">Estimasi Selesai</label>
+                                  <label className="font-sans text-[13px] text-muted-foreground block mb-0.5">Estimasi Selesai</label>
                                   <input type="time" value={editEstimasi} onChange={(e) => setEditEstimasi(e.target.value)}
                                     className="w-full font-sans text-xs rounded-lg border px-3 py-2 outline-none"
                                     style={{ borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c" }} />
                                 </div>
                               </div>
                               <div className="flex gap-2 justify-end">
-                                <button onClick={() => setEditingId(null)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#f0faf9", color: "#7a8c8a", border: "1px solid #d0e8e4" }}>Batal</button>
-                                <button onClick={() => handleEditSave(activity.id, activity.status)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#2a9d8f", color: "#ffffff", border: "none" }}>Simpan</button>
+                                <button onClick={() => setEditingId(null)} className="font-sans text-[13px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#f0faf9", color: "#3d6b66", border: "1px solid #d0e8e4" }}>Batal</button>
+                                <button onClick={() => handleEditSave(activity.id, activity.status)} className="font-sans text-[13px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#2a9d8f", color: "#ffffff", border: "none" }}>Simpan</button>
                               </div>
                             </div>
                           )
@@ -298,7 +298,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                           <p className="font-heading font-semibold truncate" style={{ fontSize: 14, color: "#1a2e2c" }}>{activity.namaKegiatan}</p>
                         )}
 
-                        <p className="font-sans" style={{ fontSize: 11, color: "#7a8c8a", marginTop: 1 }}>
+                        <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66", marginTop: 1 }}>
                           {formatDateWIB(activity.waktuMulai)} · {formatWIB(activity.waktuMulai)}
                           {activity.waktuSelesai ? ` — ${formatWIB(activity.waktuSelesai)}` : ` — estimasi ${formatWIB(activity.estimasiSelesai)}`}
                         </p>
@@ -308,12 +308,12 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         {activity.status === "selesai" && !editingId ? (
                           <>
-                            {activity.perasaan && <span className="font-sans font-medium" style={{ fontSize: 11, color: PERASAAN_COLOR[activity.perasaan] ?? "#7a8c8a", textAlign: "right" }}>{PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}</span>}
-                            {activity.catatanPerasaan && <span className="font-sans text-right" style={{ fontSize: 10, color: "#7a8c8a", maxWidth: 120, lineHeight: 1.3 }}>{activity.catatanPerasaan}</span>}
+                            {activity.perasaan && <span className="font-sans font-medium" style={{ fontSize: 13, color: PERASAAN_COLOR[activity.perasaan] ?? "#3d6b66", textAlign: "right" }}>{PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}</span>}
+                            {activity.catatanPerasaan && <span className="font-sans text-right" style={{ fontSize: 10, color: "#3d6b66", maxWidth: 120, lineHeight: 1.3 }}>{activity.catatanPerasaan}</span>}
                           </>
                         ) : activity.status !== "selesai" && editingId !== activity.id ? (
                           <button onClick={() => window.dispatchEvent(new CustomEvent("activity:complete", { detail: { id: activity.id, namaKegiatan: activity.namaKegiatan } }))}
-                            className="font-sans font-medium cursor-pointer active:scale-95 transition-transform" style={{ fontSize: 11, borderRadius: 20, padding: "4px 12px", backgroundColor: "#ef9f27", color: "#ffffff", border: "none" }}>
+                            className="font-sans font-medium cursor-pointer active:scale-95 transition-transform" style={{ fontSize: 13, borderRadius: 20, padding: "4px 12px", backgroundColor: "#ef9f27", color: "#ffffff", border: "none" }}>
                             Selesaikan
                           </button>
                         ) : <div style={{ minHeight: 32 }} />}

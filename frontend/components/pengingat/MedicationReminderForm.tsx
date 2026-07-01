@@ -142,7 +142,7 @@ export default function MedicationReminderForm({
           }}
         />
         {errors.nama && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.nama.message}
           </p>
         )}
@@ -169,7 +169,7 @@ export default function MedicationReminderForm({
           }}
         />
         {errors.dosis && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.dosis.message}
           </p>
         )}
@@ -212,7 +212,7 @@ export default function MedicationReminderForm({
           )}
         />
         {errors.jenisObat && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.jenisObat.message}
           </p>
         )}
@@ -226,7 +226,7 @@ export default function MedicationReminderForm({
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
           Catatan Waktu{" "}
-          <span style={{ color: "#7a8c8a", fontWeight: 400 }}>(opsional)</span>
+          <span style={{ color: "#3d6b66", fontWeight: 400 }}>(opsional)</span>
         </label>
         <input
           {...register("catatanWaktu")}
@@ -264,9 +264,9 @@ export default function MedicationReminderForm({
                   paddingLeft: 8,
                   paddingRight: 8,
                   borderRadius: 8,
-                  fontSize: 10,
+                  fontSize: 13,
                   backgroundColor: isChecked ? "#2a9d8f" : "#f0faf9",
-                  color: isChecked ? "#ffffff" : "#7a8c8a",
+                  color: isChecked ? "#ffffff" : "#3d6b66",
                   border: "none",
                   cursor: "pointer",
                 }}
@@ -277,7 +277,7 @@ export default function MedicationReminderForm({
           })}
         </div>
         {errors.hariAktif && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.hariAktif.message}
           </p>
         )}
@@ -306,7 +306,7 @@ export default function MedicationReminderForm({
           }}
         />
         {errors.jamPengingat && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.jamPengingat.message}
           </p>
         )}
@@ -320,7 +320,7 @@ export default function MedicationReminderForm({
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
           Foto Obat{" "}
-          <span style={{ color: "#7a8c8a", fontWeight: 400 }}>(opsional)</span>
+          <span style={{ color: "#3d6b66", fontWeight: 400 }}>(opsional)</span>
         </label>
         <Controller
           name="fotoObat"
@@ -341,12 +341,12 @@ export default function MedicationReminderForm({
           )}
         />
         {watchedFotoObat instanceof File && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#7a8c8a" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#3d6b66" }}>
             {watchedFotoObat.name} ({(watchedFotoObat.size / 1024).toFixed(0)} KB)
           </p>
         )}
         {errors.fotoObat && (
-          <p className="mt-1 font-sans" style={{ fontSize: 10, color: "#d4183d" }}>
+          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.fotoObat.message as string}
           </p>
         )}
@@ -377,7 +377,7 @@ export default function MedicationReminderForm({
             className="w-full font-sans font-medium transition-colors"
             style={{
               fontSize: 12,
-              color: "#7a8c8a",
+              color: "#3d6b66",
               background: "none",
               border: "none",
               cursor: "pointer",

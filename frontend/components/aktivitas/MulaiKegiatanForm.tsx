@@ -136,7 +136,7 @@ export default function MulaiKegiatanForm({
             color: "#1a2e2c",
           }}
         />
-        <p className="font-sans" style={{ fontSize: 11, color: "#7a8c8a" }}>
+        <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66" }}>
           Dalam zona waktu WIB (Jakarta)
         </p>
       </div>
