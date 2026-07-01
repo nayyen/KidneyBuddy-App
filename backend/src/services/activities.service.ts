@@ -321,19 +321,47 @@ export async function deleteActivity(
 }
 
 /**
- * Update activity namaKegiatan and/or estimasiSelesai.
+ * Update activity fields.
+ * Active (berlangsung) activities: can update namaKegiatan, estimasiSelesai, tanggal.
+ * Completed (selesai) activities: can update perasaan, catatan.
  * Returns updated activity or null if not found.
  */
 export async function updateActivity(
   userId: string,
   id: string,
-  data: { namaKegiatan?: string; estimasiSelesai?: string },
+  data: {
+    namaKegiatan?: string;
+    estimasiSelesai?: string;
+    tanggal?: string;
+    perasaan?: string | null;
+    catatan?: string | null;
+  },
 ): Promise<ActivityResult | null> {
   const updateData: Record<string, unknown> = {};
-  if (data.namaKegiatan) updateData.namaKegiatan = data.namaKegiatan;
-  if (data.estimasiSelesai) {
-    updateData.estimasiSelesai = combineWIBDateAndTime(data.estimasiSelesai);
+
+  // Update activity name/estimate (for active activities)
+  if (data.namaKegiatan !== undefined) {
+    updateData.namaKegiatan = data.namaKegiatan;
   }
+  if (data.estimasiSelesai) {
+    if (data.tanggal) {
+      // Combine specific date + HH:mm
+      updateData.estimasiSelesai = new Date(`${data.tanggal}T${data.estimasiSelesai}:00+07:00`);
+    } else {
+      // Use today's WIB date
+      updateData.estimasiSelesai = combineWIBDateAndTime(data.estimasiSelesai);
+    }
+  }
+
+  // Update feelings/notes (for completed activities)
+  if (data.perasaan !== undefined) {
+    updateData.perasaan = data.perasaan;
+  }
+  if (data.catatan !== undefined) {
+    // Encrypt catatanPerasaan before storing (T-03-02)
+    updateData.catatanPerasaan = data.catatan ? realEncrypt(data.catatan) : null;
+  }
+
   if (Object.keys(updateData).length === 0) return null;
   const row = await dailyActivityRepository.updateById(userId, id, updateData as any);
   if (!row) return null;

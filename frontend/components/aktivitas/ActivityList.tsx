@@ -9,9 +9,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
-import { Clock, CheckCircle2, Play, Pencil, Trash2, X, Check } from "lucide-react";
+import { Clock, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 
 interface ActivityResult {
   id: string;
@@ -87,7 +86,11 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
+  const [editNama, setEditNama] = useState("");
+  const [editEstimasi, setEditEstimasi] = useState("");
+  const [editTanggal, setEditTanggal] = useState("");
+  const [editPerasaan, setEditPerasaan] = useState<string>("");
+  const [editCatatan, setEditCatatan] = useState("");
 
   const fetchActivities = useCallback(async () => {
     if (!accessToken) return;
@@ -113,11 +116,33 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
     } catch { toast.error("Gagal menghapus"); }
   };
 
-  const handleEditSave = async (id: string) => {
-    if (!editName.trim()) return;
+  const startEdit = (activity: ActivityResult) => {
+    setEditingId(activity.id);
+    setEditNama(activity.namaKegiatan);
+    // Extract HH:mm from estimasiSelesai ISO string
+    const estimasi = new Date(activity.estimasiSelesai);
+    setEditEstimasi(`${String(estimasi.getHours()).padStart(2, "0")}:${String(estimasi.getMinutes()).padStart(2, "0")}`);
+    setEditTanggal(activity.waktuMulai.slice(0, 10));
+    setEditPerasaan(activity.perasaan ?? "");
+    setEditCatatan(activity.catatanPerasaan ?? "");
+  };
+
+  const handleEditSave = async (id: string, status: string) => {
+    const body: Record<string, unknown> = {};
+    if (status === "selesai") {
+      // Completed: only update perasaan + catatan
+      body.perasaan = editPerasaan || null;
+      body.catatan = editCatatan || null;
+    } else {
+      // Active: update nama, estimasi, tanggal
+      if (!editNama.trim()) { toast.error("Nama kegiatan tidak boleh kosong"); return; }
+      body.namaKegiatan = editNama.trim();
+      body.estimasiSelesai = editEstimasi;
+      body.tanggal = editTanggal;
+    }
     try {
       const updated = await authFetch<ActivityResult>(`/api/activities/${id}`, accessToken, {
-        method: "PUT", body: JSON.stringify({ namaKegiatan: editName.trim() }),
+        method: "PUT", body: JSON.stringify(body),
       });
       setActivities((prev) => prev.map((a) => (a.id === id ? updated : a)));
       setEditingId(null);
@@ -203,11 +228,72 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                         )}
 
                         {editingId === activity.id ? (
-                          <div className="flex gap-2 items-center">
-                            <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 text-sm flex-1" />
-                            <button onClick={() => handleEditSave(activity.id)} className="p-1 rounded hover:bg-green-100"><Check className="h-4 w-4 text-green-600" /></button>
-                            <button onClick={() => setEditingId(null)} className="p-1 rounded hover:bg-gray-100"><X className="h-4 w-4 text-muted-foreground" /></button>
-                          </div>
+                          activity.status === "selesai" ? (
+                            /* ── Edit completed activity: perasaan + catatan ── */
+                            <div className="space-y-2">
+                              {/* Perasaan selector */}
+                              <div className="flex gap-1.5">
+                                {["nyaman", "biasa", "lelah", "berat"].map((p) => (
+                                  <button
+                                    key={p}
+                                    onClick={() => setEditPerasaan(p)}
+                                    className="font-sans font-medium text-[11px] px-3 py-1.5 rounded-full transition-all"
+                                    style={{
+                                      backgroundColor: editPerasaan === p ? `${PERASAAN_COLOR[p]}20` : "#f0faf9",
+                                      color: editPerasaan === p ? PERASAAN_COLOR[p] : "#7a8c8a",
+                                      border: editPerasaan === p ? `1.5px solid ${PERASAAN_COLOR[p]}` : "1.5px solid transparent",
+                                    }}
+                                  >
+                                    {PERASAAN_LABEL[p] ?? p}
+                                  </button>
+                                ))}
+                              </div>
+                              {/* Catatan textarea */}
+                              <textarea
+                                value={editCatatan}
+                                onChange={(e) => setEditCatatan(e.target.value)}
+                                maxLength={200}
+                                placeholder="Catatan perasaan..."
+                                className="w-full font-sans text-xs rounded-lg border px-3 py-2 outline-none resize-none"
+                                style={{ borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c", minHeight: 60 }}
+                              />
+                              <div className="flex gap-2 justify-end">
+                                <button onClick={() => setEditingId(null)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#f0faf9", color: "#7a8c8a", border: "1px solid #d0e8e4" }}>Batal</button>
+                                <button onClick={() => handleEditSave(activity.id, activity.status)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#2a9d8f", color: "#ffffff", border: "none" }}>Simpan</button>
+                              </div>
+                            </div>
+                          ) : (
+                            /* ── Edit active activity: nama + tanggal + estimasi ── */
+                            <div className="space-y-2">
+                              <input
+                                value={editNama}
+                                onChange={(e) => setEditNama(e.target.value)}
+                                placeholder="Nama kegiatan"
+                                maxLength={100}
+                                className="w-full font-sans text-sm rounded-lg border px-3 py-2 outline-none"
+                                style={{ borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c" }}
+                                autoFocus
+                              />
+                              <div className="flex gap-2">
+                                <div className="flex-1">
+                                  <label className="font-sans text-[10px] text-muted-foreground block mb-0.5">Tanggal</label>
+                                  <input type="date" value={editTanggal} onChange={(e) => setEditTanggal(e.target.value)}
+                                    className="w-full font-sans text-xs rounded-lg border px-3 py-2 outline-none"
+                                    style={{ borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c" }} />
+                                </div>
+                                <div className="flex-1">
+                                  <label className="font-sans text-[10px] text-muted-foreground block mb-0.5">Estimasi Selesai</label>
+                                  <input type="time" value={editEstimasi} onChange={(e) => setEditEstimasi(e.target.value)}
+                                    className="w-full font-sans text-xs rounded-lg border px-3 py-2 outline-none"
+                                    style={{ borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c" }} />
+                                </div>
+                              </div>
+                              <div className="flex gap-2 justify-end">
+                                <button onClick={() => setEditingId(null)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#f0faf9", color: "#7a8c8a", border: "1px solid #d0e8e4" }}>Batal</button>
+                                <button onClick={() => handleEditSave(activity.id, activity.status)} className="font-sans text-[11px] px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#2a9d8f", color: "#ffffff", border: "none" }}>Simpan</button>
+                              </div>
+                            </div>
+                          )
                         ) : (
                           <p className="font-heading font-semibold truncate" style={{ fontSize: 14, color: "#1a2e2c" }}>{activity.namaKegiatan}</p>
                         )}
@@ -220,21 +306,21 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
 
                       {/* Right side */}
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        {activity.status === "selesai" ? (
+                        {activity.status === "selesai" && !editingId ? (
                           <>
                             {activity.perasaan && <span className="font-sans font-medium" style={{ fontSize: 11, color: PERASAAN_COLOR[activity.perasaan] ?? "#7a8c8a", textAlign: "right" }}>{PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}</span>}
                             {activity.catatanPerasaan && <span className="font-sans text-right" style={{ fontSize: 10, color: "#7a8c8a", maxWidth: 120, lineHeight: 1.3 }}>{activity.catatanPerasaan}</span>}
                           </>
-                        ) : (
+                        ) : activity.status !== "selesai" && editingId !== activity.id ? (
                           <button onClick={() => window.dispatchEvent(new CustomEvent("activity:complete", { detail: { id: activity.id, namaKegiatan: activity.namaKegiatan } }))}
                             className="font-sans font-medium cursor-pointer active:scale-95 transition-transform" style={{ fontSize: 11, borderRadius: 20, padding: "4px 12px", backgroundColor: "#ef9f27", color: "#ffffff", border: "none" }}>
                             Selesaikan
                           </button>
-                        )}
+                        ) : <div style={{ minHeight: 32 }} />}
 
                         {/* Edit & Delete buttons */}
                         <div className="flex items-center gap-1 mt-1">
-                          <button onClick={() => { setEditingId(activity.id); setEditName(activity.namaKegiatan); }} className="p-1 rounded hover:bg-gray-100 transition-colors" aria-label="Edit aktivitas">
+                          <button onClick={() => startEdit(activity)} className="p-1 rounded hover:bg-gray-100 transition-colors" aria-label="Edit aktivitas">
                             <Pencil className="h-3 w-3 text-muted-foreground" />
                           </button>
                           <button onClick={() => handleDelete(activity.id)} className="p-1 rounded hover:bg-red-50 transition-colors" aria-label="Hapus aktivitas">

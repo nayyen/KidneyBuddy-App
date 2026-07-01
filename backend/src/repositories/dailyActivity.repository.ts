@@ -6,7 +6,6 @@
  *
  * Pattern: follows fluidLog.repository.ts (InferInsertModel, InferSelectModel).
  */
-import { and, eq, lte, gte } from "drizzle-orm";
 import { and, eq, lte, gte, desc } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { dailyActivities } from "../db/schema/dailyActivity.schema.js";
@@ -63,8 +62,6 @@ export async function findByDate(
       ),
     )
     .orderBy(dailyActivities.waktuMulai);
-import { desc } from "drizzle-orm";
-  .orderBy(desc(dailyActivities.waktuMulai));
 }
 
 /**
@@ -110,7 +107,9 @@ export async function deleteById(
 }
 
 /**
- * Update an activity's editable fields (namaKegiatan, estimasiSelesai).
+ * Update an activity's editable fields.
+ * Supports: namaKegiatan, estimasiSelesai, perasaan, catatanPerasaan.
+ * Does NOT force status to "berlangsung" — keeps existing status.
  * IDOR-safe: filters by userId AND id.
  */
 export async function updateById(
@@ -119,11 +118,13 @@ export async function updateById(
   data: Partial<{
     namaKegiatan: string;
     estimasiSelesai: Date;
+    perasaan: string;
+    catatanPerasaan: string;
   }>,
 ): Promise<DailyActivity | null> {
   const [row] = await db
     .update(dailyActivities)
-    .set({ ...data, status: "berlangsung" })
+    .set(data)
     .where(
       and(eq(dailyActivities.userId, userId as any), eq(dailyActivities.id, id as any)),
     )
