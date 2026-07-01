@@ -20,7 +20,7 @@
  * Size: ~200px mobile, ~240px desktop (responsive via viewBox)
  *
  * SVG anatomy:
- *   - clipPath#hfc-body-clip: contains the clean human silhouette path
+ *   - clipPath#hfc-body-clip: contains perfect-circle head + continuous body path
  *   - Fluid wave group: clipped to body so waves stay inside the silhouette
  *   - Body outline path: same path with stroke=#2a9d8f, fill=none (on top)
  *   - Silhouette is perfectly symmetrical around x=60 with smooth bezier curves
@@ -44,62 +44,55 @@ interface HumanFluidChartProps {
 }
 
 // ── Body silhouette path (viewBox 0 0 120 260) ──────────────────────────
-// A front-facing human body outline: head, neck, shoulders, torso, arms, legs.
-// Perfectly symmetrical around x=60. Clean cubic-bezier curves, no jagged edges.
+// A friendly, minimalist, non-anatomical full-body icon.
+// Perfectly round head (separate <circle> in clipPath) + one continuous
+// body outline where thick arms merge seamlessly into the torso. No armpit
+// gap, no negative space between arms and body. Symmetrical around x=60.
 //
-// Anatomy (right half, mirrored on left):
-//   Head:    y=9–39,  widest at x=76 (rx=16 from center)
-//   Neck:    y=39–44, width ~13 (x=53–66)
-//   Shoulder:y=44–53, span x=29–91 (62 units wide)
-//   Arm:     y=53–130, outer x=91→85 (tapered), inner x=80 (armpit)
-//   Torso:   y=130–155, waist x=41–79, hip x=40–80
-//   Leg:     y=155–251, two legs with gap at crotch x=57–63
-//   Foot:    y=246–251
+// Geometry (right half, mirrored on left):
+//   Head:      <circle cx=60 cy=23 r=15/> — perfect circle, y=8–38
+//   Neck:      y=38–40, width 30 (x=45–75), merged with head bottom
+//   Shoulder:  y=40–58, span to x=24 / x=96
+//   Arm:       y=58–124, thick stroke merged into torso
+//   Hand:      y=124–138, rounded cap
+//   Torso:     y=58–142, continuous with arms
+//   Hip/leg:   y=142–246, straight leg with rounded foot
+//   Crotch:    small center gap x=54–66
 const BODY_PATH = `
-M 60 9
-C 70 9 76 16 76 25
-C 76 32 72 37 67 39
-L 66 44
-C 72 45 87 48 91 53
-L 89 56
-C 88 58 87 60 86 62
-L 85 125
-C 85 128 83 130 80 130
-L 78 135
-L 79 145
-L 80 155
-L 81 195
-L 82 225
-L 83 246
-C 83 249 81 251 78 251
-L 64 251
-L 63 248
-C 62 246 61 244 60 244
-C 59 244 58 246 57 248
-L 56 251
-L 42 251
-C 39 251 37 249 37 246
-L 38 225
-L 39 195
-L 40 155
-L 41 145
-L 42 135
-L 40 130
-C 37 130 35 128 35 125
-L 34 62
-C 33 60 32 58 31 56
-L 29 53
-C 33 48 48 45 54 44
-L 53 39
-C 48 37 44 32 44 25
-C 44 16 50 9 60 9
+M 45 40
+C 35 42 28 48 24 58
+L 24 124
+C 24 134 34 140 40 138
+L 40 76
+C 40 68 41 62 42 58
+L 42 120
+C 42 128 40 136 36 142
+L 36 200
+C 36 210 40 218 46 222
+L 46 246
+L 54 246
+L 54 210
+C 54 202 56 196 60 196
+C 64 196 66 202 66 210
+L 66 246
+L 74 246
+L 74 222
+C 80 218 84 210 84 200
+L 84 142
+C 80 136 78 128 78 120
+L 78 58
+C 79 62 80 68 80 76
+L 80 138
+C 86 140 96 134 96 124
+L 96 58
+C 92 48 85 42 75 40
 Z
 `.trim();
 
-// Body vertical bounds for fill calculation
-const BODY_TOP = 9;
-const BODY_BOTTOM = 251;
-const BODY_HEIGHT = BODY_BOTTOM - BODY_TOP; // 242
+// Body vertical bounds for fill calculation (includes the separate head circle)
+const BODY_TOP = 8;
+const BODY_BOTTOM = 246;
+const BODY_HEIGHT = BODY_BOTTOM - BODY_TOP; // 238
 
 // Wave path (wider than body for seamless animation, clipped by body)
 const WAVE_PATH = `
@@ -257,6 +250,8 @@ export default function HumanFluidChart({
               <defs>
                 {/* Clip path = body silhouette (fluid fill stays inside body) */}
                 <clipPath id="hfc-body-clip">
+                  {/* Perfectly round head */}
+                  <circle cx="60" cy="23" r="15" />
                   <path d={BODY_PATH} />
                 </clipPath>
 
@@ -314,7 +309,15 @@ export default function HumanFluidChart({
                 />
               </g>
 
-              {/* Body outline (on top of fluid, same path as clip) */}
+              {/* Body outline (on top of fluid, same path as clip + head circle) */}
+              <circle
+                cx="60"
+                cy="23"
+                r="15"
+                fill="none"
+                stroke="#2a9d8f"
+                strokeWidth={2}
+              />
               <path
                 d={BODY_PATH}
                 fill="none"
