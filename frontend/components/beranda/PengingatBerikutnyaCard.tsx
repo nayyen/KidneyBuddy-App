@@ -23,8 +23,8 @@ interface NextReminder {
   catatanWaktu?: string | null;
 }
 interface GroupedNextReminder {
-  obat: NextReminder | null;
-  cuciDarah: NextReminder | null;
+  obat: NextReminder[];
+  cuciDarah: NextReminder[];
 }
 
 interface PengingatBerikutnyaCardProps {
@@ -49,8 +49,8 @@ export default function PengingatBerikutnyaCard({
   refreshKey = 0,
 }: PengingatBerikutnyaCardProps) {
     const [grouped, setGrouped] = useState<GroupedNextReminder>({
-      obat: null,
-      cuciDarah: null,
+      obat: [],
+      cuciDarah: [],
     });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export default function PengingatBerikutnyaCard({
         "/api/reminders/next",
         accessToken,
       );
-        setGrouped(data ?? { obat: null, cuciDarah: null });
+        setGrouped(data ?? { obat: [], cuciDarah: [] });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat pengingat");
     } finally {
@@ -135,7 +135,7 @@ export default function PengingatBerikutnyaCard({
             Coba Lagi
           </button>
         </div>
-          ) : !grouped.obat && !grouped.cuciDarah ? (
+          ) : !grouped.obat?.length && !grouped.cuciDarah?.length ? (
             <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
               Tidak ada pengingat berikutnya
             </p>
@@ -149,72 +149,77 @@ export default function PengingatBerikutnyaCard({
                     Pengingat Obat
                   </p>
                 </div>
-                {!grouped.obat ? (
+                {!grouped.obat || grouped.obat.length === 0 ? (
                   <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
                     Tidak ada pengingat obat berikutnya
                   </p>
                 ) : (
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
-                        {grouped.obat.jamPengingat}
-                      </span>
-                      <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[grouped.obat.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[grouped.obat.jenis] ?? TYPE_COLORS.obat).text }}>
-                        {TYPE_LABELS[grouped.obat.jenis] ?? grouped.obat.jenis}
-                      </span>
-                    </div>
-                    <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                      {grouped.obat.nama}
-                    </p>
-                    {grouped.obat.catatanWaktu && (
-                      <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
-                        {grouped.obat.catatanWaktu}
-                      </p>
-                    )}
+                  <div className="space-y-2">
+                    {grouped.obat.map((rem) => (
+                      <div key={rem.id}>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
+                            {rem.jamPengingat}
+                          </span>
+                          <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).text }}>
+                            {TYPE_LABELS[rem.jenis] ?? rem.jenis}
+                          </span>
+                        </div>
+                        <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
+                          {rem.nama}
+                        </p>
+                        {rem.catatanWaktu && (
+                          <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
+                            {rem.catatanWaktu}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
 
               {/* Horizontal divider between sections */}
-              {grouped.obat && grouped.cuciDarah && (
+              {grouped.obat?.length > 0 && grouped.cuciDarah?.length > 0 && (
                 <hr style={{ border: "none", borderTop: "1px solid #e6f5f3", margin: "0" }} />
               )}
 
               {/* Section 2: Pengingat Cuci Darah Berikutnya */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <Droplets size={12} style={{ color: "#0d4a44" }} />
-                  <p className="font-sans font-semibold" style={{ fontSize: 13, color: "#3d6b66" }}>
-                    Pengingat Cuci Darah
-                  </p>
-                </div>
-                {!grouped.cuciDarah ? (
-                  <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
-                    Tidak ada pengingat cuci darah berikutnya
-                  </p>
-                ) : (
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
-                        {grouped.cuciDarah.jamPengingat}
-                      </span>
-                      <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[grouped.cuciDarah.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[grouped.cuciDarah.jenis] ?? TYPE_COLORS.obat).text }}>
-                        {TYPE_LABELS[grouped.cuciDarah.jenis] ?? grouped.cuciDarah.jenis}
-                      </span>
-                    </div>
-                    <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                      {grouped.cuciDarah.nama}
+              {grouped.cuciDarah && grouped.cuciDarah.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Droplets size={12} style={{ color: "#0d4a44" }} />
+                    <p className="font-sans font-semibold" style={{ fontSize: 13, color: "#3d6b66" }}>
+                      Pengingat Cuci Darah
                     </p>
-                    {grouped.cuciDarah.catatanWaktu && (
-                      <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
-                        {grouped.cuciDarah.catatanWaktu}
-                      </p>
-                    )}
                   </div>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    {grouped.cuciDarah.map((rem) => (
+                      <div key={rem.id}>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
+                            {rem.jamPengingat}
+                          </span>
+                          <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).text }}>
+                            {TYPE_LABELS[rem.jenis] ?? rem.jenis}
+                          </span>
+                        </div>
+                        <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
+                          {rem.nama}
+                        </p>
+                        {rem.catatanWaktu && (
+                          <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
+                            {rem.catatanWaktu}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
       </div>
     );
   }
+}

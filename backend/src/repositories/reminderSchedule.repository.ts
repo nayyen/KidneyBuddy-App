@@ -1,15 +1,17 @@
-import { eq, and, lte, sql, isNull, or, lt } from "drizzle-orm";
+import { eq, and, lte, sql, isNull, or, lt, gte } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { reminderSchedule } from "../db/schema/reminderSchedule.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { wibHHmm, wibDayNameLower, wibTomorrowDayNameLower } from "../utils/wib.js";
+import { medicationLog } from "../db/schema/medicationLog.schema.js";
+import { dialysisLog } from "../db/schema/dialysisLog.schema.js";
 
 export type ReminderSchedule = InferSelectModel<typeof reminderSchedule>;
 export type NewReminderSchedule = InferInsertModel<typeof reminderSchedule>;
 
 export interface NextUpcomingGrouped {
-  obat: ReminderSchedule | null;
-  cuciDarah: ReminderSchedule | null;
+  obat: ReminderSchedule[];
+  cuciDarah: ReminderSchedule[];
 }
 
 // ─── Insert ────────────────────────────────────────────────────────────
@@ -127,12 +129,40 @@ export async function findTodayObatReminders(
 export async function findNextUpcoming(
   userId: string,
 ): Promise<NextUpcomingGrouped> {
-  // WIB-correct current time + day names for hariAktif filtering
   const currentTime = wibHHmm();
   const todayDay = wibDayNameLower();
   const tomorrowDay = wibTomorrowDayNameLower();
 
-  // Fetch all active reminders for the user (JS-side filtering for hariAktif)
+  // Get IDs of reminders already confirmed today
+  const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
+  const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
+
+  const confirmedMedicationIds = (await db
+    .select({ reminderId: medicationLog.reminderId })
+    .from(medicationLog)
+    .where(and(
+      eq(medicationLog.userId, userId as any),
+      eq(medicationLog.status, "dikonfirmasi"),
+      gte(medicationLog.waktuKonfirmasi, todayStart),
+      lte(medicationLog.waktuKonfirmasi, todayEnd),
+      isNotNull(medicationLog.reminderId),
+    ))
+  ).map(r => r.reminderId) as string[];
+
+  const confirmedDialysisIds = (await db
+    .select({ reminderId: dialysisLog.reminderId })
+    .from(dialysisLog)
+    .where(and(
+      eq(dialysisLog.userId, userId as any),
+      eq(dialysisLog.status, "dikonfirmasi"),
+      gte(dialysisLog.waktuKonfirmasi, todayStart),
+      lte(dialysisLog.waktuKonfirmasi, todayEnd),
+      isNotNull(dialysisLog.reminderId),
+    ))
+  ).map(r => r.reminderId) as string[];
+
+  const confirmedIds = [...new Set([...confirmedMedicationIds, ...confirmedDialysisIds])];
+
   const rows = await db
     .select()
     .from(reminderSchedule)
@@ -143,31 +173,38 @@ export async function findNextUpcoming(
       ),
     );
 
-  const active = rows.filter((r) => r.aktif);
-
-  // Helper: find next upcoming in a subset of reminders
-  const findNext = (reminders: ReminderSchedule[]): ReminderSchedule | null => {
-    // Filter: aktif, non-empty hariAktif, scheduled for today
-    const todayReminders = reminders.filter((r) => {
-      const hari = (r.hariAktif as string[]) ?? [];
-      return hari.length > 0 && hari.includes(todayDay);
-    });
-    // Next at or after current WIB time today
+  const active = rows.filter((r) => {
+    const hari = (r.hariAktif as string[]) ?? [];
+    return r.aktif && hari.length > 0 && !confirmedIds.includes(r.id);
+  });
+  
+  const findNext = (reminders: ReminderSchedule[]): ReminderSchedule[] => {
+    const todayReminders = reminders.filter((r) => 
+      ((r.hariAktif as string[]) ?? []).includes(todayDay)
+    );
+    
     const upcomingToday = todayReminders
       .filter((r) => r.jamPengingat >= currentTime)
       .sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat));
-    if (upcomingToday.length > 0) return upcomingToday[0];
 
-    // Wrap: earliest tomorrow (only if tomorrow's day is in hariAktif)
-    const tomorrowReminders = reminders.filter((r) => {
-      const hari = (r.hariAktif as string[]) ?? [];
-      return hari.length > 0 && hari.includes(tomorrowDay);
-    });
+    if (upcomingToday.length > 0) {
+      const nextTime = upcomingToday[0].jamPengingat;
+      return upcomingToday.filter(r => r.jamPengingat === nextTime);
+    }
+
+    const tomorrowReminders = reminders.filter((r) =>
+      ((r.hariAktif as string[]) ?? []).includes(tomorrowDay)
+    );
+    
     const earliestTomorrow = tomorrowReminders
       .sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat));
-    if (earliestTomorrow.length > 0) return earliestTomorrow[0];
 
-    return null;
+    if (earliestTomorrow.length > 0) {
+      const nextTime = earliestTomorrow[0].jamPengingat;
+      return earliestTomorrow.filter(r => r.jamPengingat === nextTime);
+    }
+
+    return [];
   };
 
   const obatReminders = active.filter((r) => r.jenis === "obat");

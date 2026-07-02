@@ -168,6 +168,16 @@ export async function _confirmCore(
   return { confirmed: true, logId: newLog.id };
 }
 
+/**
+ * _getNextUpcomingCore — injectable for unit tests
+ */
+export async function _getNextUpcomingCore(
+  userId: string,
+  findFn: () => Promise<NextUpcomingGrouped>,
+): Promise<NextUpcomingGrouped> {
+  return findFn();
+}
+
 // ─── Service functions (use real repository) ──────────────────────────────────
 
 export type CreateReminderPayload =
@@ -202,7 +212,14 @@ export async function createReminder(
       ...parsedData,
       fotoObat: payload.fotoObat ?? null,
     },
-    reminderScheduleRepository.insert,
+    (data: NewReminderSchedule) => reminderScheduleRepository.insert(data),
+  );
+}
+
+export async function getNextUpcoming(userId: string): Promise<NextUpcomingGrouped> {
+  return _getNextUpcomingCore(
+    userId,
+    () => reminderScheduleRepository.findNextUpcomingGrouped(userId)
   );
 }
 
@@ -253,10 +270,4 @@ export async function removeReminder(
   if (!deleted) {
     throw new AppError(404, "REMINDER_NOT_FOUND", "Pengingat tidak ditemukan");
   }
-}
-
-export async function getNextUpcoming(
-  userId: string,
-): Promise<NextUpcomingGrouped> {
-  return reminderScheduleRepository.findNextUpcoming(userId);
 }
