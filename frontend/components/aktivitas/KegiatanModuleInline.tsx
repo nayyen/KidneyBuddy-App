@@ -149,7 +149,7 @@ export default function KegiatanModuleInline({
           </p>
           <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
             Mulai {formatWIB(activeActivity.waktuMulai)} · Estimasi {formatWIB(activeActivity.estimasiSelesai)}
-            {pastEnd && <span style={{ color: "#d4183d", marginLeft: 4 }}>· Terlambat</span>}
+            {pastEnd && <span style={{ color: "#ef9f27", marginLeft: 4 }}>· Lebih Dari Waktu Estimasi</span>}
           </p>
         </div>
         <button

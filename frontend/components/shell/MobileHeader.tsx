@@ -1,12 +1,7 @@
 "use client";
 
-import { Bell } from "lucide-react";
 
-interface MobileHeaderProps {
-  onNotificationClick?: () => void;
-}
-
-export default function MobileHeader({ onNotificationClick }: MobileHeaderProps) {
+export default function MobileHeader() {
   return (
     <header
       data-print-hidden="true"
@@ -26,15 +21,6 @@ export default function MobileHeader({ onNotificationClick }: MobileHeaderProps)
         KidneyBuddy
       </span>
 
-      {/* Bell notification button */}
-      <button
-        onClick={onNotificationClick}
-        aria-label="Notifikasi"
-        className="flex items-center justify-center cursor-pointer rounded-full hover:bg-secondary transition-colors"
-        style={{ width: 44, height: 44 }}
-      >
-        <Bell size={20} color="#1a2e2c" strokeWidth={1.5} />
-      </button>
     </header>
   );
 }

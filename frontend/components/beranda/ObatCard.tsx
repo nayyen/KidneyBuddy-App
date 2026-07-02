@@ -68,6 +68,17 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
     fetchEntries();
   }, [fetchEntries, refreshKey]);
 
+  // Refresh when obat confirmed from another page or reminders updated
+  useEffect(() => {
+    const refresh = () => fetchEntries();
+    window.addEventListener("obat:confirmed", refresh);
+    window.addEventListener("reminder:updated", refresh);
+    return () => {
+      window.removeEventListener("obat:confirmed", refresh);
+      window.removeEventListener("reminder:updated", refresh);
+    };
+  }, [fetchEntries]);
+
   const handleConfirm = async (reminderId: string) => {
     // Optimistic update
     setEntries((prev) =>
@@ -80,6 +91,10 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
         method: "POST",
         body: JSON.stringify({ reminderId }),
       });
+        // Refetch from server to get the true persisted state (not just optimistic)
+        await fetchEntries();
+        // Notify other pages (/catatan obat, PengingatBerikutnya) to refresh
+        window.dispatchEvent(new CustomEvent("obat:confirmed"));
     } catch {
       // Revert on error
       setEntries((prev) =>
@@ -87,6 +102,8 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
           e.reminderId === reminderId ? { ...e, status: "tertunda" } : e,
         ),
       );
+        // Still refetch to ensure UI matches server truth
+        await fetchEntries();
     }
   };
 
@@ -141,6 +158,10 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
         <div className="space-y-2">
           {entries.map((entry) => {
             const isConfirmed = entry.status === "dikonfirmasi";
+             const isLate =
+               !isConfirmed &&
+               entry.status === "tertunda" &&
+               new Date(entry.waktuPengingat) < new Date();
             return (
               <div
                 key={entry.id}
@@ -189,6 +210,14 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                   >
                     {formatTime(entry.waktuPengingat)}
                   </p>
+                    {isLate && (
+                      <p
+                        className="font-sans font-medium"
+                        style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}
+                      >
+                        Terlambat — segera minum obat
+                      </p>
+                    )}
                 </div>
 
                 {/* Status label for confirmed */}

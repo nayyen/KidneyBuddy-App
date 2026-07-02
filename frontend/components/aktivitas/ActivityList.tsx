@@ -222,7 +222,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                           <div className="flex items-center gap-1.5 mb-1">
                             <span className="font-sans font-medium inline-flex items-center gap-1" style={{ fontSize: 13, color: overdue ? "#d4183d" : "#0d4a44", backgroundColor: overdue ? "#fdecee" : "#f0faf9", borderRadius: 10, padding: "2px 8px" }}>
                               <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: overdue ? "#d4183d" : "#2a9d8f", display: "inline-block" }} />
-                              {durText}{overdue ? " · Terlambat" : ""}
+                                {durText}{overdue ? " · Lebih Dari Waktu Estimasi" : ""}
                             </span>
                           </div>
                         )}

@@ -13,7 +13,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
-import { Bell } from "lucide-react";
+import { Bell, Droplets, Pill } from "lucide-react";
 
 interface NextReminder {
   id: string;
@@ -21,6 +21,10 @@ interface NextReminder {
   nama: string;
   jamPengingat: string;
   catatanWaktu?: string | null;
+}
+interface GroupedNextReminder {
+  obat: NextReminder | null;
+  cuciDarah: NextReminder | null;
 }
 
 interface PengingatBerikutnyaCardProps {
@@ -44,7 +48,10 @@ export default function PengingatBerikutnyaCard({
   accessToken,
   refreshKey = 0,
 }: PengingatBerikutnyaCardProps) {
-  const [next, setNext] = useState<NextReminder | null>(null);
+    const [grouped, setGrouped] = useState<GroupedNextReminder>({
+      obat: null,
+      cuciDarah: null,
+    });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,11 +60,11 @@ export default function PengingatBerikutnyaCard({
     setIsLoading(true);
     setError(null);
     try {
-      const data = await authFetch<NextReminder | null>(
+        const data = await authFetch<GroupedNextReminder>(
         "/api/reminders/next",
         accessToken,
       );
-      setNext(data ?? null);
+        setGrouped(data ?? { obat: null, cuciDarah: null });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat pengingat");
     } finally {
@@ -69,7 +76,19 @@ export default function PengingatBerikutnyaCard({
     fetchNext();
   }, [fetchNext, refreshKey]);
 
-  const typeStyle = next ? (TYPE_COLORS[next.jenis] ?? TYPE_COLORS.obat) : null;
+
+    // Refresh when medication, cuci darah, or reminder data changes
+    useEffect(() => {
+      const refresh = () => fetchNext();
+      window.addEventListener("obat:confirmed", refresh);
+      window.addEventListener("cucidarah:confirmed", refresh);
+      window.addEventListener("reminder:updated", refresh);
+      return () => {
+        window.removeEventListener("obat:confirmed", refresh);
+        window.removeEventListener("cucidarah:confirmed", refresh);
+        window.removeEventListener("reminder:updated", refresh);
+      };
+    }, [fetchNext]);
 
   return (
     <div
@@ -116,58 +135,86 @@ export default function PengingatBerikutnyaCard({
             Coba Lagi
           </button>
         </div>
-      ) : !next ? (
-        <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
-          Tidak ada pengingat berikutnya
-        </p>
-      ) : (
-        <div>
-          {/* Time + type badge row */}
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className="font-heading font-bold"
-              style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}
-            >
-              {next.jamPengingat}
-            </span>
-            {typeStyle && (
-              <span
-                className="font-sans font-medium"
-                style={{
-                  fontSize: 14,
-                  paddingLeft: 6,
-                  paddingRight: 6,
-                  paddingTop: 2,
-                  paddingBottom: 2,
-                  borderRadius: 5,
-                  backgroundColor: typeStyle.bg,
-                  color: typeStyle.text,
-                }}
-              >
-                {TYPE_LABELS[next.jenis] ?? next.jenis}
-              </span>
-            )}
-          </div>
-
-          {/* Reminder name */}
-          <p
-            className="font-sans font-medium"
-            style={{ fontSize: 14, color: "#1a2e2c" }}
-          >
-            {next.nama}
-          </p>
-
-          {/* Timing note */}
-          {next.catatanWaktu && (
-            <p
-              className="font-sans mt-0.5"
-              style={{ fontSize: 14, color: "#3d6b66" }}
-            >
-              {next.catatanWaktu}
+          ) : !grouped.obat && !grouped.cuciDarah ? (
+            <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
+              Tidak ada pengingat berikutnya
             </p>
+          ) : (
+            <div className="space-y-3">
+              {/* Section 1: Pengingat Obat Berikutnya */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Pill size={12} style={{ color: "#0d4a44" }} />
+                  <p className="font-sans font-semibold" style={{ fontSize: 13, color: "#3d6b66" }}>
+                    Pengingat Obat
+                  </p>
+                </div>
+                {!grouped.obat ? (
+                  <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
+                    Tidak ada pengingat obat berikutnya
+                  </p>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
+                        {grouped.obat.jamPengingat}
+                      </span>
+                      <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[grouped.obat.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[grouped.obat.jenis] ?? TYPE_COLORS.obat).text }}>
+                        {TYPE_LABELS[grouped.obat.jenis] ?? grouped.obat.jenis}
+                      </span>
+                    </div>
+                    <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
+                      {grouped.obat.nama}
+                    </p>
+                    {grouped.obat.catatanWaktu && (
+                      <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
+                        {grouped.obat.catatanWaktu}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Horizontal divider between sections */}
+              {grouped.obat && grouped.cuciDarah && (
+                <hr style={{ border: "none", borderTop: "1px solid #e6f5f3", margin: "0" }} />
+              )}
+
+              {/* Section 2: Pengingat Cuci Darah Berikutnya */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Droplets size={12} style={{ color: "#0d4a44" }} />
+                  <p className="font-sans font-semibold" style={{ fontSize: 13, color: "#3d6b66" }}>
+                    Pengingat Cuci Darah
+                  </p>
+                </div>
+                {!grouped.cuciDarah ? (
+                  <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
+                    Tidak ada pengingat cuci darah berikutnya
+                  </p>
+                ) : (
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
+                        {grouped.cuciDarah.jamPengingat}
+                      </span>
+                      <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[grouped.cuciDarah.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[grouped.cuciDarah.jenis] ?? TYPE_COLORS.obat).text }}>
+                        {TYPE_LABELS[grouped.cuciDarah.jenis] ?? grouped.cuciDarah.jenis}
+                      </span>
+                    </div>
+                    <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
+                      {grouped.cuciDarah.nama}
+                    </p>
+                    {grouped.cuciDarah.catatanWaktu && (
+                      <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
+                        {grouped.cuciDarah.catatanWaktu}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
-        </div>
-      )}
-    </div>
-  );
-}
+      </div>
+    );
+  }
