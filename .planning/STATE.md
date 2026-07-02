@@ -145,3 +145,23 @@ Phase 4 delivered the Caregiver Dashboard & Doctor Reports vertical slice:
 - New files: 15 (5 backend + 8 frontend + 2 docs)
 - Tests: 9/9 passing (report.service.test.ts)
 - Frontend: builds successfully
+
+## Phase 4.1: UX Polish, Data Consistency & Cuci Darah Compliance
+
+| 4.1 | UX Polish, Data Consistency & Cuci Darah Compliance | `de33e83`, `281e17c`, `a9e3f02`, `5f8c1a9`, `1084a6d`, `4e01c1e`, `f1b2c3d`, `4b89ab6` | complete ✓ |
+
+## Phase 5: AI Anomaly Detection Engine
+
+| 5   | AI Anomaly Detection Engine                        | not started  | -           |
+
+## Phase 6: Community Support Forum (Q&A)
+
+| 6   | Community Support Forum (Q&A)                      | not started  | -           |
+
+## Phase 7: Doctor View & Report Sharing
+
+| 7   | Doctor View & Report Sharing                       | not started  | -           |
+
+## Phase 8: Final Polish, Testing & Go-Live Prep
+
+| 8   | Final Polish, Testing & Go-Live Prep               | not started  | -           |
