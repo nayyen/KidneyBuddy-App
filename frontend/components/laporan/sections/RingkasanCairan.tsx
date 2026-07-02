@@ -12,6 +12,7 @@ export interface FluidSummaryData {
   totalIn: number;
   totalOut: number;
   balance: number;
+  avgDailyBalance: number;
   dailyBreakdown: Array<{
     tanggal: string;
     totalIn: number;
@@ -25,7 +26,7 @@ interface Props {
 }
 
 export default function RingkasanCairan({ fluidSummary }: Props) {
-  const { totalIn, totalOut, balance } = fluidSummary;
+  const { totalIn, totalOut, balance, avgDailyBalance } = fluidSummary;
   const { dailyBreakdown } = fluidSummary;
   const hasData = totalIn > 0 || totalOut > 0;
 
@@ -49,22 +50,22 @@ export default function RingkasanCairan({ fluidSummary }: Props) {
       ) : (
         <div className="space-y-3">
           {/* Summary rows */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-[#f0faf9] rounded-lg p-3 text-center">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-[#f0faf9] rounded-lg p-3">
               <p className="text-[10px] font-medium text-[#7a8c8a]">
                 Total Masuk
               </p>
               <p className="text-sm font-bold text-[#1a2e2c]">{totalIn} ml</p>
             </div>
-            <div className="bg-[#f0faf9] rounded-lg p-3 text-center">
+            <div className="bg-[#f0faf9] rounded-lg p-3">
               <p className="text-[10px] font-medium text-[#7a8c8a]">
                 Total Keluar
               </p>
               <p className="text-sm font-bold text-[#1a2e2c]">{totalOut} ml</p>
             </div>
-            <div className="bg-[#f0faf9] rounded-lg p-3 text-center">
+            <div className="bg-[#f0faf9] rounded-lg p-3">
               <p className="text-[10px] font-medium text-[#7a8c8a]">
-                Selisih
+                Selisih Total
               </p>
               <p
                 className={`text-sm font-bold ${
@@ -79,38 +80,49 @@ export default function RingkasanCairan({ fluidSummary }: Props) {
                 {balance} ml
               </p>
             </div>
+            <div className="bg-[#f0faf9] rounded-lg p-3">
+              <p className="text-[10px] font-medium text-[#7a8c8a]">
+                Rata-rata Selisih Harian
+              </p>
+              <p
+                className={`text-sm font-bold ${
+                  avgDailyBalance > 0
+                    ? "text-[#2a9d8f]"
+                    : avgDailyBalance < 0
+                      ? "text-[#d4183d]"
+                      : "text-[#7a8c8a]"
+                }`}
+              >
+                {avgDailyBalance > 0 ? "+" : ""}
+                {Math.round(avgDailyBalance)} ml
+              </p>
+            </div>
           </div>
           {/* Per-day breakdown table */}
           {dailyBreakdown && dailyBreakdown.length > 0 && (
             <div className="mt-4">
-              <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider mb-2">
+              <p className="text-xs font-bold text-[#7a8c8a] uppercase tracking-wider mb-2">
                 Rincian Harian
               </p>
-              <table className="w-full text-xs border-collapse">
+              <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-[#cccccc]" style={{ borderBottomWidth: 0.5 }}>
-                    <th className="text-left font-bold text-[#7a8c8a] py-1.5 pr-2">Tanggal</th>
-                    <th className="text-right font-bold text-[#7a8c8a] py-1.5 px-2">Masuk</th>
-                    <th className="text-right font-bold text-[#7a8c8a] py-1.5 px-2">Keluar</th>
-                    <th className="text-right font-bold text-[#7a8c8a] py-1.5 pl-2">Selisih</th>
+                    <th className="text-left font-bold text-[#7a8c8a] py-2 pr-2">Tanggal</th>
+                    <th className="text-right font-bold text-[#7a8c8a] py-2 px-2">Masuk</th>
+                    <th className="text-right font-bold text-[#7a8c8a] py-2 px-2">Keluar</th>
+                    <th className="text-right font-bold text-[#7a8c8a] py-2 pl-2">Selisih</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dailyBreakdown.map((day) => {
                     const dayBalance = day.selisih;
                     return (
-                      <tr key={day.tanggal} className="border-b border-[#cccccc]" style={{ borderBottomWidth: 0.5 }}>
-                        <td className="py-1.5 pr-2 text-[#1a2e2c]">
-                          {new Date(day.tanggal + "T12:00:00").toLocaleDateString("id-ID", {
-                            weekday: "short",
-                            day: "numeric",
-                            month: "short",
-                          })}
-                        </td>
-                        <td className="text-right py-1.5 px-2 text-[#1a2e2c]">{day.totalIn} ml</td>
-                        <td className="text-right py-1.5 px-2 text-[#1a2e2c]">{day.totalOut} ml</td>
+                      <tr key={day.tanggal} className="border-b border-[#e5e7eb]" style={{ borderBottomWidth: 0.5 }}>
+                        <td className="font-medium text-[#1a2e2c] py-2 pr-2">{day.tanggal}</td>
+                        <td className="text-right text-[#1a2e2c] py-2 px-2">{day.totalIn}</td>
+                        <td className="text-right text-[#1a2e2c] py-2 px-2">{day.totalOut}</td>
                         <td
-                          className={`text-right py-1.5 pl-2 font-bold ${
+                          className={`text-right font-bold py-2 pl-2 ${
                             dayBalance > 0
                               ? "text-[#2a9d8f]"
                               : dayBalance < 0

@@ -19,6 +19,8 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import DeleteReminderConfirm from "./DeleteReminderConfirm";
 import { authFetch } from "@/lib/api";
+import ReminderDetailOverlay from "./ReminderDetailOverlay";
+import EditReminderSheet from "./EditReminderSheet";
 
 export interface Reminder {
   id: string;
@@ -30,6 +32,7 @@ export interface Reminder {
   aktif: boolean;
   dosis?: string | null;
   jenisObat?: string | null;
+  fotoObat?: string | null;
   konsentrasiCapd?: string | null;
 }
 
@@ -73,63 +76,31 @@ export default function ReminderItem({
   const [isToggling, setIsToggling] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [editNama, setEditNama] = useState(reminder.nama);
-  const [editDosis, setEditDosis] = useState(reminder.dosis ?? "");
-  const [savingEdit, setSavingEdit] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
 
-  const handleSaveEdit = async () => {
-    setSavingEdit(true);
-    try {
-      const body: Record<string, unknown> = { nama: editNama };
-      if (reminder.jenis === "obat") {
-        body.dosis = editDosis || null;
-      }
-      const updated = await authFetch<Reminder>(
-        `/api/reminders/${reminder.id}`,
-        accessToken,
-        { method: "PATCH", body: JSON.stringify(body) },
-      );
-      onUpdated?.(updated);
-      setEditing(false);
-    } catch {
-      // Revert on error
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setEditNama(reminder.nama);
-    setEditDosis(reminder.dosis ?? "");
-    setEditing(false);
-  };
-
-
-  const handleToggle = async (checked: boolean) => {
-    if (isToggling) return;
+  const handleToggleAktif = async (newAktif: boolean) => {
     setIsToggling(true);
-    const previous = aktif;
-    setAktif(checked); // optimistic
+    setAktif(newAktif);
     try {
       const updated = await authFetch<Reminder>(
         `/api/reminders/${reminder.id}`,
         accessToken,
         {
           method: "PATCH",
-          body: JSON.stringify({ aktif: checked }),
+          body: JSON.stringify({ aktif: newAktif }),
         },
       );
       onUpdated?.(updated);
-    } catch {
-      setAktif(previous); // revert on error
+    } catch (err) {
+      // Revert on error
+      setAktif(!newAktif);
     } finally {
       setIsToggling(false);
     }
   };
 
   const handleDelete = async () => {
-    if (isDeleting) return;
     setIsDeleting(true);
     try {
       await authFetch(`/api/reminders/${reminder.id}`, accessToken, {
@@ -138,212 +109,127 @@ export default function ReminderItem({
       setShowDeleteConfirm(false);
       onDeleted?.(reminder.id);
     } catch {
-      // Keep dialog open on failure
+      // error toast?
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const badgeStyle = TYPE_BADGE_STYLE[reminder.jenis] ?? TYPE_BADGE_STYLE.obat;
+  const handleEditSuccess = () => {
+    setShowEdit(false);
+    onUpdated?.(reminder); // Trigger a refetch in the parent
+  }
+
+  const { bg, text } = TYPE_BADGE_STYLE[reminder.jenis] ?? TYPE_BADGE_STYLE.obat;
 
   return (
     <>
-      <div
-        className="flex items-start gap-3"
-        style={{
-          backgroundColor: "#ffffff",
-          border: "0.5px solid #f0faf9",
-          borderRadius: 13,
-          padding: "9px 11px",
-          opacity: aktif ? 1 : 0.55,
-          transition: "opacity 0.2s",
-        }}
-      >
-        {/* Time badge */}
-        <span
-          className="font-heading font-bold shrink-0"
-          style={{
-            fontSize: 14,
-            color: "#0d4a44",
-            backgroundColor: "#f0faf9",
-            borderRadius: 8,
-            padding: "4px 8px",
-            lineHeight: 1.25,
-          }}
-        >
-          {reminder.jamPengingat}
-        </span>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          {editing ? (
-            <div className="space-y-2">
-              <Input
-                value={editNama}
-                onChange={(e) => setEditNama(e.target.value)}
-                className="h-8 text-sm"
-                placeholder="Nama pengingat"
-              />
-              {reminder.jenis === "obat" && (
-                <Input
-                  value={editDosis}
-                  onChange={(e) => setEditDosis(e.target.value)}
-                  className="h-8 text-sm"
-                  placeholder="Dosis (opsional)"
-                />
-              )}
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveEdit}
-                  disabled={savingEdit || !editNama.trim()}
-                  className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-800"
-                >
-                  <Check className="h-3.5 w-3.5" /> Simpan
-                </button>
-                <button
-                  onClick={handleCancelEdit}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3.5 w-3.5" /> Batal
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-          {/* Name + type badge row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <p
-              className="font-sans font-medium"
-              style={{ fontSize: 14, color: "#1a2e2c" }}
-            >
-              {reminder.nama}
-            </p>
+      <div className="bg-white rounded-xl border border-[#f0faf9] p-2.5 shadow-sm">
+        <div className="flex gap-3">
+          {/* Time badge */}
+          <div
+            className="flex items-center justify-center rounded-lg shrink-0"
+            style={{
+              width: 52,
+              height: 52,
+              backgroundColor: bg,
+            }}
+          >
             <span
-              className="font-sans font-medium"
-              style={{
-                fontSize: 13,
-                paddingLeft: 12,
-                paddingRight: 12,
-                paddingTop: 6,
-                paddingBottom: 6,
-                borderRadius: 8,
-                backgroundColor: badgeStyle.bg,
-                color: badgeStyle.text,
-              }}
+              className="font-bold font-heading"
+              style={{ fontSize: 14, color: text }}
             >
-              {TYPE_LABELS[reminder.jenis] ?? reminder.jenis}
+              {reminder.jamPengingat}
             </span>
           </div>
 
-          {/* Timing note */}
-          {reminder.catatanWaktu && (
-            <p
-              className="font-sans mt-0.5"
-              style={{ fontSize: 13, color: "#3d6b66" }}
-            >
-              {reminder.catatanWaktu}
-            </p>
-          )}
+          {/* Main content area */}
+          <button type="button" className="flex-1 text-left" onClick={() => setShowDetail(true)}>
+            <div className="flex flex-col justify-center h-full">
+              <p className="font-sans font-medium text-xs text-[#1a2e2c] leading-tight">
+                {reminder.nama}
+              </p>
+              {reminder.catatanWaktu && (
+                <p className="font-sans text-xs text-[#7a8c8a] mt-0.5">
+                  {reminder.catatanWaktu}
+                </p>
+              )}
+            </div>
+          </button>
 
-          {/* Dose / concentration sub-info */}
-          {reminder.jenis === "obat" && reminder.dosis && (
-            <p
-              className="font-sans mt-0.5"
-              style={{ fontSize: 13, color: "#3d6b66" }}
-            >
-              {reminder.dosis}
-              {reminder.jenisObat
-                ? ` · ${reminder.jenisObat === "minum" ? "Minum" : "Suntik"}`
-                : ""}
-            </p>
-          )}
-          {reminder.jenis === "capd" && reminder.konsentrasiCapd && (
-            <p
-              className="font-sans mt-0.5"
-              style={{ fontSize: 13, color: "#3d6b66" }}
-            >
-              {reminder.konsentrasiCapd}
-            </p>
-          )}
-
-          {/* Active day chips */}
-          <div className="flex gap-1.5 mt-1.5 flex-wrap">
-            {ALL_HARI.map((hari) => {
-              const isActive = reminder.hariAktif.includes(hari);
-              return (
-                <span
-                  key={hari}
-                  className="font-sans font-medium"
-                  style={{
-                    fontSize: 13,
-                    paddingLeft: 8,
-                    paddingRight: 8,
-                    paddingTop: 4,
-                    paddingBottom: 4,
-                    borderRadius: 6,
-                    backgroundColor: isActive ? "#f0faf9" : "#f3f3f5",
-                    color: isActive ? "#2a9d8f" : "#3d6b66",
-                  }}
-                >
-                  {HARI_SHORT[hari] ?? hari}
-                </span>
-              );
-            })}
+          {/* Action buttons */}
+          <div className="flex flex-col items-center justify-between shrink-0">
+            <Switch
+              checked={aktif}
+              onCheckedChange={handleToggleAktif}
+              disabled={isToggling}
+              className="data-[state=checked]:bg-[#2a9d8f] data-[state=unchecked]:bg-[#cfe8e4]"
+            />
+            <div className="flex items-center gap-1">
+              <button type="button" onClick={() => setShowEdit(true)} className="p-1 text-[#3d6b66] hover:text-[#1a2e2c]">
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button type="button" onClick={() => setShowDeleteConfirm(true)} className="p-1 text-[#d4183d] hover:text-red-700">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-            </>
-          )}
         </div>
 
-        {/* Right controls */}
-        <div className="flex flex-col items-end gap-2 shrink-0">
-          {/* Active toggle */}
-          <Switch
-            checked={aktif}
-            onCheckedChange={handleToggle}
-            disabled={isToggling}
-            aria-label={aktif ? "Nonaktifkan pengingat" : "Aktifkan pengingat"}
-          />
-          {/* Delete button */}
-                    {/* Edit button */}
-                    {!editing && (
-                      <button
-                        type="button"
-                        onClick={() => setEditing(true)}
-                          className="rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
-                        aria-label="Edit pengingat"
-                          style={{ width: 40, height: 40, border: "none", background: "transparent", cursor: "pointer" }}
-                      >
-                          <Pencil className="h-5 w-5 text-muted-foreground" />
-                      </button>
-                    )}
-                    {/* Delete button */}
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            aria-label="Hapus pengingat"
-              className="transition-colors flex items-center justify-center rounded-lg hover:bg-red-50"
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-                width: 40,
-                height: 40,
-                padding: 0,
-            }}
-          >
-              <Trash2 className="h-5 w-5" style={{ color: "#d4183d" }} />
-          </button>
+        {/* Day chips */}
+        <div className="mt-2.5 flex justify-between items-center">
+            <div className="flex gap-1.5">
+                {ALL_HARI.map((day) => (
+                    <div
+                        key={day}
+                        className="rounded font-sans font-medium text-center"
+                        style={{
+                            width: 28,
+                            height: 22,
+                            lineHeight: "22px",
+                            fontSize: 10,
+                            backgroundColor: reminder.hariAktif.includes(day) ? bg : "#f3f3f5",
+                            color: reminder.hariAktif.includes(day) ? text : "#cfe8e4",
+                        }}
+                    >
+                        {HARI_SHORT[day]}
+                    </div>
+                ))}
+            </div>
+            <div
+                className="rounded px-2 py-0.5 font-sans font-medium"
+                style={{
+                    fontSize: 10,
+                    backgroundColor: bg,
+                    color: text,
+                }}
+            >
+                {TYPE_LABELS[reminder.jenis]}
+            </div>
         </div>
       </div>
 
-      {/* Delete confirmation dialog */}
-      <DeleteReminderConfirm
-        open={showDeleteConfirm}
-        onOpenChange={setShowDeleteConfirm}
-        reminderName={reminder.nama}
-        onConfirm={handleDelete}
-        isDeleting={isDeleting}
-      />
+      {showDeleteConfirm && (
+        <DeleteReminderConfirm
+          isDeleting={isDeleting}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
+
+      {showDetail && (
+        <ReminderDetailOverlay reminder={reminder} onClose={() => setShowDetail(false)} />
+      )}
+
+      {showEdit && (
+        <EditReminderSheet
+          isOpen={showEdit}
+          onOpenChange={setShowEdit}
+          accessToken={accessToken}
+          reminder={reminder}
+          onSuccess={handleEditSuccess}
+        />
+      )}
     </>
   );
 }

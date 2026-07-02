@@ -19,6 +19,9 @@ import RingkasanCairan, {
 import KepatuhanObat, {
   type MedicationAdherenceData,
 } from "@/components/laporan/sections/KepatuhanObat";
+import KepatuhanCuciDarah, {
+  type DialysisAdherenceData,
+} from "@/components/laporan/sections/KepatuhanCuciDarah";
 import KondisiCAPD, {
   type CAPDFrequencyData,
 } from "@/components/laporan/sections/KondisiCAPD";
@@ -27,6 +30,7 @@ import Anomali from "@/components/laporan/sections/Anomali";
 export interface ReportData {
   fluidSummary: FluidSummaryData;
   medicationAdherence: MedicationAdherenceData;
+  dialysisAdherence: DialysisAdherenceData;
   capdFrequency: CAPDFrequencyData;
   anomalies: unknown[];
 }
@@ -114,6 +118,11 @@ export default function LaporanPreviewContent({
 
       {/* Section 2: Kepatuhan Obat */}
       <KepatuhanObat medicationAdherence={report.medicationAdherence} />
+
+      {/* Section 2.5: Kepatuhan Cuci Darah (CAPD/HD only) */}
+      {(metodeTerapi === "CAPD" || metodeTerapi === "HD") && (
+        <KepatuhanCuciDarah dialysisAdherence={report.dialysisAdherence} />
+      )}
 
       {/* Section 3: Kondisi CAPD (CAPD only) */}
       {metodeTerapi === "CAPD" && (

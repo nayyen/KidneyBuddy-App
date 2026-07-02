@@ -77,7 +77,8 @@
       "Bash(DATABASE_URL=\"postgresql://dummy:dummy@localhost:5432/dummy\" npx drizzle-kit generate --name=\"phase2_fluid_push_medication_reminder_ext\")",
       "Skill(gsd-code-review)",
       "Skill(gsd-discuss-phase)",
-      "Skill(gsd-plan-phase)"
+      "Skill(gsd-plan-phase)",
+      "Bash(git symbolic-ref *)"
     ]
   }
 }

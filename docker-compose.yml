@@ -39,6 +39,7 @@ services:
       - "4000:4000"
     volumes:
       - uploads:/app/uploads
+      - ./backend/src:/app/src
     networks:
       - backend-network
 

@@ -20,6 +20,7 @@ import {
   type CreateObatFormData,
   HARI_OPTIONS,
 } from "@/lib/validators/reminder.schema";
+import type { Reminder } from "./ReminderItem";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -27,14 +28,17 @@ interface MedicationReminderFormProps {
   accessToken: string;
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialData?: Reminder | null;
 }
 
 export default function MedicationReminderForm({
   accessToken,
   onSuccess,
   onCancel,
+  initialData,
 }: MedicationReminderFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isEditMode = !!initialData;
 
   const {
     register,
@@ -45,13 +49,18 @@ export default function MedicationReminderForm({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CreateObatFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createObatFormSchema) as any,
-    defaultValues: {
-      jenis: "obat",
-      jenisObat: "minum",
-      hariAktif: [],
-    },
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          dosis: initialData.dosis ?? "",
+          catatanWaktu: initialData.catatanWaktu ?? "",
+        }
+      : {
+          jenis: "obat",
+          jenisObat: "minum",
+          hariAktif: [],
+        },
   });
 
   const watchedJenisObat = watch("jenisObat");
@@ -69,35 +78,44 @@ export default function MedicationReminderForm({
     }
   };
 
+  const toggleAllHari = () => {
+    const allSelected = watchedHariAktif.length === HARI_OPTIONS.length;
+    if (allSelected) {
+      setValue("hariAktif", [], { shouldValidate: true });
+    } else {
+      setValue("hariAktif", HARI_OPTIONS.map(h => h.value), { shouldValidate: true });
+    }
+  };
+
   const onSubmit: SubmitHandler<CreateObatFormData> = async (data) => {
     try {
       const fd = new FormData();
+      // Always include all fields the backend expects
       fd.append("jenis", "obat");
       fd.append("nama", data.nama);
       fd.append("dosis", data.dosis);
       fd.append("jenisObat", data.jenisObat);
       if (data.catatanWaktu) fd.append("catatanWaktu", data.catatanWaktu);
+
+      if (data.hariAktif.length === 0) {
+        toast.error("Pilih minimal satu hari aktif.");
+        return;
+      }
       data.hariAktif.forEach((day) => fd.append("hariAktif", day));
+
       fd.append("jamPengingat", data.jamPengingat);
       if (data.fotoObat instanceof File) {
         fd.append("foto_obat", data.fotoObat);
       }
 
-      // Debug: log payload before fetch
-      const debugPayload: Record<string, unknown> = {};
-      fd.forEach((val, key) => {
-        if (debugPayload[key] !== undefined) {
-          debugPayload[key] = Array.isArray(debugPayload[key])
-            ? [...(debugPayload[key] as unknown[]), val]
-            : [debugPayload[key], val];
-        } else {
-          debugPayload[key] = val;
-        }
-      });
-      console.log("[MedicationReminderForm] payload →", debugPayload);
+      const url = isEditMode
+        ? `${API_BASE}/api/reminders/${initialData.id}`
+        : `${API_BASE}/api/reminders`;
 
-      const res = await fetch(`${API_BASE}/api/reminders`, {
-        method: "POST",
+      const method = isEditMode ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         credentials: "include",
         headers: { Authorization: `Bearer ${accessToken}` },
         body: fd,
@@ -110,9 +128,11 @@ export default function MedicationReminderForm({
         return;
       }
 
-      toast.success("Pengingat berhasil disimpan");
-      reset();
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      toast.success(`Pengingat berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}`);
+      if (!isEditMode) {
+        reset();
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
       onSuccess?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Gagal menyimpan pengingat");
@@ -241,61 +261,59 @@ export default function MedicationReminderForm({
         />
       </div>
 
-      {/* ── Hari Aktif — 7-day checkbox row ── */}
+      {/* ── Hari Aktif ── */}
       <div>
-        <label
-          className="block font-sans font-medium mb-2"
-          style={{ fontSize: 12, color: "#1a2e2c" }}
-        >
-          Hari Aktif
-        </label>
-          <div className="flex gap-2">
+        <div className="flex items-center justify-between mb-2">
+            <label
+              className="block font-sans font-medium"
+              style={{ fontSize: 12, color: "#1a2e2c" }}
+            >
+              Hari Aktif
+            </label>
             <button
               type="button"
-              onClick={() => setValue("hariAktif", HARI_OPTIONS.map((h) => h.value), { shouldValidate: true })}
-              className="font-sans font-medium transition-colors"
-              style={{ fontSize: 12, color: "#0d4a44", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
+              onClick={toggleAllHari}
+              className="text-xs font-medium text-[#2a9d8f] hover:underline"
             >
-              Pilih Semua
+              {watchedHariAktif.length === HARI_OPTIONS.length ? "Hapus Semua" : "Pilih Semua"}
             </button>
-            <button
-              type="button"
-              onClick={() => setValue("hariAktif", [], { shouldValidate: true })}
-              className="font-sans font-medium transition-colors"
-              style={{ fontSize: 12, color: "#3d6b66", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
-            >
-              Hapus Semua
-            </button>
-          </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {HARI_OPTIONS.map((hari) => {
-            const isChecked = watchedHariAktif.includes(hari.value);
-            return (
-              <button
-                key={hari.value}
-                type="button"
-                onClick={() => toggleHari(hari.value)}
-                className="font-sans font-medium transition-colors"
-                style={{
-                  height: 32,
-                  minWidth: 36,
-                  paddingLeft: 8,
-                  paddingRight: 8,
-                  borderRadius: 8,
-                  fontSize: 13,
-                  backgroundColor: isChecked ? "#2a9d8f" : "#f0faf9",
-                  color: isChecked ? "#ffffff" : "#3d6b66",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {hari.label}
-              </button>
-            );
-          })}
         </div>
+        <Controller
+          name="hariAktif"
+          control={control}
+          render={({ field: { onChange } }) => (
+            <div className="flex gap-1.5 flex-wrap">
+              {HARI_OPTIONS.map((hari) => {
+                const isChecked = watchedHariAktif.includes(hari.value);
+                return (
+                  <button
+                    key={hari.value}
+                    type="button"
+                    onClick={() => toggleHari(hari.value)}
+                    className="font-sans font-medium transition-colors"
+                    style={{
+                      height: 32,
+                      minWidth: 36,
+                      paddingLeft: 8,
+                      paddingRight: 8,
+                      borderRadius: 8,
+                      fontSize: 13,
+                      backgroundColor: isChecked ? "#2a9d8f" : "#f0faf9",
+                      color: isChecked ? "#ffffff" : "#3d6b66",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {hari.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        />
         {errors.hariAktif && (
           <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
+            {/* @ts-expect-error message exists */}
             {errors.hariAktif.message}
           </p>
         )}
@@ -308,7 +326,7 @@ export default function MedicationReminderForm({
           className="block font-sans font-medium mb-1"
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
-          Jam Pengingat
+          Jam Pengingat <span className="text-[#7a8c8a]">(WIB)</span>
         </label>
         <input
           {...register("jamPengingat")}
@@ -323,9 +341,9 @@ export default function MedicationReminderForm({
               : "0.5px solid #cfe8e4",
           }}
         />
-          <p className="mt-0.5 font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
-            Waktu WIB (Waktu Indonesia Barat)
-          </p>
+        <p className="mt-0.5 font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
+          Waktu WIB (Waktu Indonesia Barat)
+        </p>
         {errors.jamPengingat && (
           <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.jamPengingat.message}

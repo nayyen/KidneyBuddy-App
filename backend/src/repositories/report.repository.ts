@@ -11,6 +11,7 @@ import { eq, and, gte, lte } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { fluidLog } from "../db/schema/fluidLog.schema.js";
 import { medicationLog } from "../db/schema/medicationLog.schema.js";
+import { dialysisLog } from "../db/schema/dialysisLog.schema.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,11 @@ export type MedicationAdherenceResult = {
     total: number;
     confirmed: number;
   }>;
+};
+
+export type DialysisAdherenceResult = {
+  total: number;
+  confirmed: number;
 };
 
 export type CAPDConditionCounts = {
@@ -145,6 +151,43 @@ export async function getMedicationAdherenceByRange(
   );
 
   return { total, confirmed, byReminder };
+}
+
+// ─── Dialysis Adherence ────────────────────────────────────────────────────
+
+/**
+ * Counts scheduled vs confirmed dialysis sessions for a date range.
+ * Uses WIB-correct timestamp boundaries.
+ *
+ * @param userId - authenticated user ID
+ * @param startDate - range start (YYYY-MM-DD)
+ * @param endDate - range end (YYYY-MM-DD)
+ */
+export async function getDialysisAdherenceByRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<DialysisAdherenceResult> {
+  const wibStart = new Date(`${startDate}T00:00:00+07:00`);
+  const wibEnd = new Date(`${endDate}T23:59:59+07:00`);
+
+  const rows = await db
+    .select({
+      status: dialysisLog.status,
+    })
+    .from(dialysisLog)
+    .where(
+      and(
+        eq(dialysisLog.userId, userId as any),
+        gte(dialysisLog.waktuPengingat, wibStart),
+        lte(dialysisLog.waktuPengingat, wibEnd),
+      ),
+    );
+
+  const total = rows.length;
+  const confirmed = rows.filter((r) => r.status === "dikonfirmasi").length;
+
+  return { total, confirmed };
 }
 
 // ─── CAPD Condition Frequency ───────────────────────────────────────────────

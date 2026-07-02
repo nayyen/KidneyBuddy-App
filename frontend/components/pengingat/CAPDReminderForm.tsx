@@ -18,18 +18,24 @@ import {
   HARI_OPTIONS,
   CAPD_KONSENTRASI_OPTIONS,
 } from "@/lib/validators/reminder.schema";
+import type { Reminder } from "./ReminderItem";
+import { toast } from "sonner";
 
 interface CAPDReminderFormProps {
   accessToken: string;
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialData?: Reminder | null;
 }
 
 export default function CAPDReminderForm({
   accessToken,
   onSuccess,
   onCancel,
+  initialData,
 }: CAPDReminderFormProps) {
+  const isEditMode = !!initialData;
+
   const {
     register,
     handleSubmit,
@@ -39,12 +45,17 @@ export default function CAPDReminderForm({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CreateCapdFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createCapdFormSchema) as any,
-    defaultValues: {
-      jenis: "capd",
-      hariAktif: [],
-    },
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          konsentrasiCapd: initialData.konsentrasiCapd ?? "",
+          catatanWaktu: initialData.catatanWaktu ?? "",
+        }
+      : {
+          jenis: "capd",
+          hariAktif: [],
+        },
   });
 
   const watchedHariAktif = watch("hariAktif") ?? [];
@@ -60,16 +71,39 @@ export default function CAPDReminderForm({
     }
   };
 
+  const toggleAllHari = () => {
+    const allSelected = watchedHariAktif.length === HARI_OPTIONS.length;
+    if (allSelected) {
+      setValue("hariAktif", [], { shouldValidate: true });
+    } else {
+      setValue("hariAktif", HARI_OPTIONS.map(h => h.value), { shouldValidate: true });
+    }
+  };
+
   const onSubmit: SubmitHandler<CreateCapdFormData> = async (data) => {
-    await authFetch("/api/reminders", accessToken, {
-      method: "POST",
-      body: JSON.stringify({
-        ...data,
-        jenis: "capd",
-      }),
-    });
-    reset();
-    onSuccess?.();
+    try {
+      if (data.hariAktif.length === 0) {
+        toast.error("Pilih minimal satu hari aktif.");
+        return;
+      }
+      
+      const payload = { ...data, jenis: "capd" };
+      const url = isEditMode
+        ? `/api/reminders/${initialData.id}`
+        : "/api/reminders";
+      const method = isEditMode ? "PATCH" : "POST";
+
+      await authFetch(url, accessToken, {
+        method: method,
+        body: JSON.stringify(payload),
+      });
+
+      toast.success(`Pengingat berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}`);
+      if (!isEditMode) reset();
+      onSuccess?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : `Gagal ${isEditMode ? 'memperbarui' : 'menyimpan'} pengingat`);
+    }
   };
 
   return (
@@ -174,24 +208,13 @@ export default function CAPDReminderForm({
             <label className="font-sans font-medium" style={{ fontSize: 12, color: "#1a2e2c" }}>
               Hari Aktif
             </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setValue("hariAktif", HARI_OPTIONS.map((h) => h.value), { shouldValidate: true })}
-                className="font-sans font-medium"
-                style={{ fontSize: 12, color: "#0d4a44", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
-              >
-                Pilih Semua
-              </button>
-              <button
-                type="button"
-                onClick={() => setValue("hariAktif", [], { shouldValidate: true })}
-                className="font-sans font-medium"
-                style={{ fontSize: 12, color: "#3d6b66", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
-              >
-                Hapus Semua
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={toggleAllHari}
+              className="text-xs font-medium text-[#2a9d8f] hover:underline"
+            >
+              {watchedHariAktif.length === HARI_OPTIONS.length ? "Hapus Semua" : "Pilih Semua"}
+            </button>
           </div>
         <div className="flex gap-1.5 flex-wrap">
           {HARI_OPTIONS.map((hari) => {

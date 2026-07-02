@@ -17,18 +17,24 @@ import {
   type CreateHdFormData,
   HARI_OPTIONS,
 } from "@/lib/validators/reminder.schema";
+import type { Reminder } from "./ReminderItem";
+import { toast } from "sonner";
 
 interface HDReminderFormProps {
   accessToken: string;
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialData?: Reminder | null;
 }
 
 export default function HDReminderForm({
   accessToken,
   onSuccess,
   onCancel,
+  initialData,
 }: HDReminderFormProps) {
+  const isEditMode = !!initialData;
+
   const {
     register,
     handleSubmit,
@@ -37,12 +43,16 @@ export default function HDReminderForm({
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CreateHdFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createHdFormSchema) as any,
-    defaultValues: {
-      jenis: "hd",
-      hariAktif: [],
-    },
+    defaultValues: initialData
+      ? {
+        ...initialData,
+        catatanWaktu: initialData.catatanWaktu ?? "",
+      }
+      : {
+        jenis: "hd",
+        hariAktif: [],
+      },
   });
 
   const watchedHariAktif = watch("hariAktif") ?? [];
@@ -58,16 +68,39 @@ export default function HDReminderForm({
     }
   };
 
+  const toggleAllHari = () => {
+    const allSelected = watchedHariAktif.length === HARI_OPTIONS.length;
+    if (allSelected) {
+      setValue("hariAktif", [], { shouldValidate: true });
+    } else {
+      setValue("hariAktif", HARI_OPTIONS.map(h => h.value), { shouldValidate: true });
+    }
+  };
+
   const onSubmit: SubmitHandler<CreateHdFormData> = async (data) => {
-    await authFetch("/api/reminders", accessToken, {
-      method: "POST",
-      body: JSON.stringify({
-        ...data,
-        jenis: "hd",
-      }),
-    });
-    reset();
-    onSuccess?.();
+    try {
+      if (data.hariAktif.length === 0) {
+        toast.error("Pilih minimal satu hari aktif.");
+        return;
+      }
+
+      const payload = { ...data, jenis: "hd" };
+      const url = isEditMode
+        ? `/api/reminders/${initialData.id}`
+        : "/api/reminders";
+      const method = isEditMode ? "PATCH" : "POST";
+
+      await authFetch(url, accessToken, {
+        method: method,
+        body: JSON.stringify(payload),
+      });
+
+      toast.success(`Jadwal berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}`);
+      if (!isEditMode) reset();
+      onSuccess?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : `Gagal ${isEditMode ? 'memperbarui' : 'menyimpan'} jadwal`);
+    }
   };
 
   return (
@@ -137,24 +170,13 @@ export default function HDReminderForm({
             <label className="font-sans font-medium" style={{ fontSize: 12, color: "#1a2e2c" }}>
               Hari Dialisis
             </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setValue("hariAktif", HARI_OPTIONS.map((h) => h.value), { shouldValidate: true })}
-                className="font-sans font-medium"
-                style={{ fontSize: 12, color: "#0d4a44", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
-              >
-                Pilih Semua
-              </button>
-              <button
-                type="button"
-                onClick={() => setValue("hariAktif", [], { shouldValidate: true })}
-                className="font-sans font-medium"
-                style={{ fontSize: 12, color: "#3d6b66", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
-              >
-                Hapus Semua
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={toggleAllHari}
+              className="text-xs font-medium text-[#2a9d8f] hover:underline"
+            >
+              {watchedHariAktif.length === HARI_OPTIONS.length ? "Hapus Semua" : "Pilih Semua"}
+            </button>
           </div>
         <div className="flex gap-1.5 flex-wrap">
           {HARI_OPTIONS.map((hari) => {
