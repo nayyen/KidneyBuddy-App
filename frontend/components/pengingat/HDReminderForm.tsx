@@ -121,6 +121,9 @@ export default function HDReminderForm({
               : "0.5px solid #cfe8e4",
           }}
         />
+          <p className="mt-0.5 font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
+            Waktu WIB (Waktu Indonesia Barat)
+          </p>
         {errors.jamPengingat && (
           <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.jamPengingat.message}
@@ -130,12 +133,29 @@ export default function HDReminderForm({
 
       {/* ── Hari Dialisis ── */}
       <div>
-        <label
-          className="block font-sans font-medium mb-2"
-          style={{ fontSize: 12, color: "#1a2e2c" }}
-        >
-          Hari Dialisis
-        </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="font-sans font-medium" style={{ fontSize: 12, color: "#1a2e2c" }}>
+              Hari Dialisis
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setValue("hariAktif", HARI_OPTIONS.map((h) => h.value), { shouldValidate: true })}
+                className="font-sans font-medium"
+                style={{ fontSize: 12, color: "#0d4a44", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
+              >
+                Pilih Semua
+              </button>
+              <button
+                type="button"
+                onClick={() => setValue("hariAktif", [], { shouldValidate: true })}
+                className="font-sans font-medium"
+                style={{ fontSize: 12, color: "#3d6b66", border: "none", background: "transparent", cursor: "pointer", textDecoration: "underline" }}
+              >
+                Hapus Semua
+              </button>
+            </div>
+          </div>
         <div className="flex gap-1.5 flex-wrap">
           {HARI_OPTIONS.map((hari) => {
             const isChecked = watchedHariAktif.includes(hari.value);

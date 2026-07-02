@@ -309,10 +309,11 @@ export default function ReminderItem({
                       <button
                         type="button"
                         onClick={() => setEditing(true)}
-                        className="p-1 rounded hover:bg-gray-100 transition-colors"
+                          className="rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center"
                         aria-label="Edit pengingat"
+                          style={{ width: 40, height: 40, border: "none", background: "transparent", cursor: "pointer" }}
                       >
-                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                          <Pencil className="h-5 w-5 text-muted-foreground" />
                       </button>
                     )}
                     {/* Delete button */}
@@ -320,15 +321,17 @@ export default function ReminderItem({
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
             aria-label="Hapus pengingat"
-            className="transition-colors"
+              className="transition-colors flex items-center justify-center rounded-lg hover:bg-red-50"
             style={{
               background: "none",
               border: "none",
               cursor: "pointer",
-              padding: 4,
+                width: 40,
+                height: 40,
+                padding: 0,
             }}
           >
-            <Trash2 size={14} style={{ color: "#d4183d" }} />
+              <Trash2 className="h-5 w-5" style={{ color: "#d4183d" }} />
           </button>
         </div>
       </div>
