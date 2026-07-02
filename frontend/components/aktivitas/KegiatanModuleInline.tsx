@@ -87,6 +87,26 @@ export default function KegiatanModuleInline({
     fetchActiveActivity();
   }, [fetchActiveActivity, refreshKey]);
 
+  const handleSelesai = async () => {
+    if (!activeActivity) return;
+    try {
+      // Optimistic update
+      const completedActivityId = activeActivity.id;
+      const completedActivityName = activeActivity.namaKegiatan;
+      setActiveActivity(null);
+
+      await authFetch(`/api/activities/${completedActivityId}/finish`, accessToken, {
+        method: "POST",
+      });
+
+      // Notify parent to show completion form
+      onCompleteActivity?.(completedActivityId, completedActivityName);
+    } catch {
+      // Revert optimistic update on failure
+      fetchActiveActivity();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="w-full" style={{ background: "linear-gradient(145deg, #f0faf9, #e0f5f2)", borderRadius: 16, padding: 16 }}>
@@ -148,22 +168,45 @@ export default function KegiatanModuleInline({
             </span>
           </p>
           <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
-            Mulai {formatWIB(activeActivity.waktuMulai)} · Estimasi {formatWIB(activeActivity.estimasiSelesai)}
-            {pastEnd && <span style={{ color: "#ef9f27", marginLeft: 4 }}>· Lebih Dari Waktu Estimasi</span>}
+            Estimasi selesai: {formatWIB(activeActivity.estimasiSelesai)}
+            {pastEnd && <span className="font-bold text-[#d4183d]"> (Lebih Dari Waktu Estimasi)</span>}
           </p>
         </div>
         <button
-          onClick={(e) => { e.stopPropagation(); onCompleteActivity?.(activeActivity.id, activeActivity.namaKegiatan); }}
-          className="font-sans font-medium cursor-pointer active:scale-95 transition-transform shrink-0"
+          type="button"
+          onClick={handleSelesai}
+          className="font-sans font-medium transition-colors hover:opacity-90 active:opacity-80 shrink-0"
           style={{
-            fontSize: 13,
-            borderRadius: 20,
-            padding: "6px 14px",
-            background: "#2a9d8f",
+            height: 32,
+            paddingLeft: 12,
+            paddingRight: 12,
+            borderRadius: 16,
+            fontSize: 12,
+            backgroundColor: "#2a9d8f",
             color: "#ffffff",
             border: "none",
+            cursor: "pointer",
           }}
-          aria-label="Selesaikan kegiatan"
+        >
+          Selesai
+        </button>
+      </div>
+      <div
+        className="font-sans text-xs font-medium flex items-center gap-1.5"
+        style={{ color: "#ffffff", marginTop: 12 }}
+      >
+        <div className="flex-1">
+          <p className="font-sans text-xs" style={{ color: "#ffffff" }}>
+            {pastEstimasi ? "Kegiatan Aktif — Melebihi Estimasi" : "Sedang berlangsung:"}
+          </p>
+          <p className="font-sans font-bold text-sm" style={{ color: "#ffffff", marginTop: 2 }}>
+            {activeActivity.namaKegiatan}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSelesai}
+          className="bg-white/20 hover:bg-white/30 text-white font-sans font-bold text-xs rounded-full px-4 h-8 transition-colors"
         >
           Selesai
         </button>

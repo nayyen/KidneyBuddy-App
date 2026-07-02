@@ -18,6 +18,10 @@ import { z } from "zod";
 import { encrypt as realEncrypt, decrypt as realDecrypt } from "../lib/encryption.js";
 import * as dailyActivityRepository from "../repositories/dailyActivity.repository.js";
 import type { NewDailyActivity } from "../repositories/dailyActivity.repository.js";
+import {
+  wibDateString,
+  wibDateFromHHmm,
+} from "../utils/wib.js";
 
 // ─── WIB offset (UTC+7) ──────────────────────────────────────────────────────
 // All activity timestamp comparisons use WIB (CR-02).
@@ -164,19 +168,25 @@ export async function _createActivityCore(
   // Validate and parse — throws ZodError on invalid input (→ 400 via errorHandler)
   const parsed = createActivitySchema.parse(rawPayload);
 
-  // Combine today's WIB date with the HH:mm estimasiSelesai
-  const estimasiSelesaiUTC = parsed.tanggal
-    ? new Date(`${parsed.tanggal}T${parsed.estimasiSelesai}:00+07:00`)
-    : combineWIBDateAndTime(parsed.estimasiSelesai);
+  const waktuMulaiUTC = new Date(); // Start time is now.
 
-  // Reject if estimasiSelesai is in the past (WIB comparison) — skip for past dates
-  if (!parsed.tanggal && Date.now() > estimasiSelesaiUTC.getTime()) {
+  // Use the correct WIB date string for today.
+  const todayWIB = wibDateString(new Date());
+  
+  // If the user provides a past date, use that. Otherwise, use today.
+  const targetDate = parsed.tanggal || todayWIB;
+
+  const estimasiSelesaiUTC = new Date(`${targetDate}T${parsed.estimasiSelesai}:00+07:00`);
+
+  // Reject if estimasiSelesai is in the past, but only if it's for today.
+  if (!parsed.tanggal && waktuMulaiUTC.getTime() > estimasiSelesaiUTC.getTime()) {
     throw new Error("Estimasi waktu tidak boleh di masa lalu");
   }
 
   const insertData: NewDailyActivity = {
     userId: userId as any,
     namaKegiatan: parsed.namaKegiatan,
+    waktuMulai: waktuMulaiUTC,
     estimasiSelesai: estimasiSelesaiUTC,
     status: "berlangsung",
     reminderSent: false,
