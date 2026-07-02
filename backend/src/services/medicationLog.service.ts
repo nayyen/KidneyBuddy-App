@@ -6,9 +6,9 @@
  */
 import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import * as medicationLogRepository from "../repositories/medicationLog.repository.js";
-import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import type { MedicationLog } from "../repositories/medicationLog.repository.js";
 import { _confirmCore } from "./reminders.service.js";
+import { wibDateFromHHmm, wibDayNameLower } from "../utils/wib.js";
 
 /**
  * confirm — validate reminder ownership and log the confirmation.
@@ -42,36 +42,57 @@ export async function getTodayUnconfirmed(userId: string): Promise<MedicationLog
  * Used by GET /api/medication-log/today.
  */
 export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
-  // Get existing medication log entries
+  // 1. Get real DB log rows for today (WIB-correct bounds)
   const logs = await medicationLogRepository.findTodayByUser(userId);
 
-  // Get today's WIB day name
-  const INDONESIAN_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-  const jakartaNow = new Date(Date.now() + 7 * 3600 * 1000);
-  const todayDayName = INDONESIAN_DAYS[jakartaNow.getUTCDay()];
-  const todayDayLower = todayDayName.toLowerCase();
+  // 2. Get today's WIB day name (lowercase for hariAktif matching)
+  const todayDayLower = wibDayNameLower();
 
-  // Get scheduled reminders for today that don't have a log entry yet
-  // Use findActiveObatByUser + JS filter instead of raw SQL (avoids jsonb operator issues)
+  // 3. Get active obat reminders scheduled for today (aktif=true, hariAktif includes today, non-empty)
   const allActive = await reminderScheduleRepository.findActiveObatByUser(userId);
   const scheduled = allActive.filter((r) => {
     const hariAktif = (r.hariAktif as string[]) ?? [];
-    return hariAktif.includes(todayDayLower);
+    return hariAktif.length > 0 && hariAktif.includes(todayDayLower);
   });
 
-  // Convert scheduled reminders to MedicationLog-like shape
-  const scheduledAsLogs: MedicationLog[] = scheduled.map((r) => ({
-    id: `scheduled-${r.id}`,
-    userId: r.userId,
-    reminderId: r.id,
-    namaObat: r.nama,
-    dosis: r.dosis,
-    jenisObat: r.jenisObat,
-    status: "tertunda" as const,
-    waktuPengingat: new Date(),
-    confirmedAt: null,
-  }));
+  // 4. Build a map of existing logs by reminderId for dedup.
+  //    CRITICAL FIX: previously scheduled entries always appeared as "tertunda"
+  //    even after confirmation, because there was no dedup — the confirmed log
+  //    was masked by a re-generated scheduled entry on every reload.
+  const logsByReminderId = new Map<string, MedicationLog>();
+  for (const log of logs) {
+    logsByReminderId.set(log.reminderId, log);
+  }
 
-  // Merge: scheduled first (not yet dispatched), then logs (already dispatched or confirmed)
-  return [...scheduledAsLogs, ...logs];
+  // 5. For each scheduled reminder: if a log already exists, use the log's
+  //    persisted status (dikonfirmasi/tertunda/terlewat). Only create a
+  //    "scheduled" pseudo-entry if no log row exists yet.
+  const scheduledAsLogs: MedicationLog[] = [];
+  for (const r of scheduled) {
+    if (logsByReminderId.has(r.id)) {
+      // A log row already exists for this reminder today — use its real status.
+      continue;
+    }
+    scheduledAsLogs.push({
+      id: `scheduled-${r.id}`,
+      userId: r.userId,
+      reminderId: r.id,
+      namaObat: r.nama,
+      dosis: r.dosis,
+      jenisObat: r.jenisObat,
+      status: "tertunda" as const,
+      // FIX: use the reminder's scheduled HH:mm, not the current wall-clock,
+      // so the displayed time doesn't drift with the laptop/system clock.
+      waktuPengingat: wibDateFromHHmm(r.jamPengingat),
+        waktuKonfirmasi: null,
+        createdAt: new Date(),
+      } as MedicationLog);
+  }
+
+  // 6. Merge and sort by waktuPengingat ascending (earliest first).
+  const merged = [...logs, ...scheduledAsLogs];
+  merged.sort(
+    (a, b) => a.waktuPengingat.getTime() - b.waktuPengingat.getTime(),
+  );
+  return merged;
 }

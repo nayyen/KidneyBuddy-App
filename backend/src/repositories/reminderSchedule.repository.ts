@@ -2,9 +2,15 @@ import { eq, and, lte, sql, isNull, or, lt } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { reminderSchedule } from "../db/schema/reminderSchedule.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { wibHHmm, wibDayNameLower, wibTomorrowDayNameLower } from "../utils/wib.js";
 
 export type ReminderSchedule = InferSelectModel<typeof reminderSchedule>;
 export type NewReminderSchedule = InferInsertModel<typeof reminderSchedule>;
+
+export interface NextUpcomingGrouped {
+  obat: ReminderSchedule | null;
+  cuciDarah: ReminderSchedule | null;
+}
 
 // ─── Insert ────────────────────────────────────────────────────────────
 
@@ -99,14 +105,13 @@ export async function findTodayObatReminders(
  */
 export async function findNextUpcoming(
   userId: string,
-): Promise<ReminderSchedule | undefined> {
-  // Get current time in HH:mm
-  const now = new Date();
-  const hours = String(now.getHours()).padStart(2, "0");
-  const mins = String(now.getMinutes()).padStart(2, "0");
-  const currentTime = `${hours}:${mins}`;
+): Promise<NextUpcomingGrouped> {
+  // WIB-correct current time + day names for hariAktif filtering
+  const currentTime = wibHHmm();
+  const todayDay = wibDayNameLower();
+  const tomorrowDay = wibTomorrowDayNameLower();
 
-  // Find the next active reminder at or after current time
+  // Fetch all active reminders for the user (JS-side filtering for hariAktif)
   const rows = await db
     .select()
     .from(reminderSchedule)
@@ -114,20 +119,45 @@ export async function findNextUpcoming(
       and(
         eq(reminderSchedule.userId, userId as any),
         eq(reminderSchedule.aktif, true),
-        lte(reminderSchedule.jamPengingat, sql`'23:59'`),  // all valid times
       ),
     );
 
-  // Sort by jam_pengingat; return first one >= currentTime (or wrap to smallest)
   const active = rows.filter((r) => r.aktif);
-  if (active.length === 0) return undefined;
 
-  const upcoming = active.filter((r) => r.jamPengingat >= currentTime);
-  if (upcoming.length > 0) {
-    return upcoming.sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat))[0];
-  }
-  // Wrap: return the earliest tomorrow
-  return active.sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat))[0];
+  // Helper: find next upcoming in a subset of reminders
+  const findNext = (reminders: ReminderSchedule[]): ReminderSchedule | null => {
+    // Filter: aktif, non-empty hariAktif, scheduled for today
+    const todayReminders = reminders.filter((r) => {
+      const hari = (r.hariAktif as string[]) ?? [];
+      return hari.length > 0 && hari.includes(todayDay);
+    });
+    // Next at or after current WIB time today
+    const upcomingToday = todayReminders
+      .filter((r) => r.jamPengingat >= currentTime)
+      .sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat));
+    if (upcomingToday.length > 0) return upcomingToday[0];
+
+    // Wrap: earliest tomorrow (only if tomorrow's day is in hariAktif)
+    const tomorrowReminders = reminders.filter((r) => {
+      const hari = (r.hariAktif as string[]) ?? [];
+      return hari.length > 0 && hari.includes(tomorrowDay);
+    });
+    const earliestTomorrow = tomorrowReminders
+      .sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat));
+    if (earliestTomorrow.length > 0) return earliestTomorrow[0];
+
+    return null;
+  };
+
+  const obatReminders = active.filter((r) => r.jenis === "obat");
+  const cuciDarahReminders = active.filter(
+    (r) => r.jenis === "capd" || r.jenis === "hd",
+  );
+
+  return {
+    obat: findNext(obatReminders),
+    cuciDarah: findNext(cuciDarahReminders),
+  };
 }
 
 // ─── Mutations ────────────────────────────────────────────────────────

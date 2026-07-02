@@ -19,6 +19,7 @@ import { z } from "zod";
 import { encrypt as realEncrypt, decrypt as realDecrypt } from "../lib/encryption.js";
 import * as fluidLogRepository from "../repositories/fluidLog.repository.js";
 import type { NewFluidLog } from "../repositories/fluidLog.repository.js";
+import { wibDateStr, wibHHmm } from "../utils/wib.js";
 
 // ─── CAPD abnormal effluent conditions (FLUID-03) ────────────────────────────
 
@@ -134,9 +135,9 @@ export async function _createEntryCore(
   // Validate and parse — throws ZodError on invalid input (→ 400 via errorHandler)
   const parsed = createFluidSchema.parse(rawPayload);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const now = new Date();
-  const defaultWaktu = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  // WIB-correct date + time (container runs UTC; 7am WIB = 00:xx UTC)
+  const today = wibDateStr();
+  const defaultWaktu = wibHHmm();
 
   // Encrypt catatan before INSERT (T-02-04-02)
   const encryptedCatatan = parsed.catatan ? encryptFn(parsed.catatan) : null;

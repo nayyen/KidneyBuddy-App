@@ -2,6 +2,7 @@ import { eq, and, gte, lt, lte } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { medicationLog } from "../db/schema/medicationLog.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { wibDayBounds } from "../utils/wib.js";
 
 export type MedicationLog = InferSelectModel<typeof medicationLog>;
 export type NewMedicationLog = InferInsertModel<typeof medicationLog>;
@@ -20,9 +21,9 @@ export async function insert(data: NewMedicationLog): Promise<MedicationLog> {
  * "Today" = from 00:00:00 to 23:59:59 of the current calendar date (server time).
  */
 export async function findTodayByUser(userId: string): Promise<MedicationLog[]> {
-  const today = new Date();
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
-  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+  // WIB-correct day bounds (UTC+7) — a 01:00 WIB entry stored as 18:00 UTC
+  // on the previous UTC day still matches the patient's local "today".
+  const { start, end } = wibDayBounds();
 
   return db
     .select()
@@ -30,8 +31,8 @@ export async function findTodayByUser(userId: string): Promise<MedicationLog[]> 
     .where(
       and(
         eq(medicationLog.userId, userId as any),
-        gte(medicationLog.waktuPengingat, start),
-        lte(medicationLog.waktuPengingat, end),
+        gte(medicationLog.waktuPengingat, start as any),
+        lte(medicationLog.waktuPengingat, end as any),
       ),
     );
 }

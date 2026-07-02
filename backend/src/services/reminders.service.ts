@@ -10,8 +10,9 @@
 import { z } from "zod";
 import { AppError } from "../middleware/errorHandler.js";
 import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
-import type { NewReminderSchedule } from "../repositories/reminderSchedule.repository.js";
+import type { NewReminderSchedule, NextUpcomingGrouped } from "../repositories/reminderSchedule.repository.js";
 import * as medicationLogRepository from "../repositories/medicationLog.repository.js";
+import { wibDateFromHHmm, wibDayNameLower, wibHHmm } from "../utils/wib.js";
 
 // ─── Shared base validation ────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ export type CreateHdPayload = z.infer<typeof createHdSchema>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InsertFn = (data: any) => Promise<any>;
-type FindReminderByIdFn = (id: string) => Promise<{ id: string; userId: string; nama: string; dosis?: string | null; jenisObat?: string | null } | undefined>;
+type FindReminderByIdFn = (id: string) => Promise<{ id: string; userId: string; nama: string; dosis?: string | null; jenisObat?: string | null; jamPengingat?: string | null } | undefined>;
 type FindLogByReminderUserFn = (reminderId: string, userId: string) => Promise<{ id: string; status: string } | undefined>;
 type MarkConfirmedFn = (id: string) => Promise<void>;
 type InsertLogFn = (data: any) => Promise<any>;
@@ -155,8 +156,13 @@ export async function _confirmCore(
     dosis: reminder.dosis ?? null,
     jenisObat: reminder.jenisObat ?? null,
     status: "dikonfirmasi",
-    waktuPengingat: new Date(),
-    waktuKonfirmasi: new Date(),
+      // FIX: store the reminder's scheduled time (not the current wall-clock)
+      // so the displayed time matches the reminder's jamPengingat and doesn't
+      // drift with the system clock. Falls back to WIB now if no schedule.
+      waktuPengingat: reminder.jamPengingat
+        ? wibDateFromHHmm(reminder.jamPengingat)
+        : new Date(),
+      waktuKonfirmasi: new Date(),
   });
 
   return { confirmed: true, logId: newLog.id };
@@ -221,6 +227,17 @@ export async function updateReminder(
     aktif: boolean;
   }>,
 ): Promise<reminderScheduleRepository.ReminderSchedule> {
+  // Enforce hariAktif non-empty if provided (mirrors create schema .min(1))
+  if (
+    data.hariAktif !== undefined &&
+    (!Array.isArray(data.hariAktif) || data.hariAktif.length === 0)
+  ) {
+    throw new AppError(
+      400,
+      "INVALID_HARI_AKTIF",
+      "Pilih minimal satu hari aktif",
+    );
+  }
   const updated = await reminderScheduleRepository.update(reminderId, userId, data);
   if (!updated) {
     throw new AppError(404, "REMINDER_NOT_FOUND", "Pengingat tidak ditemukan");
@@ -240,7 +257,6 @@ export async function removeReminder(
 
 export async function getNextUpcoming(
   userId: string,
-): Promise<reminderScheduleRepository.ReminderSchedule | null> {
-  const next = await reminderScheduleRepository.findNextUpcoming(userId);
-  return next ?? null;
+): Promise<NextUpcomingGrouped> {
+  return reminderScheduleRepository.findNextUpcoming(userId);
 }

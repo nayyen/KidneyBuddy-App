@@ -8,6 +8,7 @@
  */
 import type { Request, Response, NextFunction } from "express";
 import * as fluidService from "../services/fluid.service.js";
+import { wibDateStr } from "../utils/wib.js";
 
 /**
  * POST /api/fluid
@@ -40,7 +41,7 @@ export async function getDailyBalance(
     const date =
       typeof req.query.date === "string"
         ? req.query.date
-        : new Date().toISOString().slice(0, 10);
+          : wibDateStr();
 
     const balance = await fluidService.getDailyBalance(req.user!.id, date);
     res.json(balance);
@@ -90,7 +91,7 @@ export async function list(
     const date =
       typeof req.query.date === "string"
         ? req.query.date
-        : new Date().toISOString().slice(0, 10);
+            : wibDateStr();
 
     const entries = await fluidService.getEntriesByDate(req.user!.id, date);
     res.json({ date, entries });
