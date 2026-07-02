@@ -28,6 +28,26 @@ export async function create(
 }
 
 /**
+ * DELETE /api/fluid/:id
+ * Permanently delete a fluid log entry for the authenticated user.
+ */
+export async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const deleted = await fluidService.deleteEntry(req.user!.id, req.params.id as string);
+    if (!deleted) {
+      res.status(404).json({ code: "NOT_FOUND", message: "Catatan cairan tidak ditemukan" });
+      return;
+    }
+    res.json({ deleted: true });
+  } catch (err) {
+    next(err);
+  }
+}
+/**
  * GET /api/fluid/daily-balance?date=YYYY-MM-DD
  * Returns the server-computed daily fluid balance for the authenticated user.
  * Defaults to today's date if no date query param is provided.

@@ -20,6 +20,7 @@ import { encrypt as realEncrypt, decrypt as realDecrypt } from "../lib/encryptio
 import * as fluidLogRepository from "../repositories/fluidLog.repository.js";
 import type { NewFluidLog } from "../repositories/fluidLog.repository.js";
 import { wibDateStr, wibHHmm } from "../utils/wib.js";
+import { AppError } from "../middleware/errorHandler.js";
 
 // ─── CAPD abnormal effluent conditions (FLUID-03) ────────────────────────────
 
@@ -43,7 +44,7 @@ export const createFluidSchema = z.object({
     errorMap: () => ({ message: "Tipe harus 'masuk' atau 'keluar'" }),
   }),
   sumber: z
-    .enum(["minuman", "makanan", "capd", "lainnya"], {
+     .enum(["urine", "capd", "lainnya"], {
       errorMap: () => ({ message: "Sumber tidak valid" }),
     })
     .optional()
@@ -290,4 +291,17 @@ export async function getEntriesByDate(
       hasAbnormalCondition: computeHasAbnormalCondition(updated.kondisiKeluar),
       createdAt: updated.createdAt,
     };
+  }
+
+  /**
+   * deleteEntry — permanently delete a fluid log entry (IDOR-safe).
+   * Returns true if deleted, false if not found.
+   */
+  export async function deleteEntry(
+    userId: string,
+    id: string,
+  ): Promise<boolean> {
+    // Reuse updateById's IDOR-safe pattern: check ownership via repository
+    const deleted = await fluidLogRepository.deleteById(userId, id);
+    return deleted;
   }

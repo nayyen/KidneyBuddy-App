@@ -24,5 +24,7 @@ router.get("/", authenticate, fluidController.list);
 
 // PATCH /api/fluid/:id — update an existing fluid entry
 router.patch("/:id", authenticate, fluidController.update);
+// DELETE /api/fluid/:id — permanently delete a fluid entry
+router.delete("/:id", authenticate, fluidController.remove);
 
 export default router;

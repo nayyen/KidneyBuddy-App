@@ -11,7 +11,7 @@
 import { z } from "zod";
 
 export const FLUID_TYPE = ["masuk", "keluar"] as const;
-export const FLUID_SUMBER = ["minuman", "makanan", "capd", "lainnya"] as const;
+export const FLUID_SUMBER = ["urine", "capd", "lainnya"] as const;
 export const CAPD_KONSENTRASI = [
   "1.5%",
   "2.5%",
@@ -76,8 +76,7 @@ export const TIPE_LABELS: Record<string, string> = {
 };
 
 export const SUMBER_LABELS: Record<string, string> = {
-  minuman: "Minuman",
-  makanan: "Makanan",
+  urine: "Urine",
   capd: "Exchange CAPD",
   lainnya: "Lainnya",
 };

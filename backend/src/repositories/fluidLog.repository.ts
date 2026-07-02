@@ -89,3 +89,15 @@ export async function updateById(
     .returning();
   return row;
 }
+
+/**
+ * Delete a fluid log entry (IDOR-safe — filters by userId).
+ * Returns true if a row was deleted, false if not found.
+ */
+export async function deleteById(userId: string, id: string): Promise<boolean> {
+  const result = await db
+    .delete(fluidLog)
+    .where(and(eq(fluidLog.userId, userId as any), eq(fluidLog.id, id as any)))
+    .returning({ id: fluidLog.id });
+  return result.length > 0;
+}

@@ -87,9 +87,14 @@ export default function CatatCairanForm({
   const watchedKondisiKeluar = watch("kondisiKeluar");
   const watchedIsLateEntry = watch("isLateEntry");
   const watchedSatuan = watch("satuan");
+    const watchedSumber = watch("sumber");
   const isAbnormalCondition = watchedKondisiKeluar
     ? ABNORMAL_KONDISI.has(watchedKondisiKeluar)
     : false;
+
+    // CAPD konsentrasi + kondisi only required when sumber is CAPD exchange.
+    // For Urine or Lainnya, they become optional.
+    const isSumberCapd = watchedSumber === "capd";
 
   const onSubmit: SubmitHandler<CreateFluidFormData> = async (data) => {
     try {
@@ -208,14 +213,14 @@ export default function CatatCairanForm({
       </div>
 
       {/* ── CAPD-specific fields — only when isCAPD AND keluar ── */}
-      {isCAPD && watchedTipe === "keluar" && (
+        {isCAPD && (
         <>
           <div>
             <label
               htmlFor="konsentrasiCapd"
               className="block text-sm font-medium font-sans text-foreground mb-1"
             >
-              Konsentrasi CAPD
+                Konsentrasi CAPD{!isSumberCapd ? " (opsional)" : ""}
             </label>
             <select
               {...register("konsentrasiCapd")}
@@ -238,12 +243,13 @@ export default function CatatCairanForm({
             )}
           </div>
 
+            {watchedTipe === "keluar" && (
           <div>
             <label
               htmlFor="kondisiKeluar"
               className="block text-sm font-medium font-sans text-foreground mb-1"
             >
-              Kondisi Cairan Keluar
+                Kondisi Cairan Keluar{!isSumberCapd ? " (opsional)" : ""}
             </label>
             <select
               {...register("kondisiKeluar")}
@@ -294,6 +300,7 @@ export default function CatatCairanForm({
               </div>
             )}
           </div>
+            )}
         </>
       )}
 
@@ -349,9 +356,9 @@ export default function CatatCairanForm({
           </p>
         )}
         <p className="mt-0.5 text-xs text-muted-foreground font-sans">
-          {watchedSatuan === "kg"
-            ? "1 kg cairan ≈ 1000 ml"
-            : "Masukkan dalam mililiter (ml)"}
+            {watchedSatuan === "kg"
+              ? "1 kg cairan ≈ 1000 ml. Gunakan koma untuk desimal, contoh: 1,5"
+              : "Masukkan dalam mililiter (ml). Gunakan koma untuk desimal, contoh: 250,5"}
         </p>
       </div>
 
