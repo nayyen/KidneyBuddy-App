@@ -7,12 +7,13 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { toast } from "sonner";
 import FluidLogList from "@/components/catatan/FluidLogList";
 import MedicationLogList from "@/components/catatan/MedicationLogList";
+import DialysisLogList from "@/components/catatan/DialysisLogList";
 import ActivityList from "@/components/aktivitas/ActivityList";
 import LabResultList from "@/components/lab/LabResultList";
 import LabTrendChart from "@/components/lab/LabTrendChart";
 import LabArchivedList from "@/components/lab/LabArchivedList";
 
-type TabId = "cairan" | "obat" | "aktivitas" | "lab";
+type TabId = "cairan" | "obat" | "cucidarah" | "aktivitas" | "lab";
 
 interface Tab {
   id: TabId;
@@ -23,6 +24,7 @@ interface Tab {
 const TABS: Tab[] = [
   { id: "cairan", label: "Cairan", enabled: true },
   { id: "obat", label: "Obat", enabled: true },
+  { id: "cucidarah", label: "Cuci Darah", enabled: true },
   { id: "aktivitas", label: "Aktivitas", enabled: true },
   { id: "lab", label: "Lab", enabled: true },
 ];
@@ -160,6 +162,10 @@ export default function CatatanPage() {
         {activeTab === "obat" && accessToken && (
           <MedicationLogList accessToken={accessToken} />
         )}
+
+          {activeTab === "cucidarah" && accessToken && (
+            <DialysisLogList accessToken={accessToken} />
+          )}
 
         {activeTab === "aktivitas" && accessToken && (
           <ActivityList

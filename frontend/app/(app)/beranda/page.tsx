@@ -9,6 +9,7 @@ import CAPDEffluentBanner from "@/components/beranda/CAPDEffluentBanner";
 import NoReminderBanner from "@/components/beranda/NoReminderBanner";
 import AiPlaceholderCard from "@/components/beranda/AiPlaceholderCard";
 import ObatCard from "@/components/beranda/ObatCard";
+import CuciDarahCard from "@/components/beranda/CuciDarahCard";
 import PengingatBerikutnyaCard from "@/components/beranda/PengingatBerikutnyaCard";
 import KegiatanModuleInline from "@/components/aktivitas/KegiatanModuleInline";
 
@@ -160,6 +161,11 @@ export default function DashboardPage() {
         <div className="md:col-span-2">
           <ObatCard accessToken={accessToken} />
         </div>
+
+          {/* CuciDarahCard — spans 2 cols on lg (below ObatCard) */}
+          <div className="md:col-span-2">
+            <CuciDarahCard accessToken={accessToken} />
+          </div>
 
         {/* AiPlaceholderCard — 1 col on lg (right of ObatCard) */}
         <div className="md:col-span-2 lg:col-span-1">
