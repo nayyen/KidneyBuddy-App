@@ -71,6 +71,27 @@ export async function findActiveObatByUser(userId: string): Promise<ReminderSche
 }
 
 /**
+ * Get all active Cuci Darah (capd + hd) reminders for a user.
+ */
+export async function findActiveCuciDarahByUser(
+  userId: string,
+): Promise<ReminderSchedule[]> {
+  return db
+    .select()
+    .from(reminderSchedule)
+    .where(
+      and(
+        eq(reminderSchedule.userId, userId as any),
+        eq(reminderSchedule.aktif, true),
+        or(
+          eq(reminderSchedule.jenis, "capd"),
+          eq(reminderSchedule.jenis, "hd"),
+        ),
+      ),
+    );
+}
+
+/**
  * Find today's active 'obat' reminders that do NOT yet have a medication_log entry
  * for today. This ensures the ObatCard shows scheduled reminders, not just dispatched ones.
  */

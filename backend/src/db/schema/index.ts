@@ -8,5 +8,6 @@ export { therapyHistory } from "./therapyHistory.schema.js";
 export { pushSubscriptions } from "./pushSubscriptions.schema.js";
 export { fluidLog } from "./fluidLog.schema.js";
 export { medicationLog } from "./medicationLog.schema.js";
+export { dialysisLog } from "./dialysisLog.schema.js";
 export { dailyActivities } from "./dailyActivity.schema.js";
 export { labResults } from "./labResult.schema.js";

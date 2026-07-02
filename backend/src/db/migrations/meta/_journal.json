@@ -57,6 +57,20 @@
       "when": 1782619999523,
       "tag": "0007_lethal_tigra",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1782620000000,
+      "tag": "0008_phase4_reminder_updated_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1782962400000,
+      "tag": "0009_dialysis_log",
+      "breakpoints": true
     }
   ]
 }
