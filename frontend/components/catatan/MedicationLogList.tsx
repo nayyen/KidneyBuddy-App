@@ -52,6 +52,17 @@ export default function MedicationLogList({
     fetchLogs();
   }, [fetchLogs, refreshKey]);
 
+    // Refresh when obat confirmed from another page or reminders updated
+    useEffect(() => {
+      const refresh = () => fetchLogs();
+      window.addEventListener("obat:confirmed", refresh);
+      window.addEventListener("reminder:updated", refresh);
+      return () => {
+        window.removeEventListener("obat:confirmed", refresh);
+        window.removeEventListener("reminder:updated", refresh);
+      };
+    }, [fetchLogs]);
+
   const handleConfirm = async (reminderId: string) => {
     try {
       await authFetch("/api/medication-log/confirm", accessToken, {
@@ -66,6 +77,9 @@ export default function MedicationLogList({
             : log,
         ),
       );
+        // Cross-page sync + refetch for permanent state
+        window.dispatchEvent(new CustomEvent("obat:confirmed"));
+        await fetchLogs();
     } catch {
       // Silently fail — user can retry
     }
@@ -149,7 +163,16 @@ export default function MedicationLogList({
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-3">
+      {/* Header label — tells user these are today's reminders */}
+      <div className="flex items-center gap-2">
+        <Pill size={16} style={{ color: "#2a9d8f" }} />
+        <p className="font-heading font-bold" style={{ fontSize: 15, color: "#1a2e2c" }}>
+          Obat Hari Ini
+        </p>
+      </div>
+
+      <div className="space-y-2">
       {logs.map((log) => (
         <MedicationLogItem key={log.id} log={log} onConfirm={handleConfirm} />
       ))}
@@ -159,6 +182,7 @@ export default function MedicationLogList({
       >
         {logs.length} entri obat
       </p>
+      </div>
     </div>
   );
 }

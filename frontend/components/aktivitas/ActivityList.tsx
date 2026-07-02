@@ -49,7 +49,7 @@ function formatWIB(isoStr: string): string {
 
 function formatDateWIB(isoStr: string): string {
   const d = new Date(isoStr);
-  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Jakarta" });
+  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
 }
 
 function getDateKey(isoStr: string): string {

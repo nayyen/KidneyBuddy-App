@@ -296,13 +296,17 @@ export async function createUploadEntry(
     originalName: string;
     mimeType: string;
     fileSize: number;
+    namaFile?: string;
   },
 ): Promise<UploadResult> {
+  // Use user-provided name as the display label; fall back to original filename
+  const displayNama = fileInfo.namaFile?.trim() || fileInfo.originalName || "Dokumen Lab";
   const payload: NewLabResult = {
     userId: userId as any,
     tanggalPemeriksaan,
-    namaParameter: "Dokumen Lab",
+    namaParameter: displayNama,
     nilai: "(file)",
+    kategori: "Dokumen Lab",
     sumber: "upload",
     fileId: fileInfo.fileId as any,
     diarsipkan: false,

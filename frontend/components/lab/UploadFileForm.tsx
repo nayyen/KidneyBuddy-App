@@ -35,6 +35,7 @@ export default function UploadFileForm({
 }: UploadFileFormProps) {
   const [filePreview, setFilePreview] = useState<FilePreview | null>(null);
   const [tanggal, setTanggal] = useState(new Date().toISOString().slice(0, 10));
+  const [namaFile, setNamaFile] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,6 +80,9 @@ export default function UploadFileForm({
       const formData = new FormData();
       formData.append("file", filePreview.file);
       formData.append("tanggalPemeriksaan", tanggal);
+      if (namaFile.trim()) {
+        formData.append("namaFile", namaFile.trim());
+      }
 
       const res = await fetch(`${API_BASE}/api/lab/upload`, {
         method: "POST",
@@ -136,6 +140,27 @@ export default function UploadFileForm({
           className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
+
+        {/* Nama Dokumen — shown in lab list instead of "(file)" */}
+        <div>
+          <label
+            htmlFor="upload-nama"
+            className="block text-sm font-medium font-sans text-foreground mb-1"
+          >
+            Nama Dokumen <span className="text-destructive">*</span>
+          </label>
+          <input
+            type="text"
+            id="upload-nama"
+            value={namaFile}
+            onChange={(e) => setNamaFile(e.target.value)}
+            placeholder="contoh: Hasil Lab Kreatinin 02 Jul 2026"
+            className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <p className="text-xs font-sans text-muted-foreground mt-1">
+            Nama ini akan tampil di daftar lab sebagai judul dokumen
+          </p>
+        </div>
 
       {/* File drop zone */}
       {!filePreview ? (
