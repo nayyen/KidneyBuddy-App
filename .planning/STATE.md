@@ -39,6 +39,7 @@ Progress: [████░░░░░░] 33%
 | Date | Slug | Files | Summary |
 |------|------|-------|---------|
 | 2026-07-02 | human-fluid-chart-silhouette | `frontend/components/beranda/HumanFluidChart.tsx` | Perfect-circle head via `<circle>`; continuous body path with arms merged into torso; no armpit gap. Verified on `/beranda`. |
+| 2026-07-02 | phase-4.1-ux-polish-data-consistency | 25+ files across backend + frontend | WIB time fixes (med dedup, fluid 00:xx bug, findNextUpcoming grouped+hariAktif); Cuci Darah feature (dialysis_log schema, CuciDarahCard, /catatan tab); obat detail overlay+terlambat; cairan Urine source+decimal koma+CAPD konsentrasi masuk+detail overlay+delete; lab nama field; aktivitas year+estimasi status; /pengingat pilih semua hari+WIB label+separators+bigger buttons. 8 commits. |
 
 ## Performance Metrics
 
