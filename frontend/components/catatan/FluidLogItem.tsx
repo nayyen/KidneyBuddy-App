@@ -15,6 +15,7 @@ import { toast } from "sonner";
 
 interface FluidEntry {
   id: string;
+  tanggal: string;
   waktu: string;
   tipe: "masuk" | "keluar";
   sumber: string | null;

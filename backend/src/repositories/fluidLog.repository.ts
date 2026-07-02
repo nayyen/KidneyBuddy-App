@@ -8,9 +8,11 @@
  * Pattern: follows user.repository.ts (InferInsertModel, single-row insert returning).
  */
 import { and, eq } from "drizzle-orm";
+import { gte, lte, asc } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { fluidLog } from "../db/schema/fluidLog.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { wibDayBounds, wibDateStr } from "../utils/wib.js";
 
 export type FluidLog = InferSelectModel<typeof fluidLog>;
 export type NewFluidLog = InferInsertModel<typeof fluidLog>;
@@ -32,6 +34,32 @@ export async function findByDate(userId: string, date: string): Promise<FluidLog
     .from(fluidLog)
     .where(and(eq(fluidLog.userId, userId as any), eq(fluidLog.tanggal, date)))
     .orderBy(fluidLog.waktu);
+}
+
+/**
+ * Fetch fluid entries for the last N days (WIB-correct date range).
+ * Returns entries with their tanggal field for grouping on the frontend.
+ */
+export async function findRecentByUser(
+  userId: string,
+  days: number = 7,
+): Promise<FluidLog[]> {
+  const today = wibDateStr();
+  const [y, m, d] = today.split("-").map(Number);
+  const startDate = new Date(Date.UTC(y, m - 1, d) - 7 * 3600 * 1000 - (days - 1) * 24 * 3600 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  return db
+    .select()
+    .from(fluidLog)
+    .where(
+      and(
+        eq(fluidLog.userId, userId as any),
+        gte(fluidLog.tanggal, startDate as any),
+        lte(fluidLog.tanggal, today as any),
+      ),
+    )
+    .orderBy(asc(fluidLog.tanggal), asc(fluidLog.waktu));
 }
 
 const ABNORMAL_CONDITIONS_REPO = new Set(["keruh", "keruh_gumpalan", "berdarah"]);

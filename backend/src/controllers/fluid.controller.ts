@@ -121,6 +121,28 @@ export async function list(
 }
 
 /**
+ * GET /api/fluid/recent?days=N
+ * Returns fluid log entries from the last N days (default 7), including
+ * the tanggal field so the frontend can group by date sections.
+ */
+export async function listRecent(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const days =
+      typeof req.query.days === "string"
+        ? Math.min(parseInt(req.query.days, 10) || 7, 30)
+        : 7;
+    const entries = await fluidService.getRecentEntries(req.user!.id, days);
+    res.json({ entries });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * PUT /api/fluid/:id
  * Update an existing fluid log entry for the authenticated user.
  */

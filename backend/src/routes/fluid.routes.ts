@@ -22,6 +22,9 @@ router.post("/acknowledge-abnormal", authenticate, fluidController.acknowledgeAb
 // GET /api/fluid?date=YYYY-MM-DD — list entries for a date
 router.get("/", authenticate, fluidController.list);
 
+// GET /api/fluid/recent?days=N — list entries from last N days (for date-grouped catatan view)
+router.get("/recent", authenticate, fluidController.listRecent);
+
 // PATCH /api/fluid/:id — update an existing fluid entry
 router.patch("/:id", authenticate, fluidController.update);
 // DELETE /api/fluid/:id — permanently delete a fluid entry

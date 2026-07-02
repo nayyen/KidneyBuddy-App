@@ -257,6 +257,31 @@ export async function getEntriesByDate(
   }));
 }
 
+/**
+ * Get fluid entries from the last N days, including the tanggal field
+ * so the frontend can group by date (Hari Ini / Kemarin / Tanggal).
+ */
+export async function getRecentEntries(
+  userId: string,
+  days: number = 7,
+) {
+  const rows = await fluidLogRepository.findRecentByUser(userId, days);
+  return rows.map((row) => ({
+    id: row.id,
+    tanggal: row.tanggal,
+    waktu: row.waktu,
+    tipe: row.tipe,
+    sumber: row.sumber,
+    konsentrasiCapd: row.konsentrasiCapd,
+    volume: Number(row.volume),
+    satuan: row.satuan,
+    kondisiKeluar: row.kondisiKeluar,
+    catatan: row.catatan ? realDecrypt(row.catatan) : null,
+    isLateEntry: row.isLateEntry,
+    hasAbnormalCondition: computeHasAbnormalCondition(row.kondisiKeluar),
+    createdAt: row.createdAt,
+  }));
+}
   /**
    * Update an existing fluid log entry.
    * Only allows updating volume, sumber, konsentrasiCapd, kondisiKeluar, and catatan.

@@ -3,9 +3,10 @@
 /**
  * FluidLogList.tsx — List of fluid log entries for a given date
  *
- * Fetches GET /api/fluid?date=YYYY-MM-DD and renders:
- * - Empty state if no entries
- * - Date header + list of FluidLogItem rows
+ * Fetches GET /api/fluid/recent?days=7 and renders entries grouped by:
+ * - "Hari Ini" (today)
+ * - "Kemarin" (yesterday)
+ * - Date label with year (e.g. "Senin, 30 Juni 2026")
  *
  * Refreshes when `refreshKey` increments (after a new entry is saved).
  */
@@ -17,6 +18,7 @@ import { Droplets } from "lucide-react";
 
 interface FluidEntry {
   id: string;
+  tanggal: string;
   waktu: string;
   tipe: "masuk" | "keluar";
   sumber: string | null;
@@ -44,6 +46,16 @@ function todayDateString(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function wibTodayStr(): string {
+  return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+function wibYesterdayStr(): string {
+  return new Date(Date.now() + 7 * 3600 * 1000 - 24 * 3600 * 1000)
+    .toISOString()
+    .slice(0, 10);
+}
+
 function formatDateLabel(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00"); // Avoid timezone edge cases
   return d.toLocaleDateString("id-ID", {
@@ -52,6 +64,12 @@ function formatDateLabel(dateStr: string): string {
     month: "long",
     year: "numeric",
   });
+}
+
+function getGroupLabel(tanggal: string): string {
+  if (tanggal === wibTodayStr()) return "Hari Ini";
+  if (tanggal === wibYesterdayStr()) return "Kemarin";
+  return formatDateLabel(tanggal);
 }
 
 export default function FluidLogList({
@@ -70,19 +88,18 @@ export default function FluidLogList({
     setIsLoading(true);
     setError(null);
     try {
-      // Backend returns { date, entries: FluidEntry[] }
-      const data = await authFetch<{ date: string; entries: FluidEntry[] } | FluidEntry[]>(
-        `/api/fluid?date=${targetDate}`,
+      // Fetch recent entries (last 7 days) for date-grouped view
+      const data = await authFetch<{ entries: FluidEntry[] }>(
+        `/api/fluid/recent?days=7`,
         accessToken,
       );
-      const entries = Array.isArray(data) ? data : (data as { date: string; entries: FluidEntry[] }).entries ?? [];
-      setEntries(entries);
+      setEntries(data.entries ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat catatan");
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, targetDate]);
+  }, [accessToken]);
 
   useEffect(() => {
     fetchEntries();
@@ -177,21 +194,39 @@ export default function FluidLogList({
   }
 
   return (
-    <div className="space-y-1">
-      {/* Date header */}
-      <p
-        className="font-sans mb-2"
-        style={{ fontSize: 13, color: "#3d6b66", textTransform: "capitalize" }}
-      >
-        {formatDateLabel(targetDate)}
-      </p>
-
-      {/* Entry list */}
-      {entries.map((entry) => (
-        <FluidLogItem key={entry.id} entry={entry} accessToken={accessToken} metodeTerapi={metodeTerapi} onEdited={fetchEntries} />
-      ))}
-
-      {/* Entry count footer */}
+    <div className="space-y-4">
+      {(() => {
+        // Group entries by tanggal
+        const groups: Record<string, FluidEntry[]> = {};
+        for (const entry of entries) {
+          const key = entry.tanggal;
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(entry);
+        }
+        // Sort dates descending (newest first)
+        const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+        return sortedDates.map((dateKey) => (
+          <div key={dateKey}>
+            {/* Date section label — same style as ActivityList */}
+            <p
+              className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1"
+            >
+              {getGroupLabel(dateKey)}
+            </p>
+            <div className="space-y-2">
+              {groups[dateKey].map((entry) => (
+                <FluidLogItem
+                  key={entry.id}
+                  entry={entry}
+                  accessToken={accessToken}
+                  metodeTerapi={metodeTerapi}
+                  onEdited={fetchEntries}
+                />
+              ))}
+            </div>
+          </div>
+        ));
+      })()}
       <p
         className="font-sans text-right mt-1"
         style={{ fontSize: 13, color: "#3d6b66" }}
