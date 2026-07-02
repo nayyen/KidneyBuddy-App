@@ -8,6 +8,7 @@ date: "2026-07-02"
 ## Completed
 - Replaced the head path with a perfect `<circle>` inside the SVG clipPath and outline group.
 - Redesigned `BODY_PATH` as one continuous outline where the shoulders/arms widen smoothly from the neck and merge into the torso without gaps.
+- Fine-tuned the legs into straight, uniform columns (width 18 each) with semi-circular rounded feet at the same y=246 bottom, eliminating any tapering.
 - Preserved fluid level math, wave clipPath animation, color states (amber/teal/red), and overlay text.
 - Built and redeployed the frontend container; verified the new silhouette renders correctly on `/beranda`.
 

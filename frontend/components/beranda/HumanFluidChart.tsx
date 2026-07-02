@@ -46,8 +46,9 @@ interface HumanFluidChartProps {
 // ── Body silhouette path (viewBox 0 0 120 260) ──────────────────────────
 // A friendly, minimalist, non-anatomical full-body icon.
 // Perfectly round head (separate <circle> in clipPath) + one continuous
-// body outline where thick arms merge seamlessly into the torso. No armpit
-// gap, no negative space between arms and body. Symmetrical around x=60.
+// body outline where thick arms merge seamlessly into the torso. Legs are
+// straight, uniform columns with rounded semi-circular feet. No armpit gap,
+// no leg tapering. Symmetrical around x=60.
 //
 // Geometry (right half, mirrored on left):
 //   Head:      <circle cx=60 cy=23 r=15/> — perfect circle, y=8–38
@@ -56,8 +57,10 @@ interface HumanFluidChartProps {
 //   Arm:       y=58–124, thick stroke merged into torso
 //   Hand:      y=124–138, rounded cap
 //   Torso:     y=58–142, continuous with arms
-//   Hip/leg:   y=142–246, straight leg with rounded foot
-//   Crotch:    small center gap x=54–66
+//   Hip:       y=120–142, smooth curve into leg
+//   Leg:       y=142–237, straight uniform column (width 18 each)
+//   Foot:      y=237–246, semi-circle radius 9
+//   Crotch:    small center gap x=56–64
 const BODY_PATH = `
 M 45 40
 C 35 42 28 48 24 58
@@ -66,19 +69,15 @@ C 24 134 34 140 40 138
 L 40 76
 C 40 68 41 62 42 58
 L 42 120
-C 42 128 40 136 36 142
-L 36 200
-C 36 210 40 218 46 222
-L 46 246
-L 54 246
-L 54 210
-C 54 202 56 196 60 196
-C 64 196 66 202 66 210
-L 66 246
-L 74 246
-L 74 222
-C 80 218 84 210 84 200
-L 84 142
+C 42 128 40 136 38 142
+L 38 237
+A 9 9 0 0 1 56 237
+L 56 142
+C 56 138 57 134 60 134
+C 63 134 64 138 64 142
+L 64 237
+A 9 9 0 0 1 82 237
+L 82 142
 C 80 136 78 128 78 120
 L 78 58
 C 79 62 80 68 80 76
