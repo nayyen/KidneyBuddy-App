@@ -158,7 +158,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 1** *(blocked on Wave 0)*
 
-- [ ] 05-02-PLAN.md — Deterministic anomaly rule engine (pure TS, 4 rules D-01..D-04) + anomalyAlert repository + missed-schedule count helpers (ANOMALY-01)
+- [x] 05-02-PLAN.md — Deterministic anomaly rule engine (pure TS, 4 rules D-01..D-04) + anomalyAlert repository + missed-schedule count helpers (ANOMALY-01)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -203,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
-| 5. AI Insights & Anomaly Detection | 1/7 | In Progress|  |
+| 5. AI Insights & Anomaly Detection | 2/7 | In Progress|  |
 | 6. Community & Education | 0/TBD | Not started | - |

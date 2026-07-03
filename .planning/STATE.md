@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-07-03T21:54:38.831Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-07-03T22:12:35.649Z"
 last_activity: 2026-07-03 -- Phase 05 execution started
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 29
-  completed_plans: 19
+  completed_plans: 20
   percent: 33
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 05 (ai-insights-anomaly-detection) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Phase: 03 (activity-logging-lab-results) — COMPLETE ✓
 Phase: 04 (caregiver-dashboard-doctor-reports) — COMPLETE ✓
 Phase: 05 (ai-copilot-anomaly-detection) — NEXT
@@ -64,6 +64,7 @@ Progress: [████░░░░░░] 33%
 *Updated after each plan completion*
 | Phase 02-fluid-medication-tracking-with-reminders P04 | 3h | 5 tasks | 21 files |
 | Phase 05 P01 | 35 | 4 tasks | 18 files |
+| Phase 05 P02 | 25min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 4]: Report `catatan` (doctor note) is NEVER persisted to DB — it lives only in component state and URL-encoded search params (D-06), keeping the report endpoint stateless and avoiding PII storage concerns
 - [Phase 4]: Print CSS targets `[data-print-hidden="true"]` attribute on shell components rather than fragile class-name selectors, ensuring the print layout reliably hides navigation chrome regardless of responsive state
 - [Phase 4]: `/laporan/preview` wraps `useSearchParams()` in `<Suspense>` boundary — required by Next.js 16 for static generation with CSR bailout, discovered during build verification
+- [Phase 05]: Rule function names match the already-committed 05-01 RED test scaffold exactly (checkCapdEffluentAnomaly), not the plan/RESEARCH docs' checkCAPDEffluentAbnormal — the test file is the binding contract.
+- [Phase 05]: checkFluidOutputDecline and checkFluidIntakeDeviation use a baseline-pool-vs-recent-window array split (6-element and 7-element inputs) rather than RESEARCH.md's illustrative 3-element example, to match the actual RED scaffold's test fixtures; 30% used as the intake-deviation threshold (Claude's Discretion per CONTEXT.md).
 
 ### Pending Todos
 
@@ -110,8 +113,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-03T21:54:38.622Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-07-03T22:12:35.352Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
 
 ## Phase 4 Summary
