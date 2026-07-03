@@ -7,8 +7,12 @@
  * req.user!.id is set by the authenticate middleware (never null in authenticated routes).
  */
 import type { Request, Response, NextFunction } from "express";
+import pino from "pino";
 import * as fluidService from "../services/fluid.service.js";
 import { wibDateStr } from "../utils/wib.js";
+import { runAnomalyChecksForUser } from "../services/anomalyOrchestrator.service.js";
+
+const logger = pino({ name: "fluid.controller" });
 
 /**
  * POST /api/fluid
@@ -22,6 +26,11 @@ export async function create(
   try {
     const result = await fluidService.createEntry(req.user!.id, req.body);
     res.status(201).json(result);
+    // Fire-and-forget: never block the response on rule evaluation (ANOMALY-01
+    // "every new tracking entry"). Errors are logged, never surfaced to the client.
+    runAnomalyChecksForUser(req.user!.id).catch((err) =>
+      logger.error({ userId: req.user!.id, err }, "per-entry anomaly check failed"),
+    );
   } catch (err) {
     next(err);
   }

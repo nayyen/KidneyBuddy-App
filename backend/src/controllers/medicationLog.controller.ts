@@ -3,7 +3,11 @@
  * Business logic lives in medicationLog.service.ts.
  */
 import type { Request, Response, NextFunction } from "express";
+import pino from "pino";
 import * as medicationLogService from "../services/medicationLog.service.js";
+import { runAnomalyChecksForUser } from "../services/anomalyOrchestrator.service.js";
+
+const logger = pino({ name: "medicationLog.controller" });
 
 /**
  * confirm — POST /api/medication-log/confirm
@@ -20,6 +24,10 @@ export async function confirm(
     const { reminderId } = req.body;
     const result = await medicationLogService.confirm(req.user!.id, reminderId);
     res.json(result);
+    // Fire-and-forget anomaly check (ANOMALY-01 "every new tracking entry").
+    runAnomalyChecksForUser(req.user!.id).catch((err) =>
+      logger.error({ userId: req.user!.id, err }, "per-entry anomaly check failed"),
+    );
   } catch (err) {
     next(err);
   }
@@ -38,6 +46,10 @@ export async function confirmById(
     const { logId } = req.params;
     const result = await medicationLogService.confirmById(req.user!.id, logId);
     res.json(result);
+    // Fire-and-forget anomaly check (ANOMALY-01 "every new tracking entry").
+    runAnomalyChecksForUser(req.user!.id).catch((err) =>
+      logger.error({ userId: req.user!.id, err }, "per-entry anomaly check failed"),
+    );
   } catch (err) {
     next(err);
   }

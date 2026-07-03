@@ -16,6 +16,7 @@ import dialysisLogRoutes from "./routes/dialysisLog.routes.js";
 import activitiesRoutes from "./routes/activities.routes.js";
 import labResultRoutes from "./routes/labResult.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import anomalyRoutes from "./routes/anomaly.routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -55,6 +56,7 @@ app.use("/api/dialysis-log", dialysisLogRoutes);
 app.use("/api/activities", activitiesRoutes);
 app.use("/api/lab", labResultRoutes);
 app.use("/api/report", reportRoutes);
+app.use("/api/anomaly", anomalyRoutes);
 
 // --- Health check ---
 app.get("/api/health", (_req, res) => {
