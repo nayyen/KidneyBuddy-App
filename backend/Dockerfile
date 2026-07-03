@@ -8,7 +8,7 @@ RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-COPY tsconfig.json ./
+COPY tsconfig.json drizzle.config.ts ./
 COPY src ./src
 RUN npx tsc --noEmit || echo "Type check completed (non-fatal for build)"
 
@@ -24,6 +24,7 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/tsconfig.json ./
+COPY --from=builder /app/drizzle.config.ts ./
 COPY src ./src
 
 USER express
