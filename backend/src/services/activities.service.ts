@@ -19,8 +19,9 @@ import { encrypt as realEncrypt, decrypt as realDecrypt } from "../lib/encryptio
 import * as dailyActivityRepository from "../repositories/dailyActivity.repository.js";
 import type { NewDailyActivity } from "../repositories/dailyActivity.repository.js";
 import {
-  wibDateString,
-  wibDateFromHHmm,
+  wibDateStr,
+  wibHHmm,
+  wibDayName,
 } from "../utils/wib.js";
 
 // ─── WIB offset (UTC+7) ──────────────────────────────────────────────────────
@@ -171,7 +172,7 @@ export async function _createActivityCore(
   const waktuMulaiUTC = new Date(); // Start time is now.
 
   // Use the correct WIB date string for today.
-  const todayWIB = wibDateString(new Date());
+  const todayWIB = wibDateStr(new Date());
   
   // If the user provides a past date, use that. Otherwise, use today.
   const targetDate = parsed.tanggal || todayWIB;
