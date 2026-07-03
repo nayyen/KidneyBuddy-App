@@ -154,7 +154,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 0** *(BLOCKING foundation)*
 
-- [ ] 05-01-PLAN.md — Foundation: install+gate groq-sdk, groqClient/aiDisclaimer/forbiddenPhrases libs, 5 schemas (anomaly_alerts + 4 AI cache tables) + migration, RED test scaffolds
+- [x] 05-01-PLAN.md — Foundation: install+gate groq-sdk, groqClient/aiDisclaimer/forbiddenPhrases libs, 5 schemas (anomaly_alerts + 4 AI cache tables) + migration, RED test scaffolds
 
 **Wave 1** *(blocked on Wave 0)*
 
@@ -203,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
-| 5. AI Insights & Anomaly Detection | 0/7 | Planned | - |
+| 5. AI Insights & Anomaly Detection | 1/7 | In Progress|  |
 | 6. Community & Education | 0/TBD | Not started | - |
