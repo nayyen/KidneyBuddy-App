@@ -26,8 +26,7 @@ export default function MulaiKegiatanForm({
   onClose,
 }: MulaiKegiatanFormProps) {
   const [namaKegiatan, setNamaKegiatan] = useState("");
-  const [estimasiSelesai, setEstimasiSelesai] = useState("");
-    const [tanggal, setTanggal] = useState(new Date().toISOString().slice(0, 10));
+  const [estimasiMenit, setEstimasiMenit] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,9 +36,9 @@ export default function MulaiKegiatanForm({
       toast("Nama kegiatan tidak boleh kosong", { duration: 2000 });
       return;
     }
-
-    if (!estimasiSelesai) {
-      toast("Pilih estimasi waktu selesai", { duration: 2000 });
+    const menit = parseInt(estimasiMenit, 10);
+    if (isNaN(menit) || menit <= 0) {
+      toast("Estimasi durasi harus angka lebih dari 0", { duration: 2000 });
       return;
     }
 
@@ -49,8 +48,7 @@ export default function MulaiKegiatanForm({
         method: "POST",
         body: JSON.stringify({
           namaKegiatan: namaKegiatan.trim(),
-          estimasiSelesai,
-          tanggal, // YYYY-MM-DD
+          estimasiMenit: menit,
         }),
       });
 
@@ -97,36 +95,21 @@ export default function MulaiKegiatanForm({
         />
       </div>
 
-      {/* Tanggal */}
-      <div className="space-y-1.5">
-        <label htmlFor="tanggalKegiatan" className="font-sans font-medium" style={{ fontSize: 13, color: "#1a2e2c" }}>
-          Tanggal
-        </label>
-        <input
-          id="tanggalKegiatan"
-          type="date"
-          value={tanggal}
-          onChange={(e) => setTanggal(e.target.value)}
-          className="w-full font-sans rounded-xl border px-4 py-3 outline-none transition-colors"
-          style={{ fontSize: 14, borderColor: "#d0e8e4", backgroundColor: "#fafdfc", color: "#1a2e2c" }}
-          disabled={isSubmitting}
-        />
-      </div>
-
-      {/* Estimasi selesai */}
+      {/* Estimasi Durasi */}
       <div className="space-y-1.5">
         <label
-          htmlFor="estimasiSelesai"
+          htmlFor="estimasiMenit"
           className="font-sans font-medium"
           style={{ fontSize: 13, color: "#1a2e2c" }}
         >
-          Estimasi Selesai
+          Estimasi Durasi (menit)
         </label>
         <input
-          id="estimasiSelesai"
-          type="time"
-          value={estimasiSelesai}
-          onChange={(e) => setEstimasiSelesai(e.target.value)}
+          id="estimasiMenit"
+          type="number"
+          placeholder="Contoh: 30"
+          value={estimasiMenit}
+          onChange={(e) => setEstimasiMenit(e.target.value)}
           disabled={isSubmitting}
           className="w-full font-sans rounded-xl border px-4 py-3 outline-none transition-colors"
           style={{
@@ -137,7 +120,7 @@ export default function MulaiKegiatanForm({
           }}
         />
         <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66" }}>
-          Dalam zona waktu WIB (Jakarta)
+          Masukkan perkiraan waktu dalam satuan menit.
         </p>
       </div>
 

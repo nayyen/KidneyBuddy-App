@@ -44,9 +44,12 @@ export default function HDReminderForm({
     reset,
   } = useForm<CreateHdFormData>({
     resolver: zodResolver(createHdFormSchema) as any,
-    defaultValues: initialData
+    defaultValues: isEditMode
       ? {
-        ...initialData,
+        jenis: 'hd',
+        nama: initialData.nama,
+        jamPengingat: initialData.jamPengingat,
+        hariAktif: initialData.hariAktif,
         catatanWaktu: initialData.catatanWaktu ?? "",
       }
       : {

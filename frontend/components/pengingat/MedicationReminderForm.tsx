@@ -50,11 +50,16 @@ export default function MedicationReminderForm({
     reset,
   } = useForm<CreateObatFormData>({
     resolver: zodResolver(createObatFormSchema) as any,
-    defaultValues: initialData
+    defaultValues: isEditMode
       ? {
-          ...initialData,
+          jenis: 'obat',
+          nama: initialData.nama,
           dosis: initialData.dosis ?? "",
+          jenisObat: initialData.jenisObat as "minum" | "suntik" ?? "minum",
+          hariAktif: initialData.hariAktif,
+          jamPengingat: initialData.jamPengingat,
           catatanWaktu: initialData.catatanWaktu ?? "",
+          fotoObat: null, // Can't pre-fill file input, but `fotoObat` string exists on initialData
         }
       : {
           jenis: "obat",
@@ -313,7 +318,6 @@ export default function MedicationReminderForm({
         />
         {errors.hariAktif && (
           <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
-            {/* @ts-expect-error message exists */}
             {errors.hariAktif.message}
           </p>
         )}

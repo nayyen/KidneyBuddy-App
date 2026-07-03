@@ -197,7 +197,7 @@ export default function KegiatanModuleInline({
       >
         <div className="flex-1">
           <p className="font-sans text-xs" style={{ color: "#ffffff" }}>
-            {pastEstimasi ? "Kegiatan Aktif — Melebihi Estimasi" : "Sedang berlangsung:"}
+            {isPastEstimasi(activeActivity.estimasiSelesai) ? "Kegiatan Aktif — Melebihi Estimasi" : "Sedang berlangsung:"}
           </p>
           <p className="font-sans font-bold text-sm" style={{ color: "#ffffff", marginTop: 2 }}>
             {activeActivity.namaKegiatan}

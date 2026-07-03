@@ -10,13 +10,18 @@
  *   terlewat → red #d4183d
  */
 
-import { Check, Pill } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
+import { Check, X } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 export interface MedicationLog {
   id: string;
   reminderId: string;
   namaObat: string;
+  dosis: string | null;
+  jenisObat: string | null;
   status: "dikonfirmasi" | "tertunda" | "terlewat";
   waktuPengingat: string; // ISO timestamp
   waktuKonfirmasi: string | null;
@@ -148,7 +153,7 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
                     <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider">Foto Obat</p>
                     <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden">
                       <Image
-                        src={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}${log.fotoObat}`}
+                        src={`${API_BASE}${log.fotoObat}`}
                         alt={`Foto obat untuk ${log.namaObat}`}
                         layout="fill"
                         objectFit="cover"
@@ -171,25 +176,11 @@ const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) 
       <p className="text-sm font-medium text-[#1a2e2c] whitespace-pre-wrap">{value}</p>
     </div>
   ) : null;
-}
 
 function formatTime(iso: string): string {
   try {
     const d = new Date(iso);
     return d.toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
-}
-function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return "-";
-  try {
-    return new Date(iso).toLocaleString("id-ID", {
-      day: "numeric",
-      month: "short",
       hour: "2-digit",
       minute: "2-digit",
     });

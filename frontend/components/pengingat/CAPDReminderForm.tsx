@@ -46,10 +46,13 @@ export default function CAPDReminderForm({
     reset,
   } = useForm<CreateCapdFormData>({
     resolver: zodResolver(createCapdFormSchema) as any,
-    defaultValues: initialData
+    defaultValues: isEditMode
       ? {
-          ...initialData,
+          jenis: 'capd',
+          nama: initialData.nama,
           konsentrasiCapd: initialData.konsentrasiCapd ?? "",
+          jamPengingat: initialData.jamPengingat,
+          hariAktif: initialData.hariAktif,
           catatanWaktu: initialData.catatanWaktu ?? "",
         }
       : {

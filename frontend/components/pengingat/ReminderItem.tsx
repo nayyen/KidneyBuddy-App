@@ -211,9 +211,11 @@ export default function ReminderItem({
 
       {showDeleteConfirm && (
         <DeleteReminderConfirm
+          open={showDeleteConfirm}
+          onOpenChange={setShowDeleteConfirm}
+          reminderName={reminder.nama}
           isDeleting={isDeleting}
           onConfirm={handleDelete}
-          onCancel={() => setShowDeleteConfirm(false)}
         />
       )}
 

@@ -116,7 +116,7 @@ export default function DashboardPage() {
       {/* Banners (full width) */}
       {showCAPDBanner && (
         <div className="md:col-span-3">
-          <CAPDEffluentBanner />
+          <CAPDEffluentBanner accessToken={accessToken} />
         </div>
       )}
       {onboardingProgress && !onboardingProgress.reminderConfigured && (

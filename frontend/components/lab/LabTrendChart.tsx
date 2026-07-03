@@ -227,10 +227,15 @@ export default function LabTrendChart({
                   }
                   return label;
                 }}
-                formatter={(value: number) => [
-                  `${value}${satuan ? ` ${satuan}` : ""}`,
-                  selectedParam,
-                ]}
+                formatter={(value, name, props) => {
+                  if (typeof value === 'number') {
+                    return [
+                      `${value}${satuan ? ` ${satuan}` : ""}`,
+                      selectedParam,
+                    ];
+                  }
+                  return [String(value), name];
+                }}
               />
               <Line
                 type="monotone"
