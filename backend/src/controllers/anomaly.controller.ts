@@ -18,10 +18,24 @@ import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import * as anomalyAlertRepo from "../repositories/anomalyAlert.repository.js";
 import type { AnomalyAlert } from "../repositories/anomalyAlert.repository.js";
+import { decrypt } from "../lib/encryption.js";
 
 const feedbackBodySchema = z.object({
   feedback: z.enum(["relevan", "tidak_relevan"]),
 });
+
+/**
+ * `deskripsi` is stored as AES-256-GCM ciphertext (encrypted in
+ * anomalyOrchestrator.service.ts before INSERT — see anomalyAlert.schema.ts).
+ * Every response that reaches the frontend must decrypt it first, matching
+ * the same encrypt-before-INSERT/decrypt-after-SELECT pattern already used
+ * by fluid.service.ts/labResult.service.ts — otherwise the emergency modal
+ * and alert history would render raw ciphertext instead of the Bahasa
+ * Indonesia explanation (Rule 1/2/3 fix — this endpoint had no decrypt step).
+ */
+function withDecryptedDeskripsi(alert: AnomalyAlert): AnomalyAlert {
+  return { ...alert, deskripsi: decrypt(alert.deskripsi) };
+}
 
 export type AnomalyRepoDeps<T> = {
   getAlertById: (userId: string, alertId: string) => Promise<T | undefined>;
@@ -97,7 +111,7 @@ function repoFor(userId: string): AnomalyRepoDeps<AnomalyAlert> {
 export async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const alerts = await anomalyAlertRepo.findAllByUser(req.user!.id);
-    res.json({ alerts });
+    res.json({ alerts: alerts.map(withDecryptedDeskripsi) });
   } catch (err) {
     next(err);
   }
@@ -115,7 +129,7 @@ export async function activeHighSeverity(
 ): Promise<void> {
   try {
     const alerts = await anomalyAlertRepo.findActiveHighSeverity(req.user!.id);
-    res.json({ alerts });
+    res.json({ alerts: alerts.map(withDecryptedDeskripsi) });
   } catch (err) {
     next(err);
   }
@@ -135,7 +149,7 @@ export async function feedback(req: Request, res: Response, next: NextFunction):
       parsed.feedback,
       repoFor(userId),
     );
-    res.json(result);
+    res.json(withDecryptedDeskripsi(result));
   } catch (err) {
     if (err instanceof AnomalyAlertNotFoundError) {
       res.status(404).json({ code: "NOT_FOUND", message: "Alert tidak ditemukan" });
@@ -157,7 +171,7 @@ export async function acknowledge(
   try {
     const userId = req.user!.id;
     const result = await _acknowledgeAlertCore(userId, req.params.id as string, repoFor(userId));
-    res.json(result);
+    res.json(withDecryptedDeskripsi(result));
   } catch (err) {
     if (err instanceof AnomalyAlertNotFoundError) {
       res.status(404).json({ code: "NOT_FOUND", message: "Alert tidak ditemukan" });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
 import MobileHeader from "./MobileHeader";
@@ -10,7 +11,11 @@ import CatatCairanSheet from "@/components/cairan/CatatCairanSheet";
 import MulaiKegiatanSheet from "@/components/aktivitas/MulaiKegiatanSheet";
 import FeelingsRatingSheet from "@/components/aktivitas/FeelingsRatingSheet";
 import CatatLabSheet from "@/components/lab/CatatLabSheet";
+import EmergencyAnomalyModal, {
+  type AnomalyAlertRow,
+} from "@/components/anomaly/EmergencyAnomalyModal";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { authFetch } from "@/lib/api";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -23,7 +28,38 @@ export default function AppShell({ children }: AppShellProps) {
   const [completingActivityId, setCompletingActivityId] = useState<string | null>(null);
   const [completingActivityName, setCompletingActivityName] = useState<string | null>(null);
   const [catatLabOpen, setCatatLabOpen] = useState(false);
+  const [activeEmergencyAlert, setActiveEmergencyAlert] =
+    useState<AnomalyAlertRow | null>(null);
   const { accessToken, user } = useAuth();
+  const router = useRouter();
+
+  const handleNotificationClick = useCallback(() => {
+    router.push("/notifikasi");
+  }, [router]);
+
+  // Re-check for an active tinggi-severity alert on every AppShell mount
+  // (new session) — server is the sole source of truth for whether the
+  // emergency modal must (re)appear (D-07). Never gated behind a specific
+  // route: this runs regardless of which page loaded underneath.
+  useEffect(() => {
+    if (!accessToken) return;
+    let cancelled = false;
+    authFetch<{ alerts: AnomalyAlertRow[] }>(
+      "/api/anomaly/active-high-severity",
+      accessToken,
+    )
+      .then((res) => {
+        if (cancelled) return;
+        setActiveEmergencyAlert(res.alerts?.[0] ?? null);
+      })
+      .catch(() => {
+        // Fail silently — a transient network error must not itself block
+        // the user from using the app; the check simply retries next mount.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken]);
 
   const handleCatatCairan = useCallback(() => {
     setCatatCairanOpen(true);
@@ -85,10 +121,10 @@ export default function AppShell({ children }: AppShellProps) {
       {/* Main column — takes full width on mobile/tablet, shifts right on desktop */}
       <div className="flex flex-col min-h-screen w-full lg:ml-64">
         {/* Mobile header — visible below lg: */}
-        <MobileHeader />
+        <MobileHeader onNotificationClick={handleNotificationClick} />
 
         {/* Desktop top bar — visible at lg: and above */}
-        <TopBar />
+        <TopBar onNotificationClick={handleNotificationClick} />
 
         {/* Content area */}
         <main
@@ -151,6 +187,15 @@ export default function AppShell({ children }: AppShellProps) {
         onOpenChange={setCatatLabOpen}
         accessToken={accessToken}
         onSaved={handleLabSaved}
+      />
+
+      {/* EmergencyAnomalyModal — mounted globally so it persists across
+          navigation and blocks any route while a tinggi-severity alert is
+          still aktif (D-05/D-07/D-08) */}
+      <EmergencyAnomalyModal
+        alert={activeEmergencyAlert}
+        accessToken={accessToken}
+        onAcknowledged={() => setActiveEmergencyAlert(null)}
       />
     </div>
   );

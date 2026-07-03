@@ -1,7 +1,12 @@
 "use client";
 
+interface MobileHeaderProps {
+  // Wired in AppShell (Task 1); the Bell button consuming this is added in
+  // a later pass (parity with TopBar's notification bell).
+  onNotificationClick?: () => void;
+}
 
-export default function MobileHeader() {
+export default function MobileHeader({ onNotificationClick: _onNotificationClick }: MobileHeaderProps = {}) {
   return (
     <header
       data-print-hidden="true"
