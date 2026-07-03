@@ -1,10 +1,11 @@
 ---
 phase: 5
 slug: ai-insights-anomaly-detection
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "new-york style, neutral base, CSS variables — globals.css tokens (confirmed from components.json)"
 created: 2026-07-03
+reviewed_at: 2026-07-03
 ---
 
 # Phase 5 — UI Design Contract
