@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Bell } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useUnreadAnomalyCount } from "@/lib/hooks/useUnreadAnomalyCount";
 
 interface TopBarProps {
   onNotificationClick?: () => void;
@@ -11,7 +12,8 @@ interface TopBarProps {
 
 export default function TopBar({ onNotificationClick }: TopBarProps) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
+  const unreadCount = useUnreadAnomalyCount(accessToken);
 
   // Derive page title from NAV_ITEMS based on current pathname
   const currentNav = NAV_ITEMS.find(
@@ -57,10 +59,24 @@ export default function TopBar({ onNotificationClick }: TopBarProps) {
         <button
           onClick={onNotificationClick}
           aria-label="Notifikasi"
-          className="flex items-center justify-center cursor-pointer rounded-full hover:bg-secondary transition-colors"
+          className="relative flex items-center justify-center cursor-pointer rounded-full hover:bg-secondary transition-colors"
           style={{ width: 32, height: 32 }}
         >
           <Bell size={18} color="#1a2e2c" strokeWidth={1.5} />
+          {unreadCount > 0 && (
+            <span
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: "#ef9f27",
+                transform: "translate(25%, -25%)",
+              }}
+            />
+          )}
         </button>
 
         {/* User avatar with initials fallback */}
