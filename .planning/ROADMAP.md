@@ -150,7 +150,32 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Every new tracking entry and the daily 21:00 batch run rule-based anomaly checks (fluid-output decline, abnormal CAPD condition, missed schedules, fluid intake deviation), and a fired high-severity anomaly triggers a non-dismissable emergency notification
   5. User sees an anomaly alert card with a plain-language explanation and concrete next step, and can mark a read alert as "relevan" or "tidak relevan"
 
-**Plans**: TBD
+**Plans**: 7 plans (vertical-MVP slices, backend-then-frontend per Phase 3/4 convention)
+
+**Wave 0** *(BLOCKING foundation)*
+
+- [ ] 05-01-PLAN.md — Foundation: install+gate groq-sdk, groqClient/aiDisclaimer/forbiddenPhrases libs, 5 schemas (anomaly_alerts + 4 AI cache tables) + migration, RED test scaffolds
+
+**Wave 1** *(blocked on Wave 0)*
+
+- [ ] 05-02-PLAN.md — Deterministic anomaly rule engine (pure TS, 4 rules D-01..D-04) + anomalyAlert repository + missed-schedule count helpers (ANOMALY-01)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 05-03-PLAN.md — Anomaly explanation (Groq + D-20 fallback) + orchestrator + 21:00 batch + per-entry triggers + emergency push + /api/anomaly (ANOMALY-01..04)
+
+**Wave 3** *(05-04 and 05-05 run in parallel — no file overlap)*
+
+- [ ] 05-04-PLAN.md — Anomaly frontend: emergency modal (D-05/07/08), Beranda alert cards, /notifikasi history + feedback, bell wiring (ANOMALY-02/03/04)
+- [ ] 05-05-PLAN.md — AI daily summary + weekly insight backend: services, jobs (20:00 / Sun 19:00 WIB), /api/ai (AI-01, AI-02, AI-05)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 05-06-PLAN.md — AI lab analysis (non-blocking on lab save, D-14) + lifestyle suggestion (>=3-day gate) backend (AI-03, AI-04, AI-05)
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 05-07-PLAN.md — AI content frontend (daily summary/weekly insight/lab analysis/lifestyle cards) + report Anomali section wired to real data (AI-01..04, D-15)
 
 ### Phase 6: Community & Education
 
@@ -178,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
-| 5. AI Insights & Anomaly Detection | 0/TBD | Not started | - |
+| 5. AI Insights & Anomaly Detection | 0/7 | Planned | - |
 | 6. Community & Education | 0/TBD | Not started | - |
