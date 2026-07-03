@@ -9,10 +9,14 @@
  * call in this module (or any caller) may log the key or raw request bodies.
  *
  * Unlike webPushClient.ts (soft-warn — push is optional), this module HARD
- * FAILS at startup if GROQ_API_KEY is missing, mirroring encryption.ts's
- * loadKey() pattern — every AI feature in this phase is unusable without it,
- * so a silent misconfiguration would surface as confusing runtime errors deep
- * inside batch jobs/controllers instead of at boot.
+ * FAILS if GROQ_API_KEY is missing — but lazily, on first actual use, not at
+ * import time. The backend process imports this module transitively via
+ * app.ts's route registration, so throwing at module load would crash the
+ * entire server on boot — including patient-safety features that have
+ * nothing to do with AI — over a missing third-party key. The hard fail
+ * still happens the first time any call site invokes
+ * `groq.chat.completions.create(...)`, surfacing clearly in that job/
+ * controller's own error path instead of silently at boot.
  *
  * Usage: import { groq, GROQ_MODEL } from "../lib/groqClient.js";
  *        await groq.chat.completions.create({ model: GROQ_MODEL, messages: [...] });
@@ -30,10 +34,25 @@ function loadApiKey(): string {
   return key;
 }
 
-export const groq = new Groq({
-  apiKey: loadApiKey(),
-  timeout: 20_000, // 20s — narration calls should not hang a batch loop indefinitely
-  maxRetries: 2,
+let client: Groq | null = null;
+
+function getClient(): Groq {
+  if (!client) {
+    client = new Groq({
+      apiKey: loadApiKey(),
+      timeout: 20_000, // 20s — narration calls should not hang a batch loop indefinitely
+      maxRetries: 2,
+    });
+  }
+  return client;
+}
+
+// Proxy defers construction (and the loadApiKey() hard-fail) until the first
+// property access, e.g. `groq.chat` — so importing this module never throws.
+export const groq: Groq = new Proxy({} as Groq, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getClient() as object, prop, receiver);
+  },
 });
 
 export const GROQ_MODEL = "llama-3.3-70b-versatile" as const;
