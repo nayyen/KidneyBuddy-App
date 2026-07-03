@@ -11,3 +11,8 @@ export { medicationLog } from "./medicationLog.schema.js";
 export { dialysisLog } from "./dialysisLog.schema.js";
 export { dailyActivities } from "./dailyActivity.schema.js";
 export { labResults } from "./labResult.schema.js";
+export { anomalyAlerts } from "./anomalyAlert.schema.js";
+export { aiDailySummaries } from "./aiDailySummary.schema.js";
+export { aiWeeklyInsights } from "./aiWeeklyInsight.schema.js";
+export { aiLabAnalyses } from "./aiLabAnalysis.schema.js";
+export { aiLifestyleSuggestions } from "./aiLifestyleSuggestion.schema.js";
