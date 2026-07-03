@@ -1,4 +1,4 @@
-import { eq, and, lte, sql, isNull, or, lt, gte } from "drizzle-orm";
+import { eq, and, lte, sql, isNull, or, lt, gte, isNotNull } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { reminderSchedule } from "../db/schema/reminderSchedule.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";

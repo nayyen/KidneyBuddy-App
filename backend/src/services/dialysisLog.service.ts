@@ -85,15 +85,9 @@ export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
     return hariAktif.length > 0 && hariAktif.includes(todayDayLower);
   });
 
-  const logsByReminderId = new Map<string, DialysisLog>();
-  for (const log of logs) {
-    logsByReminderId.set(log.reminderId, log);
-  }
-
-  const scheduledAsLogs: DialysisLog[] = [];
+  const scheduledMap = new Map<string, DialysisLog>();
   for (const r of scheduled) {
-    if (logsByReminderId.has(r.id)) continue;
-    scheduledAsLogs.push({
+    scheduledMap.set(r.id, {
       id: `scheduled-${r.id}`,
       userId: r.userId,
       reminderId: r.id,
@@ -107,7 +101,15 @@ export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
     } as DialysisLog);
   }
 
-  const merged = [...logs, ...scheduledAsLogs];
+  for (const log of logs) {
+    if (log.reminderId && scheduledMap.has(log.reminderId)) {
+      scheduledMap.set(log.reminderId, log);
+    } else if (!log.reminderId) {
+      scheduledMap.set(log.id, log);
+    }
+  }
+
+  const merged = Array.from(scheduledMap.values());
   merged.sort((a, b) => a.waktuPengingat.getTime() - b.waktuPengingat.getTime());
   return merged;
 }

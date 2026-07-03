@@ -71,13 +71,13 @@ export const createActivitySchema = z.object({
     })
     .min(1, "Nama kegiatan tidak boleh kosong")
     .max(100, "Nama kegiatan maksimal 100 karakter"),
-  estimasiSelesai: z
-    .string({
-      required_error: "Estimasi waktu selesai wajib diisi",
+  estimasiMenit: z.coerce
+    .number({
+      required_error: "Estimasi durasi wajib diisi",
+      invalid_type_error: "Estimasi durasi harus berupa angka",
     })
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-      message: "Format estimasi waktu harus HH:mm (contoh: 14:30)",
-    }),
+    .int()
+    .positive("Estimasi durasi harus lebih dari 0"),
   tanggal: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD")
@@ -163,38 +163,22 @@ export async function _createActivityCore(
   userId: string,
   rawPayload: unknown,
   insertFn: InsertFn,
-  encryptFn: EncryptFn,
-  decryptFn: DecryptFn,
+  waktuMulai?: Date, // for testing
 ): Promise<ActivityResult> {
-  // Validate and parse — throws ZodError on invalid input (→ 400 via errorHandler)
+  const now = waktuMulai ?? new Date();
   const parsed = createActivitySchema.parse(rawPayload);
 
-  const waktuMulaiUTC = new Date(); // Start time is now.
+  const estimasiSelesai = new Date(now.getTime() + parsed.estimasiMenit * 60 * 1000);
 
-  // Use the correct WIB date string for today.
-  const todayWIB = wibDateStr(new Date());
-  
-  // If the user provides a past date, use that. Otherwise, use today.
-  const targetDate = parsed.tanggal || todayWIB;
-
-  const estimasiSelesaiUTC = new Date(`${targetDate}T${parsed.estimasiSelesai}:00+07:00`);
-
-  // Reject if estimasiSelesai is in the past, but only if it's for today.
-  if (!parsed.tanggal && waktuMulaiUTC.getTime() > estimasiSelesaiUTC.getTime()) {
-    throw new Error("Estimasi waktu tidak boleh di masa lalu");
-  }
-
-  const insertData: NewDailyActivity = {
+  const newActivity = await insertFn({
     userId: userId as any,
     namaKegiatan: parsed.namaKegiatan,
-    waktuMulai: waktuMulaiUTC,
-    estimasiSelesai: estimasiSelesaiUTC,
+    waktuMulai: now,
+    estimasiSelesai: estimasiSelesai,
     status: "berlangsung",
-    reminderSent: false,
-  };
+  });
 
-  const row = await insertFn(insertData);
-  return formatActivity(row, decryptFn);
+  return formatActivity(newActivity, realDecrypt);
 }
 
 /**

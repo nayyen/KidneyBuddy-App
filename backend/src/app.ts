@@ -16,8 +16,16 @@ import dialysisLogRoutes from "./routes/dialysisLog.routes.js";
 import activitiesRoutes from "./routes/activities.routes.js";
 import labResultRoutes from "./routes/labResult.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 export const app = express();
+
+// --- Static file serving for uploads ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Serve files from the 'uploads' directory, which is one level up from 'src'
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // --- Middleware ---
 app.use(

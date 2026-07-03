@@ -219,7 +219,7 @@ export async function createReminder(
 export async function getNextUpcoming(userId: string): Promise<NextUpcomingGrouped> {
   return _getNextUpcomingCore(
     userId,
-    () => reminderScheduleRepository.findNextUpcomingGrouped(userId)
+    () => reminderScheduleRepository.findNextUpcoming(userId)
   );
 }
 

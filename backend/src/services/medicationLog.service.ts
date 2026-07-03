@@ -73,25 +73,10 @@ export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
     return hariAktif.length > 0 && hariAktif.includes(todayDayLower);
   });
 
-  // 4. Build a map of existing logs by reminderId for dedup.
-  //    CRITICAL FIX: previously scheduled entries always appeared as "tertunda"
-  //    even after confirmation, because there was no dedup — the confirmed log
-  //    was masked by a re-generated scheduled entry on every reload.
-  const logsByReminderId = new Map<string, MedicationLog>();
-  for (const log of logs) {
-    logsByReminderId.set(log.reminderId, log);
-  }
-
-  // 5. For each scheduled reminder: if a log already exists, use the log's
-  //    persisted status (dikonfirmasi/tertunda/terlewat). Only create a
-  //    "scheduled" pseudo-entry if no log row exists yet.
-  const scheduledAsLogs: MedicationLog[] = [];
+  // 4. Create pseudo-entries for all scheduled reminders for today.
+  const scheduledMap = new Map<string, MedicationLog>();
   for (const r of scheduled) {
-    if (logsByReminderId.has(r.id)) {
-      // A log row already exists for this reminder today — use its real status.
-      continue;
-    }
-    scheduledAsLogs.push({
+    scheduledMap.set(r.id, {
       id: `scheduled-${r.id}`,
       userId: r.userId,
       reminderId: r.id,
@@ -99,16 +84,28 @@ export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
       dosis: r.dosis,
       jenisObat: r.jenisObat,
       status: "tertunda" as const,
-      // FIX: use the reminder's scheduled HH:mm, not the current wall-clock,
-      // so the displayed time doesn't drift with the laptop/system clock.
       waktuPengingat: wibDateFromHHmm(r.jamPengingat),
-        waktuKonfirmasi: null,
-        createdAt: new Date(),
-      } as MedicationLog);
+      waktuKonfirmasi: null,
+      createdAt: new Date(),
+    } as MedicationLog);
   }
 
-  // 6. Merge and sort by waktuPengingat ascending (earliest first).
-  const merged = [...logs, ...scheduledAsLogs];
+  // 5. Iterate over the real logs from the DB. If a real log exists for a
+  //    scheduled reminder, overwrite the pseudo-entry in the map with the
+  //    real log data. This ensures the persisted status (e.g., 'dikonfirmasi') is used.
+  for (const log of logs) {
+    if (log.reminderId && scheduledMap.has(log.reminderId)) {
+      scheduledMap.set(log.reminderId, log);
+    } else if (!log.reminderId) {
+      // This is an ad-hoc log entry not tied to a schedule, add it to the list.
+      // Use its real ID as the key.
+      scheduledMap.set(log.id, log);
+    }
+  }
+
+
+  // 6. The final merged list is the values from the map, sorted by time.
+  const merged = Array.from(scheduledMap.values());
   merged.sort(
     (a, b) => a.waktuPengingat.getTime() - b.waktuPengingat.getTime(),
   );
