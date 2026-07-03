@@ -48,6 +48,8 @@ Inherited from Phases 2-4 — the project's established scale (not a pure 8-poin
 | xs | 4px | Icon-to-label gap in AI badge chip, gap between feedback buttons |
 | sm | 8px | Gap between alert card icon and text, gap between "Relevan"/"Tidak Relevan" buttons |
 | ds-10 | 10px | Icon container border-radius (Alert AI/Info + Alert Darurat pattern), input-style radii — **inherited pre-existing codebase convention, not a new Phase 5 token** (see Source Traceability for shipped precedent) |
+| ds-11/13 | 11px / 13px (padding, vertical/horizontal) | `AnomalyAlertCard` container padding — **not a new Phase 5 value; copied verbatim from DESIGN_SYSTEM_KidneyBuddy_v3.md's canonical "Alert Darurat" spec** (lines 207-215: `padding: 11px 13px`), reused here because `AnomalyAlertCard` is the same alert-card component family (Alert AI/Info variant of the same spec) — see Source Traceability |
+| ds-1.5 | 6px (`mt-1.5`) | `AnomalyAlertCard` timestamp `margin-top` — half-step on the Tailwind 4px base scale (1.5 × 4px), not an arbitrary value. Live precedent: `HumanFluidChart.tsx:358`, `DialysisLogItem.tsx:114`, `MedicationLogItem.tsx:118` all use `mt-1.5` for secondary/caption text below a primary line — see Source Traceability |
 | ds-12 | 12px | Alert card / AI content card inner padding, alert history list item padding |
 | md | 16px | AI content card padding (daily summary, weekly insight, lab analysis, lifestyle), emergency modal content padding |
 | lg | 20px | Emergency modal internal vertical rhythm (title → body → button) |
@@ -381,7 +383,8 @@ Variant Lock table):
   background: linear-gradient(135deg, #f0faf9, #e0f5f2)
   border: 0.5px solid #cfe8e4
   border-radius: 16px
-  padding: 11px 13px
+  padding: 11px 13px  /* ds-11/13 — verbatim DESIGN_SYSTEM "Alert Darurat" spec, see
+    Spacing Scale + Source Traceability, NOT a new/invented Phase 5 value */
   display: flex, gap: 12px, align-items: flex-start
 
   Icon container: 30×30px, bg rgba(255,255,255,.7), radius 9px,
@@ -399,6 +402,9 @@ Variant Lock table):
     (full text visible on /notifikasi)
 
   Timestamp: "X jam lalu" / relative time — 10px DMS 500 #7a8c8a, margin-top: 6px
+    /* ds-1.5 (mt-1.5) — Tailwind half-step on the 4px scale, matches existing
+      HumanFluidChart.tsx / DialysisLogItem.tsx / MedicationLogItem.tsx caption spacing,
+      see Spacing Scale + Source Traceability */
 
   Tapping the card (not a specific button): marks status 'aktif' → 'dibaca' AND navigates
   to /notifikasi (opens the full history, scrolled to this alert) — feedback buttons
@@ -677,4 +683,6 @@ Phase 5 uses the same AppShell / BottomNav / Sidebar / breakpoints as Phases 2-4
 | Emergency modal overlay tinted red (not default black/50) | Claude's Discretion — reinforces urgency; overrides shadcn `AlertDialogOverlay` default className |
 | Emergency modal title uses weight 700 (no 800 exception) | Claude's Discretion, reversed after investigation: weight 800 is not used in any shipped component — it only exists as an unused loaded font-weight value in `frontend/app/layout.tsx`'s font config array, not an active pattern. Urgency is conveyed via color (#d4183d), size (18px), and centering instead, keeping the two-weight contract with zero exceptions |
 | `ds-10` (10px) spacing token — inherited pre-existing codebase convention, not a new Phase 5 token | Confirmed live usage predating this phase: `frontend/components/beranda/AiPlaceholderCard.tsx:31` (icon container radius), `frontend/components/aktivitas/KegiatanModuleInline.tsx:122,152` (icon containers), `frontend/components/aktivitas/ActivityList.tsx:225` (badge radius), `frontend/components/catatan/FluidLogItem.tsx:125`, and every form input across `frontend/components/cairan/CatatCairanForm.tsx` + `frontend/components/cairan/FluidEditSheet.tsx` (`rounded-[10px]`, used a dozen+ times for text inputs/selects/textareas/buttons). Kept as-is rather than changed to 8px/12px so Phase 5's new icon containers and cards stay visually consistent with every existing icon container, badge, and form input already shipped in Phases 1-4 |
+| `AnomalyAlertCard` padding: `11px 13px` (`ds-11/13`) — not a new/invented Phase 5 value | Copied verbatim from the project's own canonical emergency-alert spec: `DESIGN_SYSTEM_KidneyBuddy_v3.md` lines 207-215, "Alert Darurat" — `padding: 11px 13px` is the design system's own number for this exact alert-card component family (`AnomalyAlertCard` renders the Alert AI/Info variant of the same shared spec, per the Alert Variant Lock table above). This is inherited, not authored by Phase 5. |
+| `AnomalyAlertCard` timestamp `margin-top: 6px` (`ds-1.5` / Tailwind `mt-1.5`) — half-step on the 4px base scale, not arbitrary | `6px = 1.5 × 4px`, Tailwind's own `mt-1.5` utility. Live precedent for this exact "caption spacing below a primary line" pattern predating Phase 5: `frontend/components/beranda/HumanFluidChart.tsx:358`, `frontend/components/catatan/DialysisLogItem.tsx:114`, `frontend/components/catatan/MedicationLogItem.tsx:118` — all three use `mt-1.5` for secondary/caption text under a primary line, exactly the timestamp's role here. |
 | Typography/spacing/color base tokens | Fully inherited from Phases 2-4 — not re-derived |
