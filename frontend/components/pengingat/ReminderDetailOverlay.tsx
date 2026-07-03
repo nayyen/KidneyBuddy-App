@@ -20,7 +20,7 @@ const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) 
 export default function ReminderDetailOverlay({ reminder, onClose }: Props) {
   return (
     <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center"
       onClick={onClose}
     >
       <div
@@ -48,17 +48,19 @@ export default function ReminderDetailOverlay({ reminder, onClose }: Props) {
               <DetailRow label="Dosis" value={reminder.dosis} />
               <DetailRow label="Jenis Obat" value={reminder.jenisObat} />
               {reminder.fotoObat && (
-                 <div className="py-2">
-                    <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider">Foto Obat</p>
-                    <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden">
-                      <Image
-                        src={`/uploads/${reminder.fotoObat}`}
-                        alt={`Foto obat untuk ${reminder.nama}`}
-                        layout="fill"
-                        objectFit="cover"
-                      />
-                    </div>
-                 </div>
+                <div className="py-2">
+                  <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider">
+                    Foto Obat
+                  </p>
+                  <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}${reminder.fotoObat}`}
+                      alt={`Foto obat untuk ${reminder.nama}`}
+                      layout="fill"
+                      objectFit="cover"
+                    />
+                  </div>
+                </div>
               )}
             </>
           )}

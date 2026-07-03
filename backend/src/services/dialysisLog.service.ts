@@ -53,6 +53,22 @@ export async function confirm(
   return { confirmed: true, logId: newLog.id };
 }
 
+export async function confirmById(
+  userId: string,
+  logId: string,
+): Promise<{ confirmed: boolean; logId: string }> {
+  await dialysisLogRepository.markConfirmedById(logId, userId);
+  return { confirmed: true, logId: logId };
+}
+
+export async function unconfirmById(
+  userId: string,
+  logId: string,
+): Promise<{ confirmed: boolean; logId: string }> {
+  await dialysisLogRepository.markUnconfirmedById(logId, userId);
+  return { confirmed: false, logId: logId };
+}
+
 /**
  * getTodayLogs — list all of today's dialysis log entries (all statuses).
  * Merges scheduled cuci darah reminders with existing logs, dedup by reminderId.

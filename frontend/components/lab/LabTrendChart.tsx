@@ -60,7 +60,9 @@ export default function LabTrendChart({
         "/api/lab/parameters",
         accessToken,
       );
-      const params = data.parameters ?? [];
+      const params = (data.parameters ?? []).filter(p => 
+        p && p.toLowerCase() !== 'dokumen lab' && !p.toLowerCase().includes('.pdf') && !p.toLowerCase().includes('.jpg') && !p.toLowerCase().includes('.png')
+      );
       setParameters(params);
       // Auto-select first parameter if none selected
       if (params.length > 0 && !selectedParam) {

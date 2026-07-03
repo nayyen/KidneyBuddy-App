@@ -57,23 +57,37 @@ export default function DialysisLogList({
     };
   }, [fetchLogs]);
 
-  const handleConfirm = async (reminderId: string) => {
+  const handleConfirm = async (logId: string) => {
+    const originalLogs = logs;
+    setLogs((prev) =>
+      prev.map((log) => (log.id === logId ? { ...log, status: "dikonfirmasi" } : log))
+    );
     try {
-      await authFetch("/api/dialysis-log/confirm", accessToken, {
+      await authFetch(`/api/dialysis-log/${logId}/confirm`, accessToken, {
         method: "POST",
-        body: JSON.stringify({ reminderId }),
       });
-      setLogs((prev) =>
-        prev.map((log) =>
-          log.reminderId === reminderId
-            ? { ...log, status: "dikonfirmasi" as const }
-            : log,
-        ),
-      );
       window.dispatchEvent(new CustomEvent("cucidarah:confirmed"));
-      await fetchLogs();
     } catch {
-      // Silently fail — user can retry
+      setLogs(originalLogs);
+    } finally {
+      await fetchLogs();
+    }
+  };
+
+  const handleUnconfirm = async (logId: string) => {
+    const originalLogs = logs;
+    setLogs((prev) =>
+      prev.map((log) => (log.id === logId ? { ...log, status: "tertunda" } : log))
+    );
+    try {
+      await authFetch(`/api/dialysis-log/${logId}/unconfirm`, accessToken, {
+        method: "POST",
+      });
+      window.dispatchEvent(new CustomEvent("cucidarah:confirmed"));
+    } catch {
+      setLogs(originalLogs);
+    } finally {
+      await fetchLogs();
     }
   };
 
@@ -148,7 +162,12 @@ export default function DialysisLogList({
       ) : (
         <div className="space-y-2">
           {logs.map((log) => (
-            <DialysisLogItem key={log.id} log={log} onConfirm={handleConfirm} />
+            <DialysisLogItem
+              key={log.id}
+              log={log}
+              onConfirm={handleConfirm}
+              onUnconfirm={handleUnconfirm}
+            />
           ))}
         </div>
       )}

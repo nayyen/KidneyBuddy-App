@@ -187,9 +187,9 @@ export default function ReminderItem({
                             width: 28,
                             height: 22,
                             lineHeight: "22px",
-                            fontSize: 10,
+                            fontSize: 11,
                             backgroundColor: reminder.hariAktif.includes(day) ? bg : "#f3f3f5",
-                            color: reminder.hariAktif.includes(day) ? text : "#cfe8e4",
+                            color: reminder.hariAktif.includes(day) ? text : "#a8b8b6",
                         }}
                     >
                         {HARI_SHORT[day]}
@@ -199,7 +199,7 @@ export default function ReminderItem({
             <div
                 className="rounded px-2 py-0.5 font-sans font-medium"
                 style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     backgroundColor: bg,
                     color: text,
                 }}

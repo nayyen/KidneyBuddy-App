@@ -1,17 +1,20 @@
 import { Router } from "express";
+import {
+  confirm,
+  today,
+  confirmById,
+  unconfirmById,
+} from "../controllers/medicationLog.controller.js";
 import { authenticate } from "../middleware/authenticate.js";
-import * as medicationLogController from "../controllers/medicationLog.controller.js";
 
 const router = Router();
 
-// All medication-log routes require authentication
-router.use(authenticate);
+// Legacy endpoint, keep for now
+router.post("/confirm", authenticate, confirm);
 
-// POST /confirm — Confirm a dose (REMIND-03)
-// Body: { reminderId: string }
-router.post("/confirm", medicationLogController.confirm);
+router.post("/:logId/confirm", authenticate, confirmById);
+router.post("/:logId/unconfirm", authenticate, unconfirmById);
 
-// GET /today — Today's medication log entries (D-04 Obat card)
-router.get("/today", medicationLogController.today);
+router.get("/today", authenticate, today);
 
 export default router;

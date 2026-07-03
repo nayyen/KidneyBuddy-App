@@ -33,7 +33,7 @@ export default function PengingatPage() {
           const d = r.updatedAt ?? r.updated_at ?? "";
           return d > max ? d : max;
         }, "");
-        if (lastMaxUpdatedAt && maxDate > lastMaxUpdatedAt) {
+        if (lastMaxUpdatedAt && maxDate > lastMaxUpdatedAt && document.hidden) {
           toast("Jadwal pengingat diperbarui dari perangkat lain.");
           setReminderRefreshKey((k) => k + 1);
         }

@@ -79,31 +79,41 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
     };
   }, [fetchEntries]);
 
-  const handleConfirm = async (reminderId: string) => {
-    // Optimistic update
+  const handleConfirm = async (logId: string) => {
+    const originalEntries = entries;
     setEntries((prev) =>
       prev.map((e) =>
-        e.reminderId === reminderId ? { ...e, status: "dikonfirmasi" } : e,
+        e.id === logId ? { ...e, status: "dikonfirmasi" } : e,
       ),
     );
     try {
-      await authFetch("/api/medication-log/confirm", accessToken, {
+      await authFetch(`/api/medication-log/${logId}/confirm`, accessToken, {
         method: "POST",
-        body: JSON.stringify({ reminderId }),
       });
-        // Refetch from server to get the true persisted state (not just optimistic)
-        await fetchEntries();
-        // Notify other pages (/catatan obat, PengingatBerikutnya) to refresh
-        window.dispatchEvent(new CustomEvent("obat:confirmed"));
+      window.dispatchEvent(new CustomEvent("obat:confirmed"));
     } catch {
-      // Revert on error
-      setEntries((prev) =>
-        prev.map((e) =>
-          e.reminderId === reminderId ? { ...e, status: "tertunda" } : e,
-        ),
-      );
-        // Still refetch to ensure UI matches server truth
-        await fetchEntries();
+      setEntries(originalEntries);
+    } finally {
+      await fetchEntries();
+    }
+  };
+
+  const handleUnconfirm = async (logId: string) => {
+    const originalEntries = entries;
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.id === logId ? { ...e, status: "tertunda" } : e,
+      ),
+    );
+    try {
+      await authFetch(`/api/medication-log/${logId}/unconfirm`, accessToken, {
+        method: "POST",
+      });
+      window.dispatchEvent(new CustomEvent("obat:confirmed"));
+    } catch {
+      setEntries(originalEntries);
+    } finally {
+      await fetchEntries();
     }
   };
 
@@ -173,14 +183,14 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                 {/* Confirm circle */}
                 <button
                   type="button"
-                  onClick={() => !isConfirmed && handleConfirm(entry.reminderId)}
-                  aria-label={isConfirmed ? "Sudah diminum" : "Tandai sudah diminum"}
+                  onClick={() => isConfirmed ? handleUnconfirm(entry.id) : handleConfirm(entry.id)}
+                  aria-label={isConfirmed ? "Batalkan konfirmasi" : "Tandai sudah diminum"}
                   style={{
                     width: 28,
                     height: 28,
                     borderRadius: "50%",
                     flexShrink: 0,
-                    cursor: isConfirmed ? "default" : "pointer",
+                    cursor: "pointer",
                     backgroundColor: isConfirmed ? "#2a9d8f" : "transparent",
                     border: isConfirmed ? "none" : "1.5px solid #cfe8e4",
                     display: "flex",
@@ -243,7 +253,7 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                 {!isConfirmed && (
                   <button
                     type="button"
-                    onClick={() => handleConfirm(entry.reminderId)}
+                    onClick={() => handleConfirm(entry.id)}
                     className="font-sans font-medium shrink-0 transition-colors hover:opacity-80"
                     style={{
                       fontSize: 13,

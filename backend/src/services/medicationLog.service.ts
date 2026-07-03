@@ -28,6 +28,24 @@ export async function confirm(
   );
 }
 
+export async function confirmById(
+  userId: string,
+  logId: string,
+): Promise<{ confirmed: boolean; logId: string }> {
+  // Directly update the specific log entry
+  await medicationLogRepository.markConfirmedById(logId, userId);
+  return { confirmed: true, logId };
+}
+
+export async function unconfirmById(
+  userId: string,
+  logId: string,
+): Promise<{ confirmed: boolean; logId: string }> {
+  // Directly update the specific log entry
+  await medicationLogRepository.markUnconfirmedById(logId, userId);
+  return { confirmed: false, logId };
+}
+
 /**
  * getTodayUnconfirmed — list today's medication logs that are still 'tertunda'.
  * Used by the D-04 Obat card on the dashboard.

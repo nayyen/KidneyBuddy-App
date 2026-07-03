@@ -80,6 +80,30 @@ export async function markConfirmed(id: string): Promise<void> {
     .where(eq(dialysisLog.id, id as any));
 }
 
+export async function markConfirmedById(logId: string, userId: string): Promise<void> {
+  await db
+    .update(dialysisLog)
+    .set({ status: "dikonfirmasi", waktuKonfirmasi: new Date() })
+    .where(
+      and(
+        eq(dialysisLog.id, logId as any),
+        eq(dialysisLog.userId, userId as any),
+      ),
+    );
+}
+
+export async function markUnconfirmedById(logId: string, userId: string): Promise<void> {
+  await db
+    .update(dialysisLog)
+    .set({ status: "tertunda", waktuKonfirmasi: null })
+    .where(
+      and(
+        eq(dialysisLog.id, logId as any),
+        eq(dialysisLog.userId, userId as any),
+      ),
+    );
+}
+
 export async function markMissed(id: string): Promise<void> {
   await db
     .update(dialysisLog)

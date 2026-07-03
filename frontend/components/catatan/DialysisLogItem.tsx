@@ -7,7 +7,7 @@
  * Clicking the card opens a detail overlay showing all fields.
  */
 
-import { Check, Droplets } from "lucide-react";
+import { Check, Droplets, X } from "lucide-react";
 import { useState } from "react";
 
 export interface DialysisLog {
@@ -19,12 +19,148 @@ export interface DialysisLog {
   status: "dikonfirmasi" | "tertunda" | "terlewat";
   waktuPengingat: string;
   waktuKonfirmasi: string | null;
+  createdAt: string;
 }
 
 interface DialysisLogItemProps {
   log: DialysisLog;
-  onConfirm: (reminderId: string) => void;
+  onConfirm: (logId: string) => void;
+  onUnconfirm: (logId: string) => void;
 }
+
+const JENIS_LABELS: Record<string, string> = {
+  capd: "CAPD",
+  hd: "HD",
+};
+
+export default function DialysisLogItem({ log, onConfirm, onUnconfirm }: DialysisLogItemProps) {
+  const [showDetail, setShowDetail] = useState(false);
+  const isConfirmed = log.status === "dikonfirmasi";
+  const isLate =
+    !isConfirmed &&
+    log.status === "tertunda" &&
+    new Date(log.waktuPengingat) < new Date();
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setShowDetail(true)}
+        className="w-full text-left bg-white rounded-xl border border-[#f0faf9] p-2.5 shadow-sm"
+      >
+        <div className="flex items-center gap-3">
+          {/* Confirm circle */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              isConfirmed ? onUnconfirm(log.id) : onConfirm(log.id);
+            }}
+            aria-label={isConfirmed ? "Batalkan konfirmasi" : "Tandai sudah cuci darah"}
+            className="w-7 h-7 rounded-full flex-shrink-0 cursor-pointer flex items-center justify-center transition-colors"
+            style={{
+              backgroundColor: isConfirmed ? "#2a9d8f" : "transparent",
+              border: isConfirmed ? "none" : "1.5px solid #cfe8e4",
+            }}
+          >
+            {isConfirmed && <Check size={14} color="#ffffff" strokeWidth={2.5} />}
+          </div>
+
+          {/* Session name + time */}
+          <div className="flex-1 min-w-0">
+            <p
+              className="font-sans font-medium truncate"
+              style={{
+                fontSize: 14,
+                color: isConfirmed ? "#3d6b66" : "#1a2e2c",
+                textDecoration: isConfirmed ? "line-through" : "none",
+              }}
+            >
+              {log.nama}
+            </p>
+            <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
+              {formatTime(log.waktuPengingat)} · {JENIS_LABELS[log.jenis] ?? log.jenis}
+            </p>
+            {isLate && (
+              <p className="font-sans font-medium" style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}>
+                Terlambat — segera lakukan cuci darah
+              </p>
+            )}
+          </div>
+
+          {/* Status badge */}
+          <div
+            className="rounded px-2 py-0.5 font-sans font-medium text-xs"
+            style={{
+              backgroundColor: isConfirmed
+                ? "#f0faf9"
+                : isLate
+                  ? "#fff5f5"
+                  : "#f3f3f5",
+              color: isConfirmed
+                ? "#2a9d8f"
+                : isLate
+                  ? "#d4183d"
+                  : "#7a8c8a",
+            }}
+          >
+            {isConfirmed
+              ? `Selesai ${formatTime(log.waktuKonfirmasi!)}`
+              : isLate
+                ? "Terlambat"
+                : "Tertunda"}
+          </div>
+        </div>
+        {isLate && (
+          <p className="font-sans text-xs text-amber-600 mt-1.5 pl-10">
+            Segera lakukan cuci darah
+          </p>
+        )}
+      </button>
+
+      {showDetail && (
+        <div
+          className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center"
+          onClick={() => setShowDetail(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 w-[90vw] max-w-md relative animate-in fade-in-0 zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setShowDetail(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+              aria-label="Tutup detail"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-lg font-bold text-[#1a2e2c] mb-4">Detail Catatan Cuci Darah</h2>
+            <div className="divide-y divide-gray-200">
+              <DetailRow label="Nama Jadwal" value={log.nama} />
+              <DetailRow label="Jenis" value={JENIS_LABELS[log.jenis] ?? log.jenis} />
+              <DetailRow label="Waktu Pengingat" value={formatTime(log.waktuPengingat)} />
+              <DetailRow label="Status" value={log.status} />
+              {log.waktuKonfirmasi && (
+                <DetailRow label="Waktu Konfirmasi" value={formatTime(log.waktuKonfirmasi)} />
+              )}
+              {log.jenis === "capd" && (
+                <DetailRow label="Konsentrasi CAPD" value={log.konsentrasiCapd} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) =>
+  value ? (
+    <div className="py-2">
+      <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider">{label}</p>
+      <p className="text-sm font-medium text-[#1a2e2c] whitespace-pre-wrap">{value}</p>
+    </div>
+  ) : null;
 
 function formatTime(iso: string): string {
   try {
@@ -49,199 +185,4 @@ function formatDateTime(iso: string | null): string {
   } catch {
     return iso;
   }
-}
-
-const JENIS_LABELS: Record<string, string> = {
-  capd: "CAPD",
-  hd: "HD",
-};
-
-const STATUS_LABELS: Record<string, { text: string; color: string; bg: string }> = {
-  dikonfirmasi: { text: "Sudah Cuci Darah", color: "#0d4a44", bg: "#f0faf9" },
-  tertunda: { text: "Belum Cuci Darah", color: "#7a4c00", bg: "#fdf3e3" },
-  terlewat: { text: "Terlewat", color: "#d4183d", bg: "#fdecee" },
-};
-
-export default function DialysisLogItem({ log, onConfirm }: DialysisLogItemProps) {
-  const [showDetail, setShowDetail] = useState(false);
-  const isConfirmed = log.status === "dikonfirmasi";
-  const isLate =
-    !isConfirmed &&
-    log.status === "tertunda" &&
-    new Date(log.waktuPengingat) < new Date();
-  const statusStyle = STATUS_LABELS[log.status] ?? STATUS_LABELS.tertunda;
-
-  return (
-    <>
-      <div
-        onClick={() => setShowDetail(true)}
-        className="flex items-center gap-3 cursor-pointer hover:bg-[#f8fcfb] transition-colors"
-        style={{
-          minHeight: 72,
-          padding: "12px 14px",
-          borderRadius: 13,
-          backgroundColor: "#ffffff",
-          border: "0.5px solid #f0faf9",
-        }}
-      >
-        {/* Confirm circle */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            !isConfirmed && onConfirm(log.reminderId);
-          }}
-          aria-label={isConfirmed ? "Sudah cuci darah" : "Tandai sudah cuci darah"}
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            flexShrink: 0,
-            cursor: isConfirmed ? "default" : "pointer",
-            backgroundColor: isConfirmed ? "#2a9d8f" : "transparent",
-            border: isConfirmed ? "none" : "1.5px solid #cfe8e4",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "background-color 0.2s",
-          }}
-        >
-          {isConfirmed && <Check size={14} color="#ffffff" strokeWidth={2.5} />}
-        </button>
-
-        {/* Session details */}
-        <div className="flex-1 min-w-0">
-          <p
-            className="font-sans font-medium truncate"
-            style={{
-              fontSize: 14,
-              color: isConfirmed ? "#3d6b66" : "#1a2e2c",
-              textDecoration: isConfirmed ? "line-through" : "none",
-            }}
-          >
-            {log.nama}
-          </p>
-          <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
-            {formatTime(log.waktuPengingat)} · {JENIS_LABELS[log.jenis] ?? log.jenis}
-          </p>
-          {isLate && (
-            <p className="font-sans font-medium" style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}>
-              Terlambat — segera lakukan cuci darah
-            </p>
-          )}
-        </div>
-
-        {/* Status badge */}
-        <span
-          className="font-sans font-medium shrink-0"
-          style={{
-            fontSize: 12,
-            color: statusStyle.color,
-            backgroundColor: statusStyle.bg,
-            paddingLeft: 8,
-            paddingRight: 8,
-            paddingTop: 3,
-            paddingBottom: 3,
-            borderRadius: 10,
-          }}
-        >
-          {statusStyle.text}
-        </span>
-      </div>
-
-      {/* Detail overlay */}
-      {showDetail && (
-        <div
-          onClick={() => setShowDetail(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.4)",
-            zIndex: 50,
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: "#ffffff",
-              borderRadius: "20px 20px 0 0",
-              width: "100%",
-              maxWidth: 500,
-              padding: 20,
-              paddingBottom: 32,
-              maxHeight: "80vh",
-              overflowY: "auto",
-            }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <Droplets size={18} style={{ color: "#2a9d8f" }} />
-              <p className="font-heading font-bold" style={{ fontSize: 16, color: "#1a2e2c" }}>
-                Detail Cuci Darah
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Nama</p>
-                <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>{log.nama}</p>
-              </div>
-              <div>
-                <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Jenis</p>
-                <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                  {JENIS_LABELS[log.jenis] ?? log.jenis}
-                </p>
-              </div>
-              <div>
-                <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Waktu Pengingat</p>
-                <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                  {formatTime(log.waktuPengingat)}
-                </p>
-              </div>
-              {log.konsentrasiCapd && (
-                <div>
-                  <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Konsentrasi CAPD</p>
-                  <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                    {log.konsentrasiCapd}
-                  </p>
-                </div>
-              )}
-              <div>
-                <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Status</p>
-                <p className="font-sans font-medium" style={{ fontSize: 14, color: statusStyle.color }}>
-                  {statusStyle.text}
-                </p>
-              </div>
-              {log.waktuKonfirmasi && (
-                <div>
-                  <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Waktu Konfirmasi</p>
-                  <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                    {formatDateTime(log.waktuKonfirmasi)}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => setShowDetail(false)}
-              className="font-sans font-medium w-full mt-5"
-              style={{
-                fontSize: 14,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: "#f0faf9",
-                color: "#0d4a44",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Tutup
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
 }

@@ -26,6 +26,42 @@ export async function confirm(
 }
 
 /**
+ * confirmById - POST /api/medication-log/:logId/confirm
+ * Marks a specific log entry as 'dikonfirmasi'.
+ */
+export async function confirmById(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { logId } = req.params;
+    const result = await medicationLogService.confirmById(req.user!.id, logId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * unconfirmById - POST /api/medication-log/:logId/unconfirm
+ * Marks a specific log entry as 'tertunda'.
+ */
+export async function unconfirmById(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { logId } = req.params;
+    const result = await medicationLogService.unconfirmById(req.user!.id, logId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * today — GET /api/medication-log/today
  * Returns all medication log entries for today (all statuses).
  * Used by D-04 Obat card on the dashboard.

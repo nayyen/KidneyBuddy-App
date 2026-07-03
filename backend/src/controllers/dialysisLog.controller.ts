@@ -25,6 +25,42 @@ export async function confirm(
 }
 
 /**
+ * confirmById - POST /api/dialysis-log/:logId/confirm
+ * Marks a specific log entry as 'dikonfirmasi'.
+ */
+export async function confirmById(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { logId } = req.params;
+    const result = await dialysisLogService.confirmById(req.user!.id, logId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * unconfirmById - POST /api/dialysis-log/:logId/unconfirm
+ * Marks a specific log entry as 'tertunda'.
+ */
+export async function unconfirmById(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { logId } = req.params;
+    const result = await dialysisLogService.unconfirmById(req.user!.id, logId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * today — GET /api/dialysis-log/today
  * Returns all dialysis log entries for today (all statuses).
  */

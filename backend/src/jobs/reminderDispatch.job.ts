@@ -10,33 +10,22 @@
  * _dispatchCore accepts injected deps for unit testing (Node 20 has no mock.module).
  */
 import pino from "pino";
-import { insert as insertLog } from "../repositories/medicationLog.repository.js";
+import { insert as insertMedLog } from "../repositories/medicationLog.repository.js";
+import { insert as insertDialysisLog } from "../repositories/dialysisLog.repository.js";
 import {
   findDueReminders,
   markDispatched,
   type ReminderSchedule,
 } from "../repositories/reminderSchedule.repository.js";
 import { sendToAllDevices, type NotificationPayload } from "../services/notification.service.js";
+import { wibDateFromHHmm, wibDayNameLower, wibHHmm } from "../utils/wib.js";
 
 const logger = pino({ name: "reminderDispatch.job" });
 
-const INDONESIAN_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-export function currentHHmm(): string {
-  // Use UTC+7 (WIB) offset so reminders fire at the correct Jakarta local time
-  // on Railway/Render servers that default to TZ=UTC.
-  const jakartaNow = new Date(Date.now() + 7 * 3600 * 1000);
-  return `${String(jakartaNow.getUTCHours()).padStart(2, "0")}:${String(jakartaNow.getUTCMinutes()).padStart(2, "0")}`;
-}
-
-export function currentDayName(): string {
-  const jakartaNow = new Date(Date.now() + 7 * 3600 * 1000);
-  return INDONESIAN_DAYS[jakartaNow.getUTCDay()];
-}
-
 export type DispatchDeps = {
   findDue: (time: string, day: string) => Promise<ReminderSchedule[]>;
-  insertLog: (data: Parameters<typeof insertLog>[0]) => Promise<unknown>;
+  insertMedLog: (data: Parameters<typeof insertMedLog>[0]) => Promise<unknown>;
+  insertDialysisLog: (data: Parameters<typeof insertDialysisLog>[0]) => Promise<unknown>;
   sendToAll: (userId: string, payload: NotificationPayload) => Promise<void>;
   markDispatched: (id: string) => Promise<void>;
 };
@@ -51,42 +40,83 @@ export async function _dispatchCore(
 
   logger.info({ count: due.length, time, day }, "dispatching due reminders");
 
-  for (const reminder of due) {
+  // Group reminders by user
+  const byUser = new Map<string, ReminderSchedule[]>();
+  for (const r of due) {
+    if (!byUser.has(r.userId)) byUser.set(r.userId, []);
+    byUser.get(r.userId)!.push(r);
+  }
+
+  // Process each user's batch
+  for (const [userId, reminders] of byUser.entries()) {
     try {
-      await deps.insertLog({
-        userId: reminder.userId,
-        reminderId: reminder.id,
-        namaObat: reminder.nama,
-        dosis: reminder.dosis ?? undefined,
-        jenisObat: reminder.jenisObat ?? undefined,
-        status: "tertunda",
-        waktuPengingat: new Date(),
-      });
+      // 1. Create log entries for all reminders in this batch
+      for (const reminder of reminders) {
+        const logPayload = {
+          userId: reminder.userId,
+          reminderId: reminder.id,
+          nama: reminder.nama,
+          status: "tertunda" as const,
+          waktuPengingat: wibDateFromHHmm(reminder.jamPengingat),
+        };
 
-      const body = reminder.dosis
-        ? `${reminder.dosis} — ketuk untuk konfirmasi`
-        : "Ketuk untuk konfirmasi";
+        if (reminder.jenis === 'obat') {
+          await deps.insertMedLog({
+            ...logPayload,
+            namaObat: reminder.nama,
+            dosis: reminder.dosis ?? undefined,
+            jenisObat: reminder.jenisObat ?? undefined,
+          });
+        } else { // capd or hd
+          await deps.insertDialysisLog({
+            ...logPayload,
+            jenis: reminder.jenis,
+            konsentrasiCapd: reminder.konsentrasiCapd ?? null,
+          });
+        }
+      }
 
-      await deps.sendToAll(reminder.userId, {
-        title: `Pengingat: ${reminder.nama}`,
+      // 2. Construct one grouped notification
+      let title: string;
+      let body: string;
+
+      if (reminders.length === 1) {
+        const r = reminders[0];
+        title = `Pengingat: ${r.nama}`;
+        body = r.dosis
+          ? `${r.dosis} — ketuk untuk konfirmasi`
+          : "Ketuk untuk konfirmasi";
+      } else {
+        title = `Beberapa pengingat untuk jam ${time}`;
+        const names = reminders.map(r => r.nama).join(", ");
+        body = `Saatnya untuk: ${names}. Ketuk untuk konfirmasi.`;
+      }
+      
+      // 3. Send the single push
+      await deps.sendToAll(userId, {
+        title,
         body,
-        reminderId: reminder.id,
-        url: "/pengingat",
+        // We can't link to a specific reminder anymore, so link to the general page
+        url: "/catatan", 
       });
 
-      await deps.markDispatched(reminder.id);
-      logger.info({ reminderId: reminder.id }, "reminder dispatched");
+      // 4. Mark all as dispatched
+      for (const reminder of reminders) {
+        await deps.markDispatched(reminder.id);
+      }
+      logger.info({ userId, count: reminders.length }, "user batch dispatched");
     } catch (err) {
-      // Per-reminder errors must not abort the batch (T-02-06-04)
-      logger.error({ reminderId: reminder.id, err }, "failed to dispatch reminder — skipping");
+      logger.error({ userId, err }, "failed to dispatch user batch — skipping");
     }
   }
 }
 
 export async function dispatchDueReminders(): Promise<void> {
-  return _dispatchCore(currentHHmm(), currentDayName(), {
+  // FIX: Use lowercase day name to match what's stored in `hariAktif`
+  return _dispatchCore(wibHHmm(), wibDayNameLower(), {
     findDue: findDueReminders,
-    insertLog,
+    insertMedLog,
+    insertDialysisLog,
     sendToAll: sendToAllDevices,
     markDispatched,
   });

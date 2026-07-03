@@ -95,82 +95,46 @@ export default function DashboardPage() {
   if (!isAuthenticated || !accessToken) return null;
 
   return (
-    <div className="space-y-3">
-      {/*
-       * D-04 Render Order (per UI-SPEC):
-       * 1. CAPDEffluentBanner — only when today has an abnormal effluent
-       * 2. DeltaCairanCard — hero fluid balance card (full width)
-       * 3. NoReminderBanner — conditional on reminder not configured
-       * 4. ObatCard — today's unconfirmed meds with inline confirm
-       * 5. PengingatBerikutnyaCard — next upcoming reminder
-       * 6. AiPlaceholderCard — always shown as Phase 5 placeholder
-       *
-       * Grid: 1-col mobile, 2-col at md:, 3-col at lg:
-       * Desktop layout per UI-SPEC:
-       *   DeltaCairanCard: lg:col-span-2
-       *   PengingatBerikutnyaCard: 1 col (right of DeltaCairan on lg)
-       *   ObatCard: lg:col-span-2
-       *   AiPlaceholderCard: 1 col
-       */}
-
-      {/* Activity module — always shown (full width) */}
-      <KegiatanModuleInline
-        accessToken={accessToken}
-        refreshKey={activityRefreshKey}
-      />
-
-      {/* Banner: CAPD effluent anomaly (full width, always on top) */}
-      {showCAPDBanner && (
-        <CAPDEffluentBanner
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* Row 1 */}
+      <div className="md:col-span-2">
+        <DeltaCairanCard
           accessToken={accessToken}
-          onDismiss={() => setShowCAPDBanner(false)}
+          refreshKey={fluidRefreshKey}
+          onBalanceFetched={handleBalanceFetched}
         />
-      )}
-
-      {/*
-       * Hero + next-reminder row (desktop: DeltaCairan 2/3 width + PengingatBerikutnya 1/3)
-       * Mobile/tablet: stack vertically
-       */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        {/* DeltaCairanCard — spans 2 cols on lg */}
-        <div className="lg:col-span-2">
-          <DeltaCairanCard
-            accessToken={accessToken}
-            refreshKey={fluidRefreshKey}
-            onBalanceFetched={handleBalanceFetched}
-          />
-        </div>
-
-        {/* PengingatBerikutnyaCard — 1 col (right on desktop, below delta on mobile) */}
-        <div>
-          <PengingatBerikutnyaCard accessToken={accessToken} />
-        </div>
+      </div>
+      <div className="md:col-span-1">
+        <PengingatBerikutnyaCard accessToken={accessToken} />
       </div>
 
-      {/* Secondary cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {/* NoReminderBanner (conditional, full width) */}
-        {onboardingProgress?.onboardingComplete &&
-          !onboardingProgress.reminderConfigured && (
-            <div className="md:col-span-2 lg:col-span-3">
-              <NoReminderBanner />
-            </div>
-          )}
-
-        {/* ObatCard — spans 2 cols on lg */}
-        <div className="md:col-span-2">
-          <ObatCard accessToken={accessToken} />
+      {/* Row 2 */}
+      <div className="md:col-span-3">
+        <AiPlaceholderCard />
+      </div>
+      
+      {/* Banners (full width) */}
+      {showCAPDBanner && (
+        <div className="md:col-span-3">
+          <CAPDEffluentBanner />
         </div>
-
-          {/* CuciDarahCard — spans 2 cols on lg (below ObatCard) */}
-          <div className="md:col-span-2">
-            <CuciDarahCard accessToken={accessToken} />
-          </div>
-
-        {/* AiPlaceholderCard — 1 col on lg (right of ObatCard) */}
-        <div className="md:col-span-2 lg:col-span-1">
-          <AiPlaceholderCard />
+      )}
+      {onboardingProgress && !onboardingProgress.reminderConfigured && (
+        <div className="md:col-span-3">
+          <NoReminderBanner />
         </div>
+      )}
+
+      {/* Row 3 - Today's Compliance Cards */}
+      <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <KegiatanModuleInline
+          accessToken={accessToken}
+          refreshKey={activityRefreshKey}
+          onMulaiKegiatan={() => { /* logic to open activity sheet */ }}
+          onCompleteActivity={(id, nama) => { /* logic to open completion form */ }}
+        />
+        <ObatCard accessToken={accessToken} />
+        <CuciDarahCard accessToken={accessToken} />
       </div>
     </div>
   );

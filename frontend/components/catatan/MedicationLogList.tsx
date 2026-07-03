@@ -63,25 +63,37 @@ export default function MedicationLogList({
       };
     }, [fetchLogs]);
 
-  const handleConfirm = async (reminderId: string) => {
+  const handleConfirm = async (logId: string) => {
+    const originalLogs = logs;
+    setLogs((prev) =>
+      prev.map((log) => (log.id === logId ? { ...log, status: "dikonfirmasi" } : log))
+    );
     try {
-      await authFetch("/api/medication-log/confirm", accessToken, {
+      await authFetch(`/api/medication-log/${logId}/confirm`, accessToken, {
         method: "POST",
-        body: JSON.stringify({ reminderId }),
       });
-      // Optimistically update status
-      setLogs((prev) =>
-        prev.map((log) =>
-          log.reminderId === reminderId
-            ? { ...log, status: "dikonfirmasi" }
-            : log,
-        ),
-      );
-        // Cross-page sync + refetch for permanent state
-        window.dispatchEvent(new CustomEvent("obat:confirmed"));
-        await fetchLogs();
+      window.dispatchEvent(new CustomEvent("obat:confirmed"));
     } catch {
-      // Silently fail — user can retry
+      setLogs(originalLogs);
+    } finally {
+      await fetchLogs();
+    }
+  };
+
+  const handleUnconfirm = async (logId: string) => {
+    const originalLogs = logs;
+    setLogs((prev) =>
+      prev.map((log) => (log.id === logId ? { ...log, status: "tertunda" } : log))
+    );
+    try {
+      await authFetch(`/api/medication-log/${logId}/unconfirm`, accessToken, {
+        method: "POST",
+      });
+      window.dispatchEvent(new CustomEvent("obat:confirmed"));
+    } catch {
+      setLogs(originalLogs);
+    } finally {
+      await fetchLogs();
     }
   };
 
@@ -163,26 +175,23 @@ export default function MedicationLogList({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Header label — tells user these are today's reminders */}
-      <div className="flex items-center gap-2">
-        <Pill size={16} style={{ color: "#2a9d8f" }} />
-        <p className="font-heading font-bold" style={{ fontSize: 15, color: "#1a2e2c" }}>
-          Obat Hari Ini
-        </p>
-      </div>
-
-      <div className="space-y-2">
-      {logs.map((log) => (
-        <MedicationLogItem key={log.id} log={log} onConfirm={handleConfirm} />
-      ))}
+    <>
       <p
-        className="font-sans text-right mt-1"
-        style={{ fontSize: 13, color: "#3d6b66" }}
+        className="font-sans font-bold text-sm text-gray-500 mb-2 px-1"
+        style={{ color: "#3d6b66" }}
       >
-        {logs.length} entri obat
+        Obat Hari Ini
       </p>
+      <div className="space-y-2">
+        {logs.map((log) => (
+          <MedicationLogItem
+            key={log.id}
+            log={log}
+            onConfirm={handleConfirm}
+            onUnconfirm={handleUnconfirm}
+          />
+        ))}
       </div>
-    </div>
+    </>
   );
 }

@@ -87,25 +87,40 @@ export default function CuciDarahCard({
     };
   }, [fetchEntries]);
 
-  const handleConfirm = async (reminderId: string) => {
+  const handleConfirm = async (logId: string) => {
+    const originalEntries = entries;
     setEntries((prev) =>
       prev.map((e) =>
-        e.reminderId === reminderId ? { ...e, status: "dikonfirmasi" } : e,
+        e.id === logId ? { ...e, status: "dikonfirmasi" } : e,
       ),
     );
     try {
-      await authFetch("/api/dialysis-log/confirm", accessToken, {
+      await authFetch(`/api/dialysis-log/${logId}/confirm`, accessToken, {
         method: "POST",
-        body: JSON.stringify({ reminderId }),
       });
-      await fetchEntries();
       window.dispatchEvent(new CustomEvent("cucidarah:confirmed"));
     } catch {
-      setEntries((prev) =>
-        prev.map((e) =>
-          e.reminderId === reminderId ? { ...e, status: "tertunda" } : e,
-        ),
-      );
+      setEntries(originalEntries);
+    } finally {
+      await fetchEntries();
+    }
+  };
+
+  const handleUnconfirm = async (logId: string) => {
+    const originalEntries = entries;
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.id === logId ? { ...e, status: "tertunda" } : e,
+      ),
+    );
+    try {
+      await authFetch(`/api/dialysis-log/${logId}/unconfirm`, accessToken, {
+        method: "POST",
+      });
+      window.dispatchEvent(new CustomEvent("cucidarah:confirmed"));
+    } catch {
+      setEntries(originalEntries);
+    } finally {
       await fetchEntries();
     }
   };
@@ -174,14 +189,14 @@ export default function CuciDarahCard({
                 {/* Confirm circle */}
                 <button
                   type="button"
-                  onClick={() => !isConfirmed && handleConfirm(entry.reminderId)}
-                  aria-label={isConfirmed ? "Sudah cuci darah" : "Tandai sudah cuci darah"}
+                  onClick={() => isConfirmed ? handleUnconfirm(entry.id) : handleConfirm(entry.id)}
+                  aria-label={isConfirmed ? "Batalkan konfirmasi" : "Tandai sudah cuci darah"}
                   style={{
                     width: 28,
                     height: 28,
                     borderRadius: "50%",
                     flexShrink: 0,
-                    cursor: isConfirmed ? "default" : "pointer",
+                    cursor: "pointer",
                     backgroundColor: isConfirmed ? "#2a9d8f" : "transparent",
                     border: isConfirmed ? "none" : "1.5px solid #cfe8e4",
                     display: "flex",
@@ -241,7 +256,7 @@ export default function CuciDarahCard({
                 {!isConfirmed && (
                   <button
                     type="button"
-                    onClick={() => handleConfirm(entry.reminderId)}
+                    onClick={() => handleConfirm(entry.id)}
                     className="font-sans font-medium shrink-0 transition-colors hover:opacity-80"
                     style={{
                       fontSize: 13,
