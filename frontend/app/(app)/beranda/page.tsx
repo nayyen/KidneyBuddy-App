@@ -2,12 +2,12 @@
 
 import { useAuth } from "@/lib/hooks/useAuth";
 import { authFetch } from "@/lib/api";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DeltaCairanCard from "@/components/beranda/DeltaCairanCard";
-import CAPDEffluentBanner from "@/components/beranda/CAPDEffluentBanner";
 import NoReminderBanner from "@/components/beranda/NoReminderBanner";
 import AiPlaceholderCard from "@/components/beranda/AiPlaceholderCard";
+import AnomalyAlertSection from "@/components/beranda/AnomalyAlertSection";
 import ObatCard from "@/components/beranda/ObatCard";
 import CuciDarahCard from "@/components/beranda/CuciDarahCard";
 import PengingatBerikutnyaCard from "@/components/beranda/PengingatBerikutnyaCard";
@@ -19,21 +19,11 @@ interface OnboardingProgress {
   reminderConfigured: boolean;
 }
 
-interface DailyBalance {
-  date: string;
-  masuk: number;
-  keluar: number;
-  delta: number;
-  unit: string;
-  hasAbnormalCondition?: boolean;
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const { accessToken, isLoading, isAuthenticated } = useAuth();
   const [onboardingProgress, setOnboardingProgress] =
     useState<OnboardingProgress | null>(null);
-  const [showCAPDBanner, setShowCAPDBanner] = useState(false);
   const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
 
@@ -78,12 +68,6 @@ export default function DashboardPage() {
     return () => window.removeEventListener("activity:saved", handleActivitySaved);
   }, []);
 
-  // Called by DeltaCairanCard when it receives balance data
-  const handleBalanceFetched = useCallback((balance: DailyBalance) => {
-    const abnormal = !!balance.hasAbnormalCondition;
-    setShowCAPDBanner(abnormal);
-  }, []);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -101,7 +85,6 @@ export default function DashboardPage() {
         <DeltaCairanCard
           accessToken={accessToken}
           refreshKey={fluidRefreshKey}
-          onBalanceFetched={handleBalanceFetched}
         />
       </div>
       <div className="md:col-span-1">
@@ -112,13 +95,15 @@ export default function DashboardPage() {
       <div className="md:col-span-3">
         <AiPlaceholderCard />
       </div>
-      
+
+      {/* Peringatan — normal-severity anomaly alerts (D-09). Renders null
+          when there are none; the old CAPD effluent banner is superseded by
+          the global EmergencyAnomalyModal for tinggi-severity events. */}
+      <div className="md:col-span-3">
+        <AnomalyAlertSection accessToken={accessToken} />
+      </div>
+
       {/* Banners (full width) */}
-      {showCAPDBanner && (
-        <div className="md:col-span-3">
-          <CAPDEffluentBanner accessToken={accessToken} />
-        </div>
-      )}
       {onboardingProgress && !onboardingProgress.reminderConfigured && (
         <div className="md:col-span-3">
           <NoReminderBanner />
