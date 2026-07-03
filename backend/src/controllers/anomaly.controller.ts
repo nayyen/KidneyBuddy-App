@@ -58,6 +58,14 @@ export class AnomalyAlertNotFoundError extends Error {
  * Injectable core for ANOMALY-04 feedback persistence. Verifies the alert
  * belongs to `userId` before mutating — defense in depth alongside the
  * production repository's own userId-scoped UPDATE.
+ *
+ * Also transitions status -> "ditindaklanjuti" (PRD §8.8's third lifecycle
+ * stage, aktif -> dibaca -> ditindaklanjuti). Submitting feedback is the
+ * concrete "follow-up" action that completes an alert's lifecycle — without
+ * this transition, the alert stays in `UNRESOLVED_STATUSES` (aktif/dibaca)
+ * forever, and anomalyOrchestrator.service.ts's same-day dedup (Pitfall 3)
+ * would permanently block any future alert of the same
+ * (userId, tipeAnomali) pair, even days later when the condition recurs.
  */
 export async function _submitFeedbackCore<T>(
   userId: string,
@@ -67,7 +75,8 @@ export async function _submitFeedbackCore<T>(
 ): Promise<T> {
   const alert = await repo.getAlertById(userId, alertId);
   if (!alert) throw new AnomalyAlertNotFoundError();
-  const updated = await repo.updateFeedback(alertId, feedback);
+  await repo.updateFeedback(alertId, feedback);
+  const updated = await repo.updateStatus(alertId, "ditindaklanjuti");
   if (!updated) throw new AnomalyAlertNotFoundError();
   return updated;
 }
