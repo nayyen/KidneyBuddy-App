@@ -57,16 +57,36 @@ export async function generateAnomalyExplanation(rule: RuleResult): Promise<stri
   return completion.choices[0]?.message?.content ?? "";
 }
 
+const GENERIC_FALLBACK_TEXT =
+  "Sistem mendeteksi anomali pada data kesehatan Anda. Segera hubungi dokter atau " +
+  "perawat Anda untuk pemeriksaan lebih lanjut.";
+
 /**
- * D-20 safety gate. For severity "tinggi" alerts, validates the LLM's explanation
- * against the forbidden (false-reassurance) phrase list. On a match, swaps in the
- * pre-written STATIC_FALLBACK_TEMPLATES entry for this tipeAnomali and logs a
- * server-side warning — this fallback is invisible to the end user.
+ * D-20 safety gate. Validates the LLM's explanation against the forbidden
+ * (false-reassurance) phrase list for severity "tinggi" alerts, swapping in the
+ * pre-written STATIC_FALLBACK_TEMPLATES entry on a match. Also falls back to the
+ * same static templates if the Groq call itself fails (missing API key, timeout,
+ * rate limit, network error) — the rule engine, not the LLM, already decided this
+ * is a real anomaly (D-03), so a narration failure must never suppress the alert.
+ * Both fallback paths are invisible to the end user — no "fallback mode" badge,
+ * no different styling (per 05-UI-SPEC.md) — and both log a server-side warning.
  */
 export async function getValidatedExplanation(
   rule: RuleResult,
 ): Promise<{ text: string; isFallback: boolean }> {
-  const llmText = await generateAnomalyExplanation(rule);
+  let llmText: string;
+  try {
+    llmText = await generateAnomalyExplanation(rule);
+  } catch (err) {
+    logger.warn(
+      { tipeAnomali: rule.tipeAnomali, err },
+      "Groq call failed — using static fallback template (never surfaced to UI)",
+    );
+    return {
+      text: STATIC_FALLBACK_TEMPLATES[rule.tipeAnomali] ?? GENERIC_FALLBACK_TEXT,
+      isFallback: true,
+    };
+  }
 
   if (rule.severity === "tinggi" && containsForbiddenPhrase(llmText)) {
     logger.warn(
