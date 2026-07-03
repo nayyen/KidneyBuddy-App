@@ -144,6 +144,37 @@ export async function getIntakeVsSevenDayAvg(
   return dates.map((dt) => (sumByDate.has(dt) ? sumByDate.get(dt)! : null));
 }
 
+// Worst-first priority so the anomaly rule engine's ruleData reflects the most
+// severe condition logged today, if the patient logged more than one "keluar" entry.
+const ABNORMAL_KONDISI_PRIORITY = ["berdarah", "keruh_gumpalan", "keruh"] as const;
+
+/**
+ * Fetch the worst abnormal CAPD effluent condition ("keruh" | "keruh_gumpalan" |
+ * "berdarah") logged today for a user, or `null` if today's "keluar" entries are
+ * all "jernih" (clear) or there are none — feeds anomalyRule.service.ts's
+ * `checkCapdEffluentAnomaly` (no history requirement, D-04).
+ */
+export async function getTodayAbnormalKondisiKeluar(
+  userId: string,
+): Promise<string | null> {
+  const today = wibDateStr();
+  const rows = await db
+    .select({ kondisiKeluar: fluidLog.kondisiKeluar })
+    .from(fluidLog)
+    .where(
+      and(
+        eq(fluidLog.userId, userId as any),
+        eq(fluidLog.tipe, "keluar"),
+        eq(fluidLog.tanggal, today),
+      ),
+    );
+
+  for (const priority of ABNORMAL_KONDISI_PRIORITY) {
+    if (rows.some((r) => r.kondisiKeluar === priority)) return priority;
+  }
+  return null;
+}
+
 const ABNORMAL_CONDITIONS_REPO = new Set(["keruh", "keruh_gumpalan", "berdarah"]);
 
 /**

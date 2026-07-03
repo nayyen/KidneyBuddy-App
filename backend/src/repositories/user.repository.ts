@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { users } from "../db/schema/users.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -37,6 +37,14 @@ export async function updatePasswordHash(
     .update(users)
     .set({ passwordHash, updatedAt: new Date() })
     .where(eq(users.userId, userId as any));
+}
+
+/**
+ * Find every non-soft-deleted user (deletedAt IS NULL) — used by the 21:00
+ * anomaly batch (ANOMALY-01) to iterate all active users sequentially.
+ */
+export async function findAllActive(): Promise<User[]> {
+  return db.select().from(users).where(isNull(users.deletedAt));
 }
 
 export async function updateTherapyMethod(

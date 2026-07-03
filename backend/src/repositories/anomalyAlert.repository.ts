@@ -8,7 +8,7 @@
  * Pattern: follows report.repository.ts's `and(eq(...userId), ...)` query
  * composition and fluidLog.repository.ts's IDOR-safe update/delete shape.
  */
-import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { anomalyAlerts } from "../db/schema/anomalyAlert.schema.js";
@@ -62,6 +62,37 @@ export async function findActiveByType(
         inArray(anomalyAlerts.status, UNRESOLVED_STATUSES as unknown as string[]),
       ),
     );
+}
+
+/**
+ * Fetch a single alert by id, IDOR-scoped to userId — used by the anomaly
+ * controller's feedback/acknowledge core functions to verify ownership before
+ * mutating (defense in depth alongside updateFeedback/updateStatus's own
+ * userId-scoped WHERE clause).
+ */
+export async function getAlertById(
+  userId: string,
+  id: string,
+): Promise<AnomalyAlert | undefined> {
+  const [row] = await db
+    .select()
+    .from(anomalyAlerts)
+    .where(and(eq(anomalyAlerts.userId, userId as any), eq(anomalyAlerts.id, id as any)))
+    .limit(1);
+  return row;
+}
+
+/**
+ * Fetch every alert for a user, newest first — powers the `/api/anomaly`
+ * history list (D-09's dedicated alert history page, all alerts visible for
+ * relevan/tidak_relevan feedback at any time).
+ */
+export async function findAllByUser(userId: string): Promise<AnomalyAlert[]> {
+  return db
+    .select()
+    .from(anomalyAlerts)
+    .where(eq(anomalyAlerts.userId, userId as any))
+    .orderBy(desc(anomalyAlerts.createdAt));
 }
 
 /**
