@@ -75,6 +75,33 @@ export async function findByReminderAndUser(
   return row;
 }
 
+/**
+ * Count today's missed medication schedules for a user (ANOMALY-01 input).
+ *
+ * "Missed" is computed ad-hoc (Pitfall 1 — `status: 'terlewat'` is never
+ * written outside seed data): a row still `tertunda` whose `waktuPengingat`
+ * has already fully passed within today's WIB day counts as missed. This
+ * intentionally does NOT rely on a `terlewat` status transition existing.
+ */
+export async function findMissedToday(userId: string): Promise<number> {
+  const { start } = wibDayBounds();
+  const now = new Date();
+
+  const rows = await db
+    .select({ id: medicationLog.id })
+    .from(medicationLog)
+    .where(
+      and(
+        eq(medicationLog.userId, userId as any),
+        eq(medicationLog.status, "tertunda"),
+        gte(medicationLog.waktuPengingat, start as any),
+        lte(medicationLog.waktuPengingat, now as any),
+      ),
+    );
+
+  return rows.length;
+}
+
 // ─── Mutations ────────────────────────────────────────────────────────
 
 export async function markConfirmed(id: string): Promise<void> {

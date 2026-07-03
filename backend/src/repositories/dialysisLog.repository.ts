@@ -71,6 +71,33 @@ export async function findUnconfirmedOlderThan(
     );
 }
 
+/**
+ * Count today's missed dialysis schedules for a user (ANOMALY-01 input).
+ *
+ * "Missed" is computed ad-hoc (Pitfall 1 — `status: 'terlewat'` is never
+ * written outside seed data, and `markMissed` above is never called from any
+ * job): a row still `tertunda` whose `waktuPengingat` has already fully
+ * passed within today's WIB day counts as missed.
+ */
+export async function findMissedToday(userId: string): Promise<number> {
+  const { start } = wibDayBounds();
+  const now = new Date();
+
+  const rows = await db
+    .select({ id: dialysisLog.id })
+    .from(dialysisLog)
+    .where(
+      and(
+        eq(dialysisLog.userId, userId as any),
+        eq(dialysisLog.status, "tertunda"),
+        gte(dialysisLog.waktuPengingat, start as any),
+        lte(dialysisLog.waktuPengingat, now as any),
+      ),
+    );
+
+  return rows.length;
+}
+
 // ─── Mutations ────────────────────────────────────────────────────────
 
 export async function markConfirmed(id: string): Promise<void> {

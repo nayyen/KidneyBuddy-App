@@ -62,6 +62,88 @@ export async function findRecentByUser(
     .orderBy(asc(fluidLog.tanggal), asc(fluidLog.waktu));
 }
 
+/**
+ * Build the last `days` WIB calendar-date strings (oldest first, today last),
+ * using wibDateStr() as the anchor so a container running in UTC still lines
+ * up with the patient's local WIB day.
+ */
+function lastNWibDates(days: number): string[] {
+  const todayStr = wibDateStr();
+  const [y, m, d] = todayStr.split("-").map(Number);
+  const dates: string[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    dates.push(
+      new Date(Date.UTC(y, m - 1, d) - i * 24 * 3600 * 1000).toISOString().slice(0, 10),
+    );
+  }
+  return dates;
+}
+
+/**
+ * Fetch daily total fluid OUTPUT ("keluar") for the anomalyRule.service.ts
+ * `checkFluidOutputDecline` input: a 6-day window (3 prior baseline days +
+ * the 3 most recent days), oldest first. A day with no logged "keluar"
+ * entries is returned as `null` (missing data, not a real zero) so the rule
+ * engine's D-04 silent-skip triggers correctly rather than reading a false
+ * 100% decline.
+ */
+export async function getDailyKeluarLast3Days(
+  userId: string,
+): Promise<Array<number | null>> {
+  const dates = lastNWibDates(6);
+
+  const rows = await db
+    .select({ tanggal: fluidLog.tanggal, volume: fluidLog.volume })
+    .from(fluidLog)
+    .where(
+      and(
+        eq(fluidLog.userId, userId as any),
+        eq(fluidLog.tipe, "keluar"),
+        gte(fluidLog.tanggal, dates[0]),
+        lte(fluidLog.tanggal, dates[dates.length - 1]),
+      ),
+    );
+
+  const sumByDate = new Map<string, number>();
+  for (const row of rows) {
+    sumByDate.set(row.tanggal, (sumByDate.get(row.tanggal) ?? 0) + Number(row.volume));
+  }
+
+  return dates.map((dt) => (sumByDate.has(dt) ? sumByDate.get(dt)! : null));
+}
+
+/**
+ * Fetch daily total fluid INTAKE ("masuk") for the anomalyRule.service.ts
+ * `checkFluidIntakeDeviation` input: a 7-day window (6 prior baseline days +
+ * today), oldest first, today last. D-01: this is the patient's OWN rolling
+ * history, never a population baseline. A day with no logged "masuk" entries
+ * is returned as `null` so D-04's silent-skip triggers on missing data.
+ */
+export async function getIntakeVsSevenDayAvg(
+  userId: string,
+): Promise<Array<number | null>> {
+  const dates = lastNWibDates(7);
+
+  const rows = await db
+    .select({ tanggal: fluidLog.tanggal, volume: fluidLog.volume })
+    .from(fluidLog)
+    .where(
+      and(
+        eq(fluidLog.userId, userId as any),
+        eq(fluidLog.tipe, "masuk"),
+        gte(fluidLog.tanggal, dates[0]),
+        lte(fluidLog.tanggal, dates[dates.length - 1]),
+      ),
+    );
+
+  const sumByDate = new Map<string, number>();
+  for (const row of rows) {
+    sumByDate.set(row.tanggal, (sumByDate.get(row.tanggal) ?? 0) + Number(row.volume));
+  }
+
+  return dates.map((dt) => (sumByDate.has(dt) ? sumByDate.get(dt)! : null));
+}
+
 const ABNORMAL_CONDITIONS_REPO = new Set(["keruh", "keruh_gumpalan", "berdarah"]);
 
 /**
