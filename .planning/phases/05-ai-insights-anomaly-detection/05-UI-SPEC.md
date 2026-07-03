@@ -28,7 +28,7 @@ created: 2026-07-03
 | Preset | Manual CSS variables in `frontend/app/globals.css` — no shadcn preset string | globals.css (verified) |
 | Component library | Radix UI (via shadcn, `radix-ui` unified package) | components.json + `components/ui/alert-dialog.tsx` |
 | Icon library | `lucide-react` | components.json `iconLibrary: "lucide"` |
-| Font — Heading | Plus Jakarta Sans, weight 700 (800 reserved for one exception — see Typography) | DESIGN_SYSTEM_KidneyBuddy_v3.md + globals.css `--font-heading` |
+| Font — Heading | Plus Jakarta Sans, weight 700 | DESIGN_SYSTEM_KidneyBuddy_v3.md + globals.css `--font-heading` |
 | Font — Body | DM Sans, weight 500 | DESIGN_SYSTEM_KidneyBuddy_v3.md + globals.css `--font-sans` |
 | Charting library | recharts@3.x (inherited from Phase 3, not extended in Phase 5) | Phase 3 UI-SPEC |
 
@@ -47,7 +47,7 @@ Inherited from Phases 2-4 — the project's established scale (not a pure 8-poin
 |-------|-------|---------------|
 | xs | 4px | Icon-to-label gap in AI badge chip, gap between feedback buttons |
 | sm | 8px | Gap between alert card icon and text, gap between "Relevan"/"Tidak Relevan" buttons |
-| ds-10 | 10px | Icon container border-radius (Alert AI/Info + Alert Darurat pattern), input-style radii |
+| ds-10 | 10px | Icon container border-radius (Alert AI/Info + Alert Darurat pattern), input-style radii — **inherited pre-existing codebase convention, not a new Phase 5 token** (see Source Traceability for shipped precedent) |
 | ds-12 | 12px | Alert card / AI content card inner padding, alert history list item padding |
 | md | 16px | AI content card padding (daily summary, weekly insight, lab analysis, lifestyle), emergency modal content padding |
 | lg | 20px | Emergency modal internal vertical rhythm (title → body → button) |
@@ -70,20 +70,20 @@ Inherited from Phases 2-4 — the project's established scale (not a pure 8-poin
 
 ## Typography
 
-Inherited sizes/weights from Phases 2-4, plus one explicit, scoped exception for the emergency modal.
+Inherited sizes/weights from Phases 2-4. No exceptions — Phase 5 stays within the established two-weight contract, including the emergency modal.
 
 | Role | Size | Font | Weight | Line Height | Phase 5 Usage |
 |------|------|------|--------|-------------|---------------|
-| Display (exception — modal only) | 18px | Plus Jakarta Sans | **800** | 1.25 | Emergency modal title only. Matches DESIGN_SYSTEM Hero/H1 spec (22-24px/800) scaled down for a modal context — the only place in Phase 5 that uses weight 800. |
+| Display (modal title) | 18px | Plus Jakarta Sans | 700 | 1.25 | Emergency modal title. Urgency is conveyed through color (`#d4183d`), size (18px — largest text in Phase 5), and centering, NOT through a heavier weight — weight 700 is the same weight used by every other heading in the app, preserving the two-weight contract on this screen too. |
 | Heading | 14px | Plus Jakarta Sans | 700 | 1.3 | Card titles: "Ringkasan AI Hari Ini", "Wawasan Tren Mingguan", "Analisis Hasil Lab", "Saran Gaya Hidup untuk Anda", alert card titles, `/notifikasi` page title |
 | Body | 12px | DM Sans | 500 | **1.6** | AI narrative text (summary/insight/analysis prose), alert descriptions, emergency modal body text — 1.6 (not the inherited 1.5) because this is longer-form prose, not tabular data |
 | Caption | 10px | DM Sans | 500 | 1.4 | Timestamps, disclaimer text, AI badge chip label, feedback button labels, status badges (Aktif/Sudah Dibaca/Ditindaklanjuti) |
 
-**Weight groups — two weights, inherited, plus one scoped exception:**
+**Weight groups — two weights, inherited, no exceptions:**
 
-- **Bold group:** Plus Jakarta Sans 700 — headings, card titles, section headers (inherited)
+- **Bold group:** Plus Jakarta Sans 700 — headings, card titles, section headers, AND the emergency modal title (inherited, no scope exception needed)
 - **Regular group:** DM Sans 500 — body text, captions, labels (inherited)
-- **Exception:** Plus Jakarta Sans 800 — emergency modal title ONLY. Do not use 800 anywhere else in Phase 5; this preserves the "two weights" contract everywhere except the one screen whose entire purpose is to visually outrank every other screen in the app.
+- Weight 800 is not used anywhere in Phase 5. It is present only as an unused loaded font-weight value in `frontend/app/layout.tsx`'s font config array — not an active pattern in any shipped component — so there is no real precedent to build on. The two-weight cap holds with no carve-outs, including for the emergency modal.
 
 ---
 
@@ -300,7 +300,8 @@ Icon: AlertTriangle, 28px, color #d4183d, inside 48×48px container bg #fbd9dd r
   centered above title
 
 Title: "Peringatan Kesehatan Penting"
-  18px Plus Jakarta Sans 800, color #d4183d, text-align: center, margin-top: 16px
+  18px Plus Jakarta Sans 700, color #d4183d, text-align: center, margin-top: 16px
+  (weight stays at 700 — urgency comes from color, size, and centering, not a heavier weight)
 
 Body: per-type explanation from rule engine + LLM (or D-20 static fallback — visually identical)
   12px DM Sans 500, color #9c1530, line-height: 1.6, text-align: left, margin-top: 12px
@@ -674,5 +675,6 @@ Phase 5 uses the same AppShell / BottomNav / Sidebar / breakpoints as Phases 2-4
 | Distinct icons per AI surface (Sparkles/Lightbulb/FlaskConical/Leaf) | Claude's Discretion — avoids visual monotony across 4 near-identical card treatments while staying within the lucide icon set already used elsewhere in the codebase |
 | "Tidak Relevan" styled as neutral, not destructive/red | Claude's Discretion — this is feedback, not deletion; red is reserved exclusively for `tinggi` severity per the Color contract |
 | Emergency modal overlay tinted red (not default black/50) | Claude's Discretion — reinforces urgency; overrides shadcn `AlertDialogOverlay` default className |
-| Weight 800 exception scoped to modal title only | Claude's Discretion, grounded in DESIGN_SYSTEM's own precedent (Hero/H1 already uses 800) — kept to one screen to preserve the inherited "two weights" contract everywhere else |
+| Emergency modal title uses weight 700 (no 800 exception) | Claude's Discretion, reversed after investigation: weight 800 is not used in any shipped component — it only exists as an unused loaded font-weight value in `frontend/app/layout.tsx`'s font config array, not an active pattern. Urgency is conveyed via color (#d4183d), size (18px), and centering instead, keeping the two-weight contract with zero exceptions |
+| `ds-10` (10px) spacing token — inherited pre-existing codebase convention, not a new Phase 5 token | Confirmed live usage predating this phase: `frontend/components/beranda/AiPlaceholderCard.tsx:31` (icon container radius), `frontend/components/aktivitas/KegiatanModuleInline.tsx:122,152` (icon containers), `frontend/components/aktivitas/ActivityList.tsx:225` (badge radius), `frontend/components/catatan/FluidLogItem.tsx:125`, and every form input across `frontend/components/cairan/CatatCairanForm.tsx` + `frontend/components/cairan/FluidEditSheet.tsx` (`rounded-[10px]`, used a dozen+ times for text inputs/selects/textareas/buttons). Kept as-is rather than changed to 8px/12px so Phase 5's new icon containers and cards stay visually consistent with every existing icon container, badge, and form input already shipped in Phases 1-4 |
 | Typography/spacing/color base tokens | Fully inherited from Phases 2-4 — not re-derived |
