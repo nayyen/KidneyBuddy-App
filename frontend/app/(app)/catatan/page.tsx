@@ -217,6 +217,23 @@ export default function CatatanPage() {
 
         {activeTab === "lab" && accessToken && (
           <div className="space-y-4">
+            {/* Analisis hasil lab — mengikuti parameter yang dipilih di
+                dropdown tren di bawah; selalu tampil saat tab Lab dimuat
+                (AI-03, D-14 async non-blocking), termasuk konteks riwayat
+                nilai-nilai sebelumnya untuk parameter yang sama. Ditampilkan
+                di atas komponen tren meski state parameter berasal darinya —
+                urutan render tidak memengaruhi urutan state React. */}
+            {lastSavedLab && (
+              <LabAnalysisCard
+                key={lastSavedLab.id}
+                accessToken={accessToken}
+                labResultId={lastSavedLab.id}
+                namaParameter={lastSavedLab.namaParameter}
+                nilai={lastSavedLab.nilai}
+                nilaiRujukan={lastSavedLab.nilaiRujukan}
+              />
+            )}
+
             {/* Add button */}
             <button
               onClick={() =>
@@ -235,23 +252,6 @@ export default function CatatanPage() {
             >
               + Catat Hasil Lab
             </button>
-
-            {/* Analisis hasil lab — mengikuti parameter yang dipilih di
-                dropdown tren di bawah; selalu tampil saat tab Lab dimuat
-                (AI-03, D-14 async non-blocking), termasuk konteks riwayat
-                nilai-nilai sebelumnya untuk parameter yang sama. Ditampilkan
-                di atas komponen tren meski state parameter berasal darinya —
-                urutan render tidak memengaruhi urutan state React. */}
-            {lastSavedLab && (
-              <LabAnalysisCard
-                key={lastSavedLab.id}
-                accessToken={accessToken}
-                labResultId={lastSavedLab.id}
-                namaParameter={lastSavedLab.namaParameter}
-                nilai={lastSavedLab.nilai}
-                nilaiRujukan={lastSavedLab.nilaiRujukan}
-              />
-            )}
 
             {/* Trend chart — drives which parameter LabAnalysisCard analyzes */}
             <LabTrendChart
