@@ -11,6 +11,8 @@
  * never blocks a fire-and-forget caller or the sequential batch loop (D-18).
  */
 import pino from "pino";
+import { sql } from "drizzle-orm";
+import { db } from "../lib/db.js";
 import { encrypt } from "../lib/encryption.js";
 import {
   checkCapdEffluentAnomaly,
@@ -84,6 +86,19 @@ export async function runAnomalyChecksForUser(userId: string): Promise<void> {
  * single fired rule. Isolated in its own try/catch so one rule's failure
  * (e.g. a Groq timeout) doesn't prevent the other 3 rules from being
  * evaluated for the same user.
+ *
+ * The dedup-check + explain + insert sequence runs inside a single DB
+ * transaction guarded by a `pg_advisory_xact_lock` keyed to
+ * `(userId, tipeAnomali)` (code review WR-03, 2026-07-04): without this,
+ * two near-simultaneous fire-and-forget calls for the same user+type
+ * (e.g. two rapid tracking entries, or a client retry) could both pass the
+ * `findActiveByType` check before either had inserted, producing duplicate
+ * alert rows and — for severity "tinggi" — duplicate emergency push
+ * notifications for what the patient experiences as one event. The
+ * advisory lock serializes concurrent calls for the SAME user+type only;
+ * unrelated users/types are unaffected. The emergency push itself stays
+ * OUTSIDE the transaction (a push failure must never roll back an already-
+ * committed alert).
  */
 async function processFiredRule(
   userId: string,
@@ -91,28 +106,47 @@ async function processFiredRule(
   rule: RuleResult,
 ): Promise<void> {
   try {
-    // Pitfall 3 dedup: don't re-fire while an unresolved alert of this type
-    // already exists (aktif/dibaca, not yet ditindaklanjuti).
-    const active = await findActiveByType(userId, rule.tipeAnomali);
-    if (active.length > 0) return;
+    let explanationText = "";
+    let inserted = false;
 
-    const { text, isFallback } = await getValidatedExplanation(rule);
-    const encryptedDeskripsi = encrypt(text);
+    await db.transaction(async (tx) => {
+      // hashtextextended folds both strings into one 64-bit advisory-lock
+      // key; released automatically at transaction end (commit or rollback).
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtextextended(${userId + ":" + rule.tipeAnomali}, 0))`,
+      );
 
-    await insertAlert(userId, {
-      tipeAnomali: rule.tipeAnomali,
-      severity: rule.severity,
-      confidenceScore: rule.confidenceScore,
-      deskripsi: encryptedDeskripsi,
-      tipePasien,
-      ruleData: rule.ruleData,
-      isFallback,
+      // Pitfall 3 dedup: don't re-fire while an unresolved alert of this
+      // type already exists today (aktif/dibaca, not yet ditindaklanjuti).
+      const active = await findActiveByType(userId, rule.tipeAnomali, tx);
+      if (active.length > 0) return;
+
+      const { text, isFallback } = await getValidatedExplanation(rule);
+      explanationText = text;
+      const encryptedDeskripsi = encrypt(text);
+
+      await insertAlert(
+        userId,
+        {
+          tipeAnomali: rule.tipeAnomali,
+          severity: rule.severity,
+          confidenceScore: rule.confidenceScore,
+          deskripsi: encryptedDeskripsi,
+          tipePasien,
+          ruleData: rule.ruleData,
+          isFallback,
+        },
+        tx,
+      );
+      inserted = true;
     });
+
+    if (!inserted) return; // deduped within the lock — nothing more to do
 
     if (rule.severity === "tinggi") {
       await sendToAllDevices(userId, {
         title: "Peringatan Kesehatan Darurat",
-        body: text,
+        body: explanationText,
         url: "/beranda",
       }).catch((err) =>
         logger.error(
