@@ -1,13 +1,15 @@
 /**
- * community.controller.ts — Thin controller for community post endpoints
+ * community.controller.ts — Thin controller for community post + reply
+ * endpoints
  *
  * Pattern: follows labResult.controller.ts — parse req, delegate to service,
  * json/next(err). No Zod, no direct repository/db access here.
  *
- * Reply handlers (COMMUNITY-02) are added by 06-05 — not implemented here.
+ * Reply + "membantu" handlers (COMMUNITY-02) added by 06-05.
  */
 import type { Request, Response, NextFunction } from "express";
 import * as communityPostService from "../services/communityPost.service.js";
+import * as communityReplyService from "../services/communityReply.service.js";
 
 /**
  * POST /api/community
@@ -93,6 +95,68 @@ export async function archivePost(
       return;
     }
     res.json(row);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/community/:id/replies
+ * Create a new reply on a post for the authenticated user.
+ */
+export async function createReply(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const row = await communityReplyService.createReply(
+      req.user!.id,
+      req.params.id as string,
+      req.body,
+    );
+    res.status(201).json(row);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/community/:id/replies
+ * List all replies for a post, each with helpfulCount and markedByMe.
+ */
+export async function listReplies(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const replies = await communityReplyService.listReplies(
+      req.params.id as string,
+      req.user!.id,
+    );
+    res.json({ replies });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/community/replies/:replyId/helpful
+ * Toggle a "membantu" mark on a reply. Open to any authenticated user —
+ * not restricted to the post's author (D-08).
+ */
+export async function toggleHelpful(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await communityReplyService.toggleHelpful(
+      req.user!.id,
+      req.params.replyId as string,
+    );
+    res.json(result);
   } catch (err) {
     next(err);
   }
