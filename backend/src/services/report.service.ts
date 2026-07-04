@@ -11,17 +11,53 @@
  *   fluidSummary: { totalIn, totalOut, balance },
  *   medicationAdherence: { taken, scheduled, pct },
  *   capdFrequency: { jernih, keruh, keruh_gumpalan, berdarah },
- *   anomalies: []  // Phase 4 placeholder — Phase 5 fills with real data
+ *   anomalies: ReportAnomalyRow[]  // D-15 (05-07) — real anomaly_alerts data
  * }
  */
 import { z } from "zod";
 import * as reportRepository from "../repositories/report.repository.js";
+import * as anomalyAlertRepo from "../repositories/anomalyAlert.repository.js";
+import { decrypt } from "../lib/encryption.js";
 import type {
   FluidSummaryRow,
   MedicationAdherenceResult,
   DialysisAdherenceResult,
   CAPDConditionCounts,
 } from "../repositories/report.repository.js";
+
+// ─── Anomali Terdeteksi (D-15) ────────────────────────────────────────────────
+
+export type ReportAnomalyRow = {
+  tanggal: string; // WIB date derived from anomaly_alerts.createdAt
+  tipeAnomali: string;
+  severity: string; // "normal" | "tinggi"
+  deskripsi: string; // decrypted plaintext
+};
+
+/** WIB (UTC+7) calendar date for a timestamp — mirrors utils/wib.ts's shift convention. */
+function toWibDateStr(d: Date): string {
+  return new Date(d.getTime() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+/**
+ * Fetches anomaly_alerts for the report's date range (T-05-17: IDOR-scoped
+ * via anomalyAlertRepo.findByUserAndRange's userId-first signature, same
+ * WIB-correct range aggregation pattern as report.repository.ts's other
+ * queries) and decrypts `deskripsi` (T-05-19 — never exposed as ciphertext).
+ */
+async function getAnomaliesByRangeForReport(
+  userId: string,
+  dari: string,
+  sampai: string,
+): Promise<ReportAnomalyRow[]> {
+  const rows = await anomalyAlertRepo.findByUserAndRange(userId, dari, sampai);
+  return rows.map((row) => ({
+    tanggal: toWibDateStr(row.createdAt),
+    tipeAnomali: row.tipeAnomali,
+    severity: row.severity,
+    deskripsi: decrypt(row.deskripsi),
+  }));
+}
 
 // ─── Zod validation schema ───────────────────────────────────────────────────
 
@@ -82,7 +118,7 @@ export type ReportResponse = {
   medicationAdherence: MedicationAdherence;
   dialysisAdherence: DialysisAdherence;
   capdFrequency: CAPDConditionCounts;
-  anomalies: unknown[];
+  anomalies: ReportAnomalyRow[];
 };
 
 // ─── Injectable core function ────────────────────────────────────────────────
@@ -91,6 +127,7 @@ type GetFluidFn = typeof reportRepository.getFluidSummaryByRange;
 type GetMedFn = typeof reportRepository.getMedicationAdherenceByRange;
 type GetDialysisFn = typeof reportRepository.getDialysisAdherenceByRange;
 type GetCAPDFn = typeof reportRepository.getCAPDConditionsByRange;
+type GetAnomaliesFn = typeof getAnomaliesByRangeForReport;
 
 /**
  * _generateReportCore — injectable core with fake-able repository functions.
@@ -105,6 +142,8 @@ type GetCAPDFn = typeof reportRepository.getCAPDConditionsByRange;
  * @param getMedFn - injected getMedicationAdherenceByRange
  * @param getDialysisFn - injected getDialysisAdherenceByRange
  * @param getCAPDFn - injected getCAPDConditionsByRange
+ * @param getAnomaliesFn - injected getAnomaliesByRangeForReport (D-15, defaults
+ *   to the real implementation in the production wrapper below)
  */
 export async function _generateReportCore(
   userId: string,
@@ -114,13 +153,15 @@ export async function _generateReportCore(
   getMedFn: GetMedFn,
   getDialysisFn: GetDialysisFn,
   getCAPDFn: GetCAPDFn,
+  getAnomaliesFn: GetAnomaliesFn = getAnomaliesByRangeForReport,
 ): Promise<ReportResponse> {
   // Run all queries in parallel
-  const [fluidRows, medicationData, dialysisData, capdCounts] = await Promise.all([
+  const [fluidRows, medicationData, dialysisData, capdCounts, anomalies] = await Promise.all([
     getFluidFn(userId, dari, sampai),
     getMedFn(userId, dari, sampai),
     getDialysisFn(userId, dari, sampai),
     getCAPDFn(userId, dari, sampai),
+    getAnomaliesFn(userId, dari, sampai),
   ]);
 
   // Compute fluid summary
@@ -152,7 +193,7 @@ export async function _generateReportCore(
     medicationAdherence: { taken: medTaken, scheduled: medScheduled, pct: medPct },
     dialysisAdherence: { taken: dialysisTaken, scheduled: dialysisScheduled, pct: dialysisPct },
     capdFrequency: capdCounts,
-    anomalies: [], // Phase 4 placeholder — Phase 5 fills with real detection data
+    anomalies, // D-15 (05-07) — real anomaly_alerts rows for the report range
   };
 }
 
@@ -175,5 +216,6 @@ export const reportService = {
       reportRepository.getMedicationAdherenceByRange,
       reportRepository.getDialysisAdherenceByRange,
       reportRepository.getCAPDConditionsByRange,
+      getAnomaliesByRangeForReport,
     ),
 };

@@ -18,6 +18,18 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
+// Set ENCRYPTION_KEY before module imports (05-07 deviation) —
+// report.service.js now transitively imports anomalyAlert.repository +
+// lib/encryption.js for the real D-15 getAnomaliesByRangeForReport
+// implementation, which validates the key at module load time (same
+// pattern as dailySummary.job.test.ts / labResult.service.test.ts). This
+// file's tests never exercise real encrypt/decrypt (in-memory fakes only),
+// but the import chain still requires a syntactically valid key to avoid
+// a load-time throw that would fail every test in this file, not just the
+// pre-existing getCAPDFn-arity ones.
+process.env.ENCRYPTION_KEY =
+  "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
+
 // ─── Import from unimplemented module (will fail — RED scaffold) ────────────
 const { _generateReportCore, reportQuerySchema } = await import(
   "../services/report.service.js"

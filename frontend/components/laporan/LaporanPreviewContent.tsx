@@ -25,14 +25,14 @@ import KepatuhanCuciDarah, {
 import KondisiCAPD, {
   type CAPDFrequencyData,
 } from "@/components/laporan/sections/KondisiCAPD";
-import Anomali from "@/components/laporan/sections/Anomali";
+import Anomali, { type AnomaliRow } from "@/components/laporan/sections/Anomali";
 
 export interface ReportData {
   fluidSummary: FluidSummaryData;
   medicationAdherence: MedicationAdherenceData;
   dialysisAdherence: DialysisAdherenceData;
   capdFrequency: CAPDFrequencyData;
-  anomalies: unknown[];
+  anomalies: AnomaliRow[];
 }
 
 interface Props {
@@ -129,8 +129,8 @@ export default function LaporanPreviewContent({
         <KondisiCAPD capdFrequency={report.capdFrequency} />
       )}
 
-      {/* Section 4: Anomali Terdeteksi (placeholder) */}
-      <Anomali />
+      {/* Section 4: Anomali Terdeteksi (D-15 — real data) */}
+      <Anomali anomalies={report.anomalies} />
     </div>
   );
 }
