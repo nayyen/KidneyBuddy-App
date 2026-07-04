@@ -89,6 +89,28 @@ export async function getWeeklyInsight(
 }
 
 /**
+ * POST /api/ai/weekly-insight/regenerate
+ * Forces a fresh Groq call for this week's insight, mirroring
+ * regenerateDailySummary above (code review WR-01, 2026-07-04) — without
+ * this, a missed/failed Sunday 19:00 WIB batch left the user with no
+ * insight and no way to trigger one until the following Sunday.
+ */
+export async function regenerateWeeklyInsight(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await aiInsightService.generateAndCacheWeeklyInsight(req.user!.id, {
+      force: true,
+    });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * GET /api/ai/lab-analysis/:labResultId
  * Cache read for a single lab result's AI analysis (AI-03), ALSO triggering
  * fire-and-forget generation on a cache miss (deduped in-flight) so a lab
