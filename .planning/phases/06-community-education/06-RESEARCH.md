@@ -497,17 +497,19 @@ export async function toggleHelpful(userId: string, replyId: string): Promise<{ 
 | A4 | No pagination is needed for the community feed or reply list at MVP scale — a defensive `LIMIT` (not full cursor pagination) is sufficient, matching every existing list-fetching component in this codebase (none of which paginate) | Alternatives Considered, Don't Hand-Roll | Low-Medium — if the seeded/real community data volume grows faster than expected during grading/demo, an unpaginated feed could become slow; mitigated by the defensive `LIMIT` and the fact this is an academic MVP with a small expected userbase |
 | A5 | Community post/reply content and education content should NOT be application-layer encrypted (unlike fluid/medication/lab data) | Common Pitfalls (Pitfall 1) | Medium — if a stricter reading of NFR-02 ("data kesehatan sensitif... wajib dienkripsi") is later applied to community posts (which may incidentally contain health details shared by patients), this could require retrofitting encryption. Current reasoning: PRD.md explicitly names `fluid_log`/`medication_log`/`lab_result` as the sensitive entities requiring encryption, and community content is inherently peer-visible (encrypting-then-decrypting-for-every-viewer provides no confidentiality benefit) — this should be confirmed with the user/PO if genuinely ambiguous, but is not re-litigated here since it wasn't raised as a concern in CONTEXT.md's discussion. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Exact set/count of seeded education articles (D-10's "Claude's Discretion" scope)**
+1. **Exact set/count of seeded education articles (D-10's "Claude's Discretion" scope)** — RESOLVED
    - What we know: Content must be real, substantive Bahasa Indonesia, non-diagnostic, calm tone (matching `aiDisclaimer.ts` tone), covering CAPD/HD/Transplantasi/Umum, in text+static-image format (no video, D-11), authored via seed script (D-12).
    - What's unclear: Exact article count and length per therapy method — CONTEXT.md explicitly defers this sizing decision to "researcher/planner."
    - Recommendation: Size to roughly 2-3 articles per therapy method category (CAPD/HD/Transplantasi) covering at minimum: (a) diet/fluid lifestyle guidance, (b) an exercise/activity guide (panduan senam, per D-11's text+image format), (c) a general therapy-adherence/education piece — plus 1-2 "Umum" articles applicable to all patients. This gives the planner a concrete Wave/task-sizing target (~8-10 articles total) without overcommitting content-writing effort in an MVP phase. Final count is the planner's call, informed by wave/task budget.
+   - Resolution: Adopted by plan 06-02 Task 3 (seeds ~8-10 articles across CAPD/HD/Transplantasi/Umum per the recommendation above).
 
-2. **Whether `education_content` needs a `kategori` field distinct from `metodeTerapi` (e.g., "Artikel" vs "Panduan Senam" vs "Informasi Gaya Hidup" as a content-type axis, separate from the CAPD/HD/Transplantasi/Umum therapy-method axis)**
+2. **Whether `education_content` needs a `kategori` field distinct from `metodeTerapi` (e.g., "Artikel" vs "Panduan Senam" vs "Informasi Gaya Hidup" as a content-type axis, separate from the CAPD/HD/Transplantasi/Umum therapy-method axis)** — RESOLVED
    - What we know: EDU-01 requires filtering "by active therapy method" specifically; UI-SPEC's `EducationCard.tsx` inventory mentions "flat SVG/illustration per category," implying a category concept exists visually.
    - What's unclear: CONTEXT.md and UI-SPEC don't explicitly confirm a second filterable axis (content-type) beyond therapy method — EDU-01's requirement text only names therapy-method filtering as a hard requirement.
    - Recommendation: Model `education_content` with both `metodeTerapi` (required filter, EDU-01) and a `tipeKonten` field ('artikel' | 'panduan_senam' | 'gaya_hidup') for card iconography/grouping (per D-11's format distinction and the UI-SPEC's "buku/artikel per kategori" illustration note), but treat `tipeKonten` as a display/grouping concern only — not a second mandatory filter chip row, since only therapy-method filtering is a locked requirement.
+   - Resolution: Adopted by plan 06-01 (schema) and 06-02 (service) — `tipeKonten` added as a display-only field, not a mandatory filter chip row, exactly as recommended.
 
 ## Environment Availability
 
