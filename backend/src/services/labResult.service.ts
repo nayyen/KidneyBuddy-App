@@ -11,11 +11,19 @@
  * - T-04-02: catatan encrypted before INSERT, decrypted after SELECT
  *
  * Test seam: exports _createLabCore with injectable dependencies.
+ *
+ * AI-03/D-14: createEntry fires a non-blocking lab analysis trigger after
+ * the save already succeeded — the manual lab save flow never awaits or
+ * depends on Groq availability (see aiLabAnalysis.service.ts).
  */
 import { z } from "zod";
+import pino from "pino";
 import { encrypt as realEncrypt, decrypt as realDecrypt } from "../lib/encryption.js";
 import * as labResultRepository from "../repositories/labResult.repository.js";
+import * as aiLabAnalysisService from "./aiLabAnalysis.service.js";
 import type { NewLabResult } from "../repositories/labResult.repository.js";
+
+const logger = pino({ name: "labResult.service" });
 
 // ─── Zod validation schemas ───────────────────────────────────────────────────
 
@@ -209,13 +217,27 @@ export async function createEntry(
   userId: string,
   rawPayload: unknown,
 ): Promise<LabResultResult> {
-  return _createLabCore(
+  const result = await _createLabCore(
     userId,
     rawPayload,
     (data) => labResultRepository.insertLabResult(data),
     realEncrypt,
     realDecrypt,
   );
+
+  // Fire-and-forget lab analysis trigger (AI-03, D-14) — deliberately NOT
+  // awaited: the save has already succeeded and returns to the caller
+  // regardless of Groq's availability/latency.
+  aiLabAnalysisService
+    .generateAndCacheLabAnalysis(userId, result.id)
+    .catch((err) =>
+      logger.error(
+        { userId, labResultId: result.id, err },
+        "non-blocking lab analysis trigger failed",
+      ),
+    );
+
+  return result;
 }
 
 /**
