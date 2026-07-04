@@ -212,12 +212,12 @@ export default function AiDailySummaryCard({ accessToken }: AiDailySummaryCardPr
           <>
             <p
               className="font-sans"
-              style={{ fontSize: 12, color: "#1a2e2c", lineHeight: 1.6, whiteSpace: "pre-wrap" }}
+              style={{ fontSize: 15, color: "#1a2e2c", lineHeight: 1.6, whiteSpace: "pre-wrap" }}
             >
               {narrative}
             </p>
             {createdAt && (
-              <p className="font-sans mt-1.5" style={{ fontSize: 10, color: "#7a8c8a" }}>
+              <p className="font-sans mt-1.5" style={{ fontSize: 11, color: "#7a8c8a" }}>
                 Dibuat pukul {formatWibTime(createdAt)}
               </p>
             )}
@@ -244,7 +244,7 @@ export default function AiDailySummaryCard({ accessToken }: AiDailySummaryCardPr
             {disclaimer && (
               <p
                 className="font-sans italic mt-2"
-                style={{ fontSize: 10, color: "#7a8c8a" }}
+                style={{ fontSize: 12, color: "#7a8c8a" }}
               >
                 {disclaimer}
               </p>

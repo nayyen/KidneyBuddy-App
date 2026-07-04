@@ -219,14 +219,14 @@ export default function LabAnalysisCard({
           <>
             <p
               className="font-sans"
-              style={{ fontSize: 12, color: "#1a2e2c", lineHeight: 1.6, whiteSpace: "pre-wrap" }}
+              style={{ fontSize: 15, color: "#1a2e2c", lineHeight: 1.6, whiteSpace: "pre-wrap" }}
             >
               {outOfRange ? renderNarrativeWithHighlight(narrative, nilai) : narrative}
             </p>
             {disclaimer && (
               <p
                 className="font-sans italic mt-2"
-                style={{ fontSize: 10, color: "#7a8c8a" }}
+                style={{ fontSize: 12, color: "#7a8c8a" }}
               >
                 {disclaimer}
               </p>
