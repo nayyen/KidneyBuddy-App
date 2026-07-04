@@ -18,19 +18,26 @@
  * community_reply_helpful — no denormalized counter column exists on
  * community_replies (RESEARCH Anti-Patterns).
  *
+ * findByPost left-joins `users` to attach an `authorName` display field
+ * (06-07 deviation, same Rule 2 precedent as communityPost.repository.ts's
+ * 06-06 authorName join — a reply with zero author attribution is a real
+ * UX gap in a Quora-style thread, not cosmetic).
+ *
  * Pattern: follows communityPost.repository.ts's public-read shape;
  * toggle logic follows 06-RESEARCH.md's check-then-act example.
  */
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, getTableColumns, sql } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { communityReplies } from "../db/schema/communityReply.schema.js";
 import { communityReplyHelpful } from "../db/schema/communityReplyHelpful.schema.js";
+import { users } from "../db/schema/users.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export type CommunityReply = InferSelectModel<typeof communityReplies>;
 export type NewCommunityReply = InferInsertModel<typeof communityReplies>;
 
 export type CommunityReplyWithMeta = CommunityReply & {
+  authorName: string | null;
   helpfulCount: number;
   markedByMe: boolean;
 };
@@ -54,8 +61,9 @@ export async function findByPost(
   currentUserId: string,
 ): Promise<CommunityReplyWithMeta[]> {
   const replies = await db
-    .select()
+    .select({ ...getTableColumns(communityReplies), authorName: users.namaLengkap })
     .from(communityReplies)
+    .leftJoin(users, eq(communityReplies.userId, users.userId))
     .where(eq(communityReplies.postId, postId))
     .orderBy(asc(communityReplies.createdAt));
 
