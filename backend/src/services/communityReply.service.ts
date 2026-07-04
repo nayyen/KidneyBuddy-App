@@ -23,6 +23,8 @@ import { z } from "zod";
 import pino from "pino";
 import * as communityReplyRepository from "../repositories/communityReply.repository.js";
 import type { CommunityReplyWithMeta } from "../repositories/communityReply.repository.js";
+import * as communityPostRepository from "../repositories/communityPost.repository.js";
+import { AppError } from "../middleware/errorHandler.js";
 
 const logger = pino({ name: "communityReply.service" });
 
@@ -48,9 +50,13 @@ export type CreateReplyPayload = z.infer<typeof createReplySchema>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InsertFn = (data: any) => Promise<any>;
 type ToggleFn = (userId: string, replyId: string) => Promise<{ marked: boolean }>;
+type FindPostFn = (
+  id: string,
+) => Promise<{ diarsipkan: boolean } | null>;
 
 export interface CreateReplyDeps {
   insert: InsertFn;
+  findPost: FindPostFn;
 }
 
 export interface ToggleHelpfulDeps {
@@ -66,9 +72,29 @@ export async function createReply(
   userId: string,
   postId: string,
   rawPayload: unknown,
-  deps: CreateReplyDeps = { insert: communityReplyRepository.createReply },
+  deps: CreateReplyDeps = {
+    insert: communityReplyRepository.createReply,
+    findPost: communityPostRepository.findById,
+  },
 ) {
   const parsed = createReplySchema.parse(rawPayload);
+
+  // WR-06: archiving a post is meant to freeze the discussion — the archive
+  // dialog tells the owner it "akan disembunyikan dari feed komunitas".
+  // findById/getPostDetail deliberately still return archived posts (so a
+  // direct link/bookmark doesn't 404), but new replies against an archived
+  // post are rejected here.
+  const post = await deps.findPost(postId);
+  if (!post) {
+    throw new AppError(404, "NOT_FOUND", "Postingan tidak ditemukan");
+  }
+  if (post.diarsipkan) {
+    throw new AppError(
+      410,
+      "POST_ARCHIVED",
+      "Postingan ini sudah diarsipkan dan tidak dapat dibalas lagi",
+    );
+  }
 
   logger.info({ userId, postId }, "creating community reply");
 

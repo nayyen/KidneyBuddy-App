@@ -95,12 +95,49 @@ describe("createReply", () => {
       USER_ID,
       POST_ID,
       { isi: "Coba kompres hangat sebelum tidur." },
-      { insert: store.insert },
+      { insert: store.insert, findPost: async () => ({ diarsipkan: false }) },
     );
 
     assert.strictEqual(store.rows.length, 1);
     assert.strictEqual(result.isi, "Coba kompres hangat sebelum tidur.");
     assert.strictEqual(result.postId, POST_ID);
+  });
+
+  // WR-06: archived posts are frozen — new replies must be rejected.
+  it("rejects a reply to an archived post", async () => {
+    const store = createInMemoryReplyStore();
+
+    await assert.rejects(
+      () =>
+        createReply(
+          USER_ID,
+          POST_ID,
+          { isi: "Balasan ke postingan yang sudah diarsipkan." },
+          { insert: store.insert, findPost: async () => ({ diarsipkan: true }) },
+        ),
+      /diarsipkan/,
+    );
+
+    assert.strictEqual(store.rows.length, 0);
+  });
+
+  // WR-06/WR-01: a postId that doesn't resolve to any post is rejected too,
+  // rather than silently inserting an orphaned reply.
+  it("rejects a reply to a non-existent post", async () => {
+    const store = createInMemoryReplyStore();
+
+    await assert.rejects(
+      () =>
+        createReply(
+          USER_ID,
+          POST_ID,
+          { isi: "Balasan ke postingan yang tidak ada." },
+          { insert: store.insert, findPost: async () => null },
+        ),
+      /tidak ditemukan/,
+    );
+
+    assert.strictEqual(store.rows.length, 0);
   });
 });
 
