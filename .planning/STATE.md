@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 06 Plan 03 (education frontend) complete — SUMMARY.md written, ready for Plan 05
-last_updated: "2026-07-04T11:42:52.186Z"
+stopped_at: Phase 06 Plan 05 (community reply backend) complete - SUMMARY.md written, ready for Plan 06
+last_updated: "2026-07-04T11:56:45.525Z"
 last_activity: 2026-07-04 -- Phase 06 Plan 01 complete (4 tables migrated, 3 RED test scaffolds); Plan 02 next
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 36
-  completed_plans: 29
+  completed_plans: 30
   percent: 43
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 06 (community-education) — EXECUTING
-Plan: 5 of 7 (01 complete)
+Plan: 6 of 7 (01 complete)
 Phase: 03 (activity-logging-lab-results) — COMPLETE ✓
 Phase: 04 (caregiver-dashboard-doctor-reports) — COMPLETE ✓
 Phase: 06 (community-education) — IN PROGRESS
@@ -72,6 +72,7 @@ Progress: [█████░░░░░] 50%
 | Phase 06 P02 | 40min | 3 tasks | 7 files |
 | Phase 06 P04 | 35min | 2 tasks | 5 files |
 | Phase 06 P03 | 35min | 3 tasks | 6 files |
+| Phase 06 P05 | ~20min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 06 P04]: communityPost.repository.ts's findFeed/findById are NOT userId-scoped (public feed by design, mirrors educationContent.repository.ts's non-scoping precedent for a different reason) — only archiveById is userId-scoped for the IDOR ownership guard.
 - [Phase 06-03]: EducationDetail reuses the already-fetched EducationList item directly (no follow-up GET /api/education/:id) since the list endpoint already returns full isi.
 - [Phase 06-03]: Doc comments in EducationCard/EducationDetail avoid the literal string dangerouslySetInnerHTML so the plan's own grep-based acceptance checks pass.
+- [Phase 06-05]: toggleHelpful (service + repository) carries NO userId-ownership WHERE guard tying the mark to the reply's author - any authenticated user may mark any reply as membantu, per D-08's intentional open-access model; the community_reply_helpful unique(reply_id,user_id) constraint from 06-01 is the DB-level dedup backstop
 
 ### Pending Todos
 
@@ -134,9 +136,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-04T11:42:51.876Z
-Stopped at: Phase 06 Plan 03 (education frontend) complete — SUMMARY.md written, ready for Plan 05
-Resume file: .planning/phases/06-community-education/06-03-SUMMARY.md
+Last session: 2026-07-04T11:56:45.292Z
+Stopped at: Phase 06 Plan 05 (community reply backend) complete - SUMMARY.md written, ready for Plan 06
+Resume file: .planning/phases/06-community-education/06-05-SUMMARY.md
 
 ## Phase 4 Summary
 
