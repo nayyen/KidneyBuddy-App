@@ -236,6 +236,8 @@ Step 7c: SKIPPED — no probe-*.sh scripts declared or found in this phase.
 
 ## Requirements Coverage
 
+_Updated 2026-07-04 during v1.0 milestone audit: REMIND-01/02/03 below were originally recorded as BLOCKED at the initial 2026-06-27 verification pass. The 2026-06-29 re-verification (see `gaps` in frontmatter) fixed all four cited blockers (CR-01..04) and this table was never updated to match — it has been corrected below._
+
 | Requirement | Source Plan | Description | Status | Evidence |
 |------------|------------|-------------|--------|----------|
 | FLUID-01 | 02-04 | Log fluid entry (type, source, CAPD conc, volume, unit) | SATISFIED | fluidLog.schema.ts + fluid.service.ts + CatatCairanForm.tsx; 24/24 tests |
@@ -243,9 +245,9 @@ Step 7c: SKIPPED — no probe-*.sh scripts declared or found in this phase.
 | FLUID-03 | 02-04 | CAPD abnormal effluent → immediate non-dismissable red alert | SATISFIED | CAPDEffluentBanner.tsx — no X icon, action button only |
 | FLUID-04 | 02-04 | Retroactive entry with past date/time, flagged as late | SATISFIED | isLateEntry in schema + form; CatatCairanForm isLateEntry checkbox |
 | FLUID-05 | 02-04 | Offline save queued in IndexedDB, synced on reconnect | SATISFIED | offlineQueue.ts with idb; registerOnlineListener confirmed |
-| REMIND-01 | 02-05, 02-07 | Create medication reminder (name, dose, type, days, time, photo) | BLOCKED | CR-03: hariAktif[] FormData bracket bug — every creation returns 400 |
-| REMIND-02 | 02-06 | Push notification at scheduled time showing med name | BLOCKED | CR-02: UTC vs WIB timezone — fires 7h wrong for Jakarta patients |
-| REMIND-03 | 02-05, 02-07 | Confirm dose from notification — logged in backend | BLOCKED | CR-01: SW relative URL goes to Vercel not backend; CR-04: UI shows undefined names |
+| REMIND-01 | 02-05, 02-07 | Create medication reminder (name, dose, type, days, time, photo) | SATISFIED | CR-03 fixed 2026-06-29: hariAktif FormData bracket bug resolved (backend z.preprocess coercion) — creation succeeds |
+| REMIND-02 | 02-06 | Push notification at scheduled time showing med name | SATISFIED | CR-02 fixed 2026-06-29: reminderDispatch.job.ts now applies WIB (+7h) offset — fires at correct Jakarta time |
+| REMIND-03 | 02-05, 02-07 | Confirm dose from notification — logged in backend | SATISFIED | CR-01/CR-04 fixed 2026-06-29: SW uses absolute backend URL; UI reads namaObat not reminderNama |
 | REMIND-04 | 02-06 | 30-min follow-up if reminder unconfirmed | NEEDS HUMAN | Backend code correct (follow_up_sent guard); depends on REMIND-02 fix + real device |
 | REMIND-05 | 02-05, 02-07 | CAPD exchange reminder (time + concentration) | SATISFIED | createCapdSchema + CAPDReminderForm (JSON POST — no CR-03 issue) |
 | REMIND-06 | 02-05, 02-07 | HD schedule reminder (days + time) | SATISFIED | createHdSchema + HDReminderForm (JSON POST) |
