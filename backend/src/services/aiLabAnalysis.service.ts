@@ -126,6 +126,44 @@ export async function getLabAnalysis(
   };
 }
 
+// Dedup guard so concurrent polls for the same labResultId (the GET
+// endpoint below is hit every ~3s while the frontend polls) don't each
+// fire an independent Groq call while generation is already in flight.
+const generationInFlight = new Set<string>();
+
+/**
+ * Cache-read that ALSO kicks off generation (fire-and-forget, deduped via
+ * `generationInFlight`) on a cache miss — used by GET
+ * /api/ai/lab-analysis/:labResultId so a lab result saved BEFORE this
+ * feature existed (or whose original save-time trigger never completed)
+ * still eventually gets analyzed the first time a user views it, not only
+ * entries created going forward. Still returns `{ ready: false }`-shaped
+ * `null` immediately; the frontend's existing poll loop picks up the
+ * result once generation finishes and the next poll hits the cache.
+ */
+export async function getOrTriggerLabAnalysis(
+  userId: string,
+  labResultId: string,
+): Promise<LabAnalysisResult | null> {
+  const cached = await getLabAnalysis(userId, labResultId);
+  if (cached) return cached;
+
+  if (!generationInFlight.has(labResultId)) {
+    generationInFlight.add(labResultId);
+    generateAndCacheLabAnalysis(userId, labResultId)
+      .catch((err) => {
+        logger.error(
+          { userId, labResultId, err },
+          "on-demand lab analysis generation failed (GET-triggered)",
+        );
+      })
+      .finally(() => {
+        generationInFlight.delete(labResultId);
+      });
+  }
+  return null;
+}
+
 // Cap on how many historical entries feed the prompt — enough for a
 // meaningful trend without an unbounded/expensive Groq context.
 const MAX_HISTORY_ENTRIES = 10;

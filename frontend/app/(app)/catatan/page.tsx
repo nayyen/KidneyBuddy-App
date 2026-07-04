@@ -236,17 +236,12 @@ export default function CatatanPage() {
               + Catat Hasil Lab
             </button>
 
-            {/* Trend chart — drives which parameter LabAnalysisCard analyzes */}
-            <LabTrendChart
-              accessToken={accessToken}
-              refreshKey={labRefreshKey}
-              onParameterChange={setSelectedLabParameter}
-            />
-
             {/* Analisis hasil lab — mengikuti parameter yang dipilih di
-                dropdown tren di atas; selalu tampil saat tab Lab dimuat
+                dropdown tren di bawah; selalu tampil saat tab Lab dimuat
                 (AI-03, D-14 async non-blocking), termasuk konteks riwayat
-                nilai-nilai sebelumnya untuk parameter yang sama. */}
+                nilai-nilai sebelumnya untuk parameter yang sama. Ditampilkan
+                di atas komponen tren meski state parameter berasal darinya —
+                urutan render tidak memengaruhi urutan state React. */}
             {lastSavedLab && (
               <LabAnalysisCard
                 key={lastSavedLab.id}
@@ -257,6 +252,13 @@ export default function CatatanPage() {
                 nilaiRujukan={lastSavedLab.nilaiRujukan}
               />
             )}
+
+            {/* Trend chart — drives which parameter LabAnalysisCard analyzes */}
+            <LabTrendChart
+              accessToken={accessToken}
+              refreshKey={labRefreshKey}
+              onParameterChange={setSelectedLabParameter}
+            />
 
             {/* Lab results list */}
             <LabResultList

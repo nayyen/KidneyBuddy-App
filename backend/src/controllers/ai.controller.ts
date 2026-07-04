@@ -90,14 +90,16 @@ export async function getWeeklyInsight(
 
 /**
  * GET /api/ai/lab-analysis/:labResultId
- * Cache-only read of a single lab result's AI analysis (AI-03). Never calls
- * Groq — generation happens asynchronously via the fire-and-forget trigger
- * on lab save (D-14). Returns `{ ready: false }` (200) both when the
- * analysis simply hasn't finished generating yet AND when the labResultId
- * doesn't exist / isn't owned by this user (T-05-14) — the IDOR-safe
- * repository join can't distinguish the two cases, and collapsing them
- * avoids leaking existence of another user's lab result via a 404 vs. 200
- * status-code oracle.
+ * Cache read for a single lab result's AI analysis (AI-03), ALSO triggering
+ * fire-and-forget generation on a cache miss (deduped in-flight) so a lab
+ * result saved before this on-demand path existed — or whose original
+ * save-time trigger never completed — still eventually gets analyzed the
+ * first time a user opens the Lab tab for it, not only new saves (D-14).
+ * Returns `{ ready: false }` (200) both when the analysis simply hasn't
+ * finished generating yet AND when the labResultId doesn't exist / isn't
+ * owned by this user (T-05-14) — the IDOR-safe repository join can't
+ * distinguish the two cases, and collapsing them avoids leaking existence
+ * of another user's lab result via a 404 vs. 200 status-code oracle.
  */
 export async function getLabAnalysis(
   req: Request,
@@ -106,7 +108,7 @@ export async function getLabAnalysis(
 ): Promise<void> {
   try {
     const labResultId = req.params.labResultId as string;
-    const result = await aiLabAnalysisService.getLabAnalysis(req.user!.id, labResultId);
+    const result = await aiLabAnalysisService.getOrTriggerLabAnalysis(req.user!.id, labResultId);
     if (!result) {
       res.json({ ready: false });
       return;
