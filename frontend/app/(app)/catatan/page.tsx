@@ -93,7 +93,7 @@ export default function CatatanPage() {
     if (!accessToken || !selectedLabParameter) return;
     let cancelled = false;
     authFetch<{ results: CreatedLabEntry[] }>(
-      `/api/lab-results?parameter=${encodeURIComponent(selectedLabParameter)}`,
+      `/api/lab?parameter=${encodeURIComponent(selectedLabParameter)}`,
       accessToken,
     )
       .then((res) => {
