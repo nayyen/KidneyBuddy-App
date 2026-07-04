@@ -43,6 +43,7 @@ Progress: [██████░░░░] 57%
 |------|------|-------|---------|
 | 2026-07-02 | human-fluid-chart-silhouette | `frontend/components/beranda/HumanFluidChart.tsx` | Perfect-circle head via `<circle>`; continuous body path with arms merged into torso; no armpit gap. Verified on `/beranda`. |
 | 2026-07-02 | phase-4.1-ux-polish-data-consistency | 25+ files across backend + frontend | WIB time fixes (med dedup, fluid 00:xx bug, findNextUpcoming grouped+hariAktif); Cuci Darah feature (dialysis_log schema, CuciDarahCard, /catatan tab); obat detail overlay+terlambat; cairan Urine source+decimal koma+CAPD konsentrasi masuk+detail overlay+delete; lab nama field; aktivitas year+estimasi status; /pengingat pilih semua hari+WIB label+separators+bigger buttons. 8 commits. |
+| 2026-07-05 | 260704-uyb-fix-4-stale-backend-test-fixtures-found- | `backend/src/test/{activity.service,fluid.service,reminderDispatch,labUploadTrend}.test.ts` | Fixed 4 stale test fixtures found during v1.0 milestone audit (none were production bugs): activity test's payload didn't match the current estimasiMenit contract; fluid test used an invalid sumber enum value; reminderDispatch mocks were missing insertMedLog/insertDialysisLog (+ one stale sendToAll payload assertion); labUploadTrend documented as requiring the Docker Postgres container. 42/42 target tests pass in-container; full suite 191/194 (3 remaining failures are the documented container-only DB tests, not run from host). 3 commits. |
 
 ## Performance Metrics
 
