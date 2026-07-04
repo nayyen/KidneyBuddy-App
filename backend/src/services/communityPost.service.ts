@@ -21,7 +21,7 @@
 import { z } from "zod";
 import pino from "pino";
 import * as communityPostRepository from "../repositories/communityPost.repository.js";
-import type { CommunityPost } from "../repositories/communityPost.repository.js";
+import type { CommunityPostWithAuthor } from "../repositories/communityPost.repository.js";
 
 const logger = pino({ name: "communityPost.service" });
 
@@ -112,7 +112,7 @@ export async function listFeed(
   deps: { findFeed: typeof communityPostRepository.findFeed } = {
     findFeed: communityPostRepository.findFeed,
   },
-): Promise<CommunityPost[]> {
+): Promise<CommunityPostWithAuthor[]> {
   const parsed: ListFeedQuery = options ? listFeedQuerySchema.parse(options) : {};
 
   return deps.findFeed(parsed);
@@ -128,7 +128,7 @@ export async function getPostDetail(
   deps: { findById: typeof communityPostRepository.findById } = {
     findById: communityPostRepository.findById,
   },
-): Promise<(CommunityPost & { isMine: boolean }) | null> {
+): Promise<(CommunityPostWithAuthor & { isMine: boolean }) | null> {
   const row = await deps.findById(id);
   if (!row) return null;
   return { ...row, isMine: row.userId === currentUserId };
