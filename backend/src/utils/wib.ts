@@ -93,4 +93,31 @@ export function wibDayBounds(dateStr?: string): { start: Date; end: Date } {
   };
 }
 
+/**
+ * WIB date string `days` ago, "YYYY-MM-DD" — builds 7-30 day lookback window
+ * starts for the weekly insight aggregation (AI-02).
+ */
+export function wibDaysAgoStr(days: number): string {
+  const wib = wibShifted();
+  const past = new Date(wib.getTime() - days * 24 * 3600 * 1000);
+  return past.toISOString().slice(0, 10);
+}
+
+/**
+ * ISO 8601 week key for the current WIB week, e.g. "2026-W27" — used as the
+ * ai_weekly_insights cache key (one row per user+week, D-16).
+ */
+export function wibIsoWeekKey(): string {
+  const wib = wibShifted();
+  const date = new Date(Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate()));
+  const dayNum = (date.getUTCDay() + 6) % 7; // Mon=0..Sun=6
+  date.setUTCDate(date.getUTCDate() - dayNum + 3); // shift to nearest Thursday
+  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
+  const firstDayNum = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNum + 3);
+  const weekNum =
+    1 + Math.round((date.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000));
+  return `${date.getUTCFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+}
+
 export { INDONESIAN_DAYS };
