@@ -16,3 +16,7 @@ export { aiDailySummaries } from "./aiDailySummary.schema.js";
 export { aiWeeklyInsights } from "./aiWeeklyInsight.schema.js";
 export { aiLabAnalyses } from "./aiLabAnalysis.schema.js";
 export { aiLifestyleSuggestions } from "./aiLifestyleSuggestion.schema.js";
+export { communityPosts } from "./communityPost.schema.js";
+export { communityReplies } from "./communityReply.schema.js";
+export { communityReplyHelpful } from "./communityReplyHelpful.schema.js";
+export { educationContent } from "./educationContent.schema.js";
