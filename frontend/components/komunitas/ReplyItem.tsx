@@ -11,7 +11,7 @@
  * on failure the optimistic change reverts (mirrors AlertHistoryList.tsx's
  * handleCardClick revert-on-failure pattern).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThumbsUp } from "lucide-react";
 import { authFetch } from "@/lib/api";
 
@@ -52,6 +52,19 @@ export default function ReplyItem({ reply, accessToken }: ReplyItemProps) {
   const [markedByMe, setMarkedByMe] = useState(reply.markedByMe);
   const [helpfulCount, setHelpfulCount] = useState(reply.helpfulCount);
   const [isToggling, setIsToggling] = useState(false);
+
+  // Resync local mirrored state when the parent refetches replies (WR-03).
+  // ReplyList keys ReplyItem by reply.id, so React reuses this component
+  // instance across refetches and does NOT re-run useState's initializer —
+  // without this effect, a mark/unmark by another user between refetches
+  // would silently go stale until a full page reload. Skipped while a
+  // toggle is in flight so the optimistic update isn't clobbered mid-request.
+  useEffect(() => {
+    if (isToggling) return;
+    setMarkedByMe(reply.markedByMe);
+    setHelpfulCount(reply.helpfulCount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reply.markedByMe, reply.helpfulCount]);
 
   const authorName = reply.authorName ?? "Anggota Komunitas";
 
