@@ -47,6 +47,17 @@ export async function findAllActive(): Promise<User[]> {
   return db.select().from(users).where(isNull(users.deletedAt));
 }
 
+/**
+ * Find every non-soft-deleted user's userId only — used by the AI-01/AI-02
+ * batches (dailySummary.job.ts / weeklyInsight.job.ts) which only need the
+ * id to iterate, not the full row. Thin wrapper over `findAllActive()` to
+ * avoid a duplicate query (same WHERE deletedAt IS NULL predicate).
+ */
+export async function findAllActiveUsers(): Promise<string[]> {
+  const rows = await findAllActive();
+  return rows.map((u) => u.userId);
+}
+
 export async function updateTherapyMethod(
   userId: string,
   metodeTerapiAktif: string,

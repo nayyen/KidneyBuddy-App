@@ -19,6 +19,15 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
+// Set ENCRYPTION_KEY before module imports — dailySummary.job.js now transitively
+// imports aiSummary.service.js -> lib/encryption.js, which validates the key at
+// module load time (same pattern as labResult.service.test.ts / fluid.service.test.ts).
+// This test never exercises the real encrypt/decrypt path (it injects fake
+// generateSummary/saveSummary deps directly into _runDailySummaryBatchCore), but the
+// import chain still requires a syntactically valid key to avoid a load-time throw.
+process.env.ENCRYPTION_KEY =
+  "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3";
+
 // ─── Import from unimplemented module (will fail — RED scaffold, GREEN in 05-05) ──
 const { _runDailySummaryBatchCore } = await import("../jobs/dailySummary.job.js");
 
