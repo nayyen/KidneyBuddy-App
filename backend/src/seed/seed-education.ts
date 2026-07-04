@@ -166,15 +166,20 @@ const articles: NewEducationContent[] = [
 async function main() {
   console.log("Seeding education content...");
 
-  const existing = await db.select({ id: educationContent.id }).from(educationContent);
-  if (existing.length > 0) {
-    console.log(
-      `education_content already has ${existing.length} row(s) — clearing before re-seeding (idempotent).`,
-    );
-    await db.delete(educationContent);
-  }
+  // Wrap delete + insert in a single transaction (WR-05): if the insert
+  // fails partway, the delete is rolled back too, so a failed re-seed never
+  // leaves education_content empty.
+  await db.transaction(async (tx) => {
+    const existing = await tx.select({ id: educationContent.id }).from(educationContent);
+    if (existing.length > 0) {
+      console.log(
+        `education_content already has ${existing.length} row(s) — clearing before re-seeding (idempotent).`,
+      );
+      await tx.delete(educationContent);
+    }
 
-  await db.insert(educationContent).values(articles);
+    await tx.insert(educationContent).values(articles);
+  });
 
   console.log(`Seeded ${articles.length} education content rows.`);
 }
