@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
 import FluidLogList from "@/components/catatan/FluidLogList";
 import MedicationLogList from "@/components/catatan/MedicationLogList";
@@ -40,8 +41,8 @@ export default function CatatanPage() {
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const [labRefreshKey, setLabRefreshKey] = useState(0);
   const [showArchivedLab, setShowArchivedLab] = useState(false);
-  // Most recently manually-saved lab result (AI-03/D-14) — LabAnalysisCard
-  // mounts for this one entry only, not the whole historical list.
+  // Most recent lab result overall (AI-03/D-14) — LabAnalysisCard always
+  // shows the latest entry's analysis on load, not just a just-saved one.
   const [lastSavedLab, setLastSavedLab] = useState<CreatedLabEntry | null>(null);
 
   // Auth redirect guard
@@ -69,21 +70,34 @@ export default function CatatanPage() {
     return () => window.removeEventListener("activity:saved", handleActivitySaved);
   }, []);
 
-  // Listen for lab:saved to refresh list and trend, and to mount
-  // LabAnalysisCard for a newly-saved manual entry (AI-03/D-14).
+  // Listen for lab:saved to refresh list and trend.
   useEffect(() => {
-    const handleLabSaved = (e: Event) => {
+    const handleLabSaved = () => {
       setLabRefreshKey((k) => k + 1);
-      const created = (e as CustomEvent).detail?.created as
-        | CreatedLabEntry
-        | undefined;
-      if (created) {
-        setLastSavedLab(created);
-      }
     };
     window.addEventListener("lab:saved", handleLabSaved);
     return () => window.removeEventListener("lab:saved", handleLabSaved);
   }, []);
+
+  // Fetch the most recent lab result (any entry, not just this session's
+  // save) so LabAnalysisCard always shows on Lab tab load, not only right
+  // after a live save (AI-03/D-14 — analysis is keyed by labResultId, so
+  // any previously-saved entry's cached analysis can be shown the same way).
+  useEffect(() => {
+    if (!accessToken) return;
+    let cancelled = false;
+    authFetch<{ results: CreatedLabEntry[] }>("/api/lab-results", accessToken)
+      .then((res) => {
+        if (cancelled) return;
+        setLastSavedLab(res.results?.[0] ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setLastSavedLab(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, labRefreshKey]);
 
   if (isLoading) {
     return (
@@ -192,8 +206,8 @@ export default function CatatanPage() {
             {/* Wawasan tren mingguan (AI-02, D-11) */}
             <WeeklyInsightCard accessToken={accessToken} />
 
-            {/* Analisis hasil lab — hanya untuk entri manual yang baru
-                disimpan di sesi ini (AI-03, D-14 async non-blocking) */}
+            {/* Analisis hasil lab — untuk entri lab terbaru milik pengguna,
+                selalu tampil saat tab Lab dimuat (AI-03, D-14 async non-blocking) */}
             {lastSavedLab && (
               <LabAnalysisCard
                 accessToken={accessToken}
