@@ -102,19 +102,19 @@ const USER_ID = "00000000-0000-0000-0000-000000000001";
 
 describe("activity schema validation", () => {
   it("empty namaKegiatan is rejected", () => {
-    const result = createActivitySchema.safeParse({ namaKegiatan: "", estimasiSelesai: "12:00" });
+    const result = createActivitySchema.safeParse({ namaKegiatan: "", estimasiMenit: 30 });
     assert.strictEqual(result.success, false);
   });
 
-  it("invalid estimasiSelesai format is rejected", () => {
+  it("non-positive estimasiMenit is rejected", () => {
     const result = createActivitySchema.safeParse({
       namaKegiatan: "Jalan pagi",
-      estimasiSelesai: "25:00",
+      estimasiMenit: 0,
     });
     assert.strictEqual(result.success, false);
   });
 
-  it("missing estimasiSelesai is rejected", () => {
+  it("missing estimasiMenit is rejected", () => {
     const result = createActivitySchema.safeParse({ namaKegiatan: "Jalan pagi" });
     assert.strictEqual(result.success, false);
   });
@@ -122,7 +122,7 @@ describe("activity schema validation", () => {
   it("valid payload passes schema", () => {
     const result = createActivitySchema.safeParse({
       namaKegiatan: "Jalan pagi",
-      estimasiSelesai: "10:30",
+      estimasiMenit: 30,
     });
     assert.strictEqual(result.success, true);
   });
@@ -134,15 +134,10 @@ describe("activity _createActivityCore", () => {
   it("createActivity with valid payload returns berlangsung status and future estimasiSelesai", async () => {
     const store = createInMemoryActivityStore();
 
-    // Use a future time so the WIB check passes
-    const futureHHMM = "23:59";
-
     const result = await _createActivityCore(
       USER_ID,
-      { namaKegiatan: "Jalan pagi", estimasiSelesai: futureHHMM },
+      { namaKegiatan: "Jalan pagi", estimasiMenit: 60 },
       store.insertActivity,
-      encrypt,
-      decrypt,
     );
 
     assert.ok(result, "Must return an activity object");
@@ -152,26 +147,15 @@ describe("activity _createActivityCore", () => {
     assert.strictEqual(result.namaKegiatan, "Jalan pagi");
   });
 
-  it("createActivity with past estimasiSelesai is rejected", async () => {
+  it("negative estimasiMenit is rejected before insert", async () => {
     const store = createInMemoryActivityStore();
 
-    // "00:01" WIB is almost certainly in the past
-    await assert.rejects(
-      () =>
-        _createActivityCore(
-          USER_ID,
-          { namaKegiatan: "Jalan pagi", estimasiSelesai: "00:01" },
-          store.insertActivity,
-          encrypt,
-          decrypt,
-        ),
-      (err: Error) => {
-        assert.ok(
-          err.message.includes("Estimasi waktu tidak boleh di masa lalu"),
-          `Expected past-time error, got: "${err.message}"`,
-        );
-        return true;
-      },
+    await assert.rejects(() =>
+      _createActivityCore(
+        USER_ID,
+        { namaKegiatan: "Jalan pagi", estimasiMenit: -5 },
+        store.insertActivity,
+      ),
     );
   });
 });
