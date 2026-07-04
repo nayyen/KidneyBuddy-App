@@ -53,8 +53,8 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### AI Insights (AI)
 
-- [ ] **AI-01**: System generates a daily AI summary (Bahasa Indonesia, Groq Llama 3.3 70B) at 20:00 or on manual trigger, narrating fluid balance, CAPD condition, medication adherence, and activity for that day, with a medical disclaimer
-- [ ] **AI-02**: System generates a weekly proactive trend insight every Sunday 19:00 (or when a significant trend is detected from new lab data) from 7–30 days of data, with concrete Bahasa Indonesia suggestions
+- [x] **AI-01**: System generates a daily AI summary (Bahasa Indonesia, Groq Llama 3.3 70B) at 20:00 or on manual trigger, narrating fluid balance, CAPD condition, medication adherence, and activity for that day, with a medical disclaimer
+- [x] **AI-02**: System generates a weekly proactive trend insight every Sunday 19:00 (or when a significant trend is detected from new lab data) from 7–30 days of data, with concrete Bahasa Indonesia suggestions
 - [ ] **AI-03**: System analyzes manually entered lab values against general CKD reference ranges and explains out-of-range results in plain Bahasa Indonesia without diagnosing, triggered when a manual lab result is saved
 - [ ] **AI-04**: System generates personalized food/lifestyle suggestions from tracking data (≥3 days), latest lab result, and active therapy method, shown on Education page or dashboard
 - [ ] **AI-05**: Every AI-generated output includes a disclaimer that it does not replace professional medical advice, enforced server-side (not left to the model alone)
@@ -192,8 +192,8 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | CAREGIVER-02 | Phase 4 | Pending |
 | REPORT-01 | Phase 4 | Pending |
 | REPORT-02 | Phase 4 | Pending |
-| AI-01 | Phase 5 | Pending |
-| AI-02 | Phase 5 | Pending |
+| AI-01 | Phase 5 | Complete |
+| AI-02 | Phase 5 | Complete |
 | AI-03 | Phase 5 | Pending |
 | AI-04 | Phase 5 | Pending |
 | AI-05 | Phase 5 | Pending |
