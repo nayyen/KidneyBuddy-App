@@ -1,0 +1,113 @@
+/**
+ * communityReply.service.ts — Community reply + "membantu" business logic
+ * (COMMUNITY-02)
+ *
+ * - createReply: validates payload with Zod, persists a reply scoped to
+ *   (postId, userId)
+ * - listReplies: fetches all replies for a post, each with a live
+ *   COUNT-based helpfulCount and a markedByMe flag for the caller
+ * - toggleHelpful: marks/unmarks a reply as "membantu" — open to ANY
+ *   authenticated user, not just the post's author (D-08); one mark per
+ *   user per reply, enforced at the DB level (D-09)
+ *
+ * Community replies are public/peer-visible content, NOT sensitive health
+ * data — no encrypt()/decrypt() import here (RESEARCH Pitfall 1).
+ *
+ * Test seam: createReply/toggleHelpful accept an optional trailing `deps`
+ * object that defaults to the real repository, matching the 06-01 RED
+ * scaffold's fixed deps-injection contract exactly:
+ *   createReply(userId, postId, payload, { insert })
+ *   toggleHelpful(userId, replyId, { toggle })
+ */
+import { z } from "zod";
+import pino from "pino";
+import * as communityReplyRepository from "../repositories/communityReply.repository.js";
+import type { CommunityReplyWithMeta } from "../repositories/communityReply.repository.js";
+
+const logger = pino({ name: "communityReply.service" });
+
+// ─── Zod validation schemas ───────────────────────────────────────────────────
+
+export const createReplySchema = z.object({
+  isi: z
+    .string({
+      required_error: "Isi balasan wajib diisi",
+    })
+    .min(1, "Isi balasan tidak boleh kosong")
+    .max(2000, "Isi balasan maksimal 2000 karakter"),
+});
+
+export type CreateReplyPayload = z.infer<typeof createReplySchema>;
+
+// ─── Injectable deps ────────────────────────────────────────────────────────
+//
+// Loosely typed (matches communityPost.service.ts's InsertFn convention) so
+// the 06-01 RED scaffold's minimal in-memory store row shape type-checks
+// against the real repository's stricter signature.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InsertFn = (data: any) => Promise<any>;
+type ToggleFn = (userId: string, replyId: string) => Promise<{ marked: boolean }>;
+
+export interface CreateReplyDeps {
+  insert: InsertFn;
+}
+
+export interface ToggleHelpfulDeps {
+  toggle: ToggleFn;
+}
+
+// ─── Production functions ────────────────────────────────────────────────────
+
+/**
+ * Create a new reply on a post, scoped to the authenticated user.
+ */
+export async function createReply(
+  userId: string,
+  postId: string,
+  rawPayload: unknown,
+  deps: CreateReplyDeps = { insert: communityReplyRepository.createReply },
+) {
+  const parsed = createReplySchema.parse(rawPayload);
+
+  logger.info({ userId, postId }, "creating community reply");
+
+  return deps.insert({
+    postId,
+    userId,
+    isi: parsed.isi,
+  });
+}
+
+/**
+ * List all replies for a post, each augmented with a live helpfulCount
+ * (COUNT(*) against community_reply_helpful) and a markedByMe flag for the
+ * current caller. Never scoped away for visibility — every authenticated
+ * reader sees the same replies for a post.
+ */
+export async function listReplies(
+  postId: string,
+  currentUserId: string,
+  deps: { findByPost: typeof communityReplyRepository.findByPost } = {
+    findByPost: communityReplyRepository.findByPost,
+  },
+): Promise<CommunityReplyWithMeta[]> {
+  return deps.findByPost(postId, currentUserId);
+}
+
+/**
+ * Toggle a "membantu" mark on a reply. No ownership guard — any
+ * authenticated user may mark any reply (D-08, intentional open access).
+ * Dedup is enforced at the DB level (D-09); this is toggle-UX logic only.
+ */
+export async function toggleHelpful(
+  userId: string,
+  replyId: string,
+  deps: ToggleHelpfulDeps = { toggle: communityReplyRepository.toggleHelpful },
+): Promise<{ marked: boolean }> {
+  if (typeof replyId !== "string" || replyId.length === 0) {
+    throw new Error("replyId wajib diisi");
+  }
+
+  return deps.toggle(userId, replyId);
+}
