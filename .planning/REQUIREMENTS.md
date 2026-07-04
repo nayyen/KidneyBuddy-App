@@ -62,9 +62,9 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 ### Anomaly Detection & Alerts (ANOMALY)
 
 - [x] **ANOMALY-01**: System runs rule-based anomaly checks on every new tracking entry and as a daily 21:00 batch — covering ≥30% fluid-output decline over 3 consecutive days, abnormal CAPD fluid condition, >2 missed therapy schedules in one day, and significantly deviated fluid intake patterns
-- [ ] **ANOMALY-02**: User sees an anomaly alert card with a plain Bahasa Indonesia explanation of what was detected, why it matters, and a concrete next step, without a diagnosis, when confidence is above threshold
-- [ ] **ANOMALY-03**: High-severity anomalies trigger a visually/aurally distinct emergency notification that cannot be dismissed without active interaction, for all patient types
-- [ ] **ANOMALY-04**: User can mark a read anomaly alert as "relevan" or "tidak relevan" as feedback
+- [x] **ANOMALY-02**: User sees an anomaly alert card with a plain Bahasa Indonesia explanation of what was detected, why it matters, and a concrete next step, without a diagnosis, when confidence is above threshold
+- [x] **ANOMALY-03**: High-severity anomalies trigger a visually/aurally distinct emergency notification that cannot be dismissed without active interaction, for all patient types
+- [x] **ANOMALY-04**: User can mark a read anomaly alert as "relevan" or "tidak relevan" as feedback
 
 ### Activity Logging (ACTIVITY)
 
@@ -198,9 +198,9 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | AI-04 | Phase 5 | Pending |
 | AI-05 | Phase 5 | Pending |
 | ANOMALY-01 | Phase 5 | Complete |
-| ANOMALY-02 | Phase 5 | Pending |
-| ANOMALY-03 | Phase 5 | Pending |
-| ANOMALY-04 | Phase 5 | Pending |
+| ANOMALY-02 | Phase 5 | Complete |
+| ANOMALY-03 | Phase 5 | Complete |
+| ANOMALY-04 | Phase 5 | Complete |
 | COMMUNITY-01 | Phase 6 | Pending |
 | COMMUNITY-02 | Phase 6 | Pending |
 | COMMUNITY-03 | Phase 6 | Pending |
