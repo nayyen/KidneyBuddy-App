@@ -90,7 +90,7 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Education (EDU)
 
-- [ ] **EDU-01**: User can browse and filter education content (articles, exercise guides, food/lifestyle info) by active therapy method
+- [x] **EDU-01**: User can browse and filter education content (articles, exercise guides, food/lifestyle info) by active therapy method
 
 ### Notifications & PWA (NOTIF)
 
@@ -204,7 +204,7 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | COMMUNITY-01 | Phase 6 | Pending |
 | COMMUNITY-02 | Phase 6 | Pending |
 | COMMUNITY-03 | Phase 6 | Pending |
-| EDU-01 | Phase 6 | Pending |
+| EDU-01 | Phase 6 | Complete |
 
 **Coverage:**
 
