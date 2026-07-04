@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Fluid & Medication Tracking with Reminders** - Patients install KidneyBuddy as a working PWA and never miss logging fluid or taking medication without a reliable, multi-device, modality-aware push reminder catching them, on a UI shell that's fully responsive across mobile/tablet/desktop
 - [ ] **Phase 3: Activity Logging & Lab Results** - Patients can log daily activities with positive framing and track lab results with trend visualization over time
 - [ ] **Phase 4: Caregiver Dashboard & Doctor Reports** - Caregivers see an identical real-time view of patient data, and patients can export a doctor-ready visit report
-- [ ] **Phase 5: AI Insights & Anomaly Detection** - Patients receive calm, disclaimer-safe AI narrative summaries and trend insights, and are reliably warned of clinically meaningful anomalies without alert fatigue
+- [x] **Phase 5: AI Insights & Anomaly Detection** - Patients receive calm, disclaimer-safe AI narrative summaries and trend insights, and are reliably warned of clinically meaningful anomalies without alert fatigue (completed 2026-07-04)
 - [ ] **Phase 6: Community & Education** - Patients can browse modality-filtered education content and participate in a peer community
 
 ## Phase Details
@@ -175,7 +175,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 5** *(blocked on Wave 4)*
 
-- [ ] 05-07-PLAN.md — AI content frontend (daily summary/weekly insight/lab analysis/lifestyle cards) + report Anomali section wired to real data (AI-01..04, D-15)
+- [x] 05-07-PLAN.md — AI content frontend (daily summary/weekly insight/lab analysis/lifestyle cards) + report Anomali section wired to real data (AI-01..04, D-15)
 
 ### Phase 6: Community & Education
 
@@ -203,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
-| 5. AI Insights & Anomaly Detection | 6/7 | In Progress|  |
+| 5. AI Insights & Anomaly Detection | 7/7 | Complete   | 2026-07-04 |
 | 6. Community & Education | 0/TBD | Not started | - |
