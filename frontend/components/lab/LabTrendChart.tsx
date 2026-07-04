@@ -40,11 +40,16 @@ interface TrendResponse {
 interface LabTrendChartProps {
   accessToken: string;
   refreshKey?: number;
+  /** Fires whenever the selected parameter changes (initial auto-select
+   * included) so a sibling component (e.g. LabAnalysisCard) can stay
+   * synced to the same parameter the user is viewing. */
+  onParameterChange?: (parameter: string) => void;
 }
 
 export default function LabTrendChart({
   accessToken,
   refreshKey = 0,
+  onParameterChange,
 }: LabTrendChartProps) {
   const [parameters, setParameters] = useState<string[]>([]);
   const [selectedParam, setSelectedParam] = useState<string>("");
@@ -109,6 +114,12 @@ export default function LabTrendChart({
   useEffect(() => {
     fetchTrend();
   }, [fetchTrend, refreshKey]);
+
+  // Notify parent whenever the selected parameter changes (including the
+  // initial auto-select), so LabAnalysisCard can track the same parameter.
+  useEffect(() => {
+    if (selectedParam) onParameterChange?.(selectedParam);
+  }, [selectedParam, onParameterChange]);
 
   // Format date for display
   const formatDate = (dateStr: string) => {

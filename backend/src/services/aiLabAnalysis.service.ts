@@ -56,17 +56,38 @@ type LabValueData = {
   tanggalPemeriksaan: string;
 };
 
-function buildLabPrompt(data: LabValueData): string {
-  return (
-    `Hasil laboratorium (${data.tanggalPemeriksaan}):\n` +
+/**
+ * `history` is every OTHER entry for the same parameter (current entry
+ * excluded), most-recent-first, capped by the caller. When present, the
+ * prompt asks the model to lead with the latest value, then note the trend
+ * across prior entries — never the reverse order, so the "primary" result
+ * a patient just measured is never buried under historical context.
+ */
+function buildLabPrompt(data: LabValueData, history: LabValueData[]): string {
+  const latestBlock =
+    `Nilai TERBARU (${data.tanggalPemeriksaan}):\n` +
     `- Parameter: ${data.namaParameter}\n` +
     `- Nilai: ${data.nilai}${data.satuan ? ` ${data.satuan}` : ""}\n` +
     `- Nilai rujukan yang dicantumkan pasien: ${
       data.nilaiRujukan ?? "tidak dicantumkan — gunakan rentang rujukan umum untuk pasien gagal ginjal kronis"
-    }\n\n` +
-    "Jelaskan secara singkat (2-4 kalimat) apa arti nilai ini secara umum dalam Bahasa " +
-    "Indonesia yang tenang, tanpa memberi diagnosis dan tanpa menyebut nama penyakit " +
-    "atau kondisi medis spesifik."
+    }`;
+
+  const historyBlock =
+    history.length > 0
+      ? "\n\nRiwayat nilai sebelumnya untuk parameter yang sama (dari yang terbaru):\n" +
+        history
+          .map((h) => `- ${h.tanggalPemeriksaan}: ${h.nilai}${h.satuan ? ` ${h.satuan}` : ""}`)
+          .join("\n")
+      : "\n\nTidak ada riwayat nilai sebelumnya untuk parameter ini — ini adalah data pertama.";
+
+  return (
+    `${latestBlock}${historyBlock}\n\n` +
+    "Jelaskan secara singkat (3-5 kalimat) dalam Bahasa Indonesia yang tenang dan mudah " +
+    "dipahami, TANPA memberi diagnosis dan TANPA menyebut nama penyakit atau kondisi medis " +
+    "spesifik. WAJIB urutan berikut: (1) mulai dengan penjelasan mengenai nilai TERBARU — " +
+    "apakah berada dalam rentang normal atau di luar rentang rujukan, (2) jika ada riwayat " +
+    "sebelumnya, lanjutkan dengan konteks tren (meningkat/menurun/stabil) dibanding nilai-" +
+    "nilai sebelumnya. Nilai terbaru selalu menjadi fokus utama; riwayat hanya pelengkap konteks."
   );
 }
 
@@ -105,12 +126,21 @@ export async function getLabAnalysis(
   };
 }
 
+// Cap on how many historical entries feed the prompt — enough for a
+// meaningful trend without an unbounded/expensive Groq context.
+const MAX_HISTORY_ENTRIES = 10;
+
 /**
  * Generate-or-cache the analysis for a single lab result. D-16: a cache hit
  * short-circuits before any Groq call — a lab result's analysis is
  * generated once and reused, never regenerated on every view. Called as a
  * fire-and-forget side effect from labResult.service.ts::createEntry
  * (D-14) — never awaited before the lab save responds.
+ *
+ * Incorporates the parameter's full history (same `namaParameter`, same
+ * user, excluding this entry) as trend context — the LATEST value (this
+ * entry) is always the primary subject; history is supplementary (see
+ * buildLabPrompt).
  */
 export async function generateAndCacheLabAnalysis(
   userId: string,
@@ -124,6 +154,20 @@ export async function generateAndCacheLabAnalysis(
     throw new AppError(404, "NOT_FOUND", "Hasil lab tidak ditemukan");
   }
 
+  const sameParameter = await labResultRepo.findByUser(userId, {
+    parameter: labResult.namaParameter,
+  });
+  const history: LabValueData[] = sameParameter
+    .filter((r) => r.id !== labResultId)
+    .slice(0, MAX_HISTORY_ENTRIES)
+    .map((r) => ({
+      namaParameter: r.namaParameter,
+      nilai: r.nilai,
+      satuan: r.satuan,
+      nilaiRujukan: r.nilaiRujukan,
+      tanggalPemeriksaan: r.tanggalPemeriksaan,
+    }));
+
   let narrative: string;
   try {
     const completion = await groq.chat.completions.create(
@@ -133,13 +177,16 @@ export async function generateAndCacheLabAnalysis(
           { role: "system", content: SYSTEM_PROMPT },
           {
             role: "user",
-            content: buildLabPrompt({
-              namaParameter: labResult.namaParameter,
-              nilai: labResult.nilai,
-              satuan: labResult.satuan,
-              nilaiRujukan: labResult.nilaiRujukan,
-              tanggalPemeriksaan: labResult.tanggalPemeriksaan,
-            }),
+            content: buildLabPrompt(
+              {
+                namaParameter: labResult.namaParameter,
+                nilai: labResult.nilai,
+                satuan: labResult.satuan,
+                nilaiRujukan: labResult.nilaiRujukan,
+                tanggalPemeriksaan: labResult.tanggalPemeriksaan,
+              },
+              history,
+            ),
           },
         ],
       },

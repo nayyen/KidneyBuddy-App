@@ -41,8 +41,13 @@ export default function CatatanPage() {
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const [labRefreshKey, setLabRefreshKey] = useState(0);
   const [showArchivedLab, setShowArchivedLab] = useState(false);
-  // Most recent lab result overall (AI-03/D-14) — LabAnalysisCard always
-  // shows the latest entry's analysis on load, not just a just-saved one.
+  // Parameter currently selected in LabTrendChart's dropdown — kept in sync
+  // so LabAnalysisCard always analyzes the same parameter the user is
+  // viewing the trend for.
+  const [selectedLabParameter, setSelectedLabParameter] = useState<string>("");
+  // Most recent lab result FOR THE SELECTED PARAMETER (AI-03/D-14) —
+  // LabAnalysisCard always shows the latest entry's analysis on load, not
+  // just a just-saved one, and updates when the parameter selection changes.
   const [lastSavedLab, setLastSavedLab] = useState<CreatedLabEntry | null>(null);
 
   // Auth redirect guard
@@ -79,14 +84,18 @@ export default function CatatanPage() {
     return () => window.removeEventListener("lab:saved", handleLabSaved);
   }, []);
 
-  // Fetch the most recent lab result (any entry, not just this session's
-  // save) so LabAnalysisCard always shows on Lab tab load, not only right
-  // after a live save (AI-03/D-14 — analysis is keyed by labResultId, so
-  // any previously-saved entry's cached analysis can be shown the same way).
+  // Fetch the most recent lab result FOR THE SELECTED PARAMETER (not just
+  // this session's save) so LabAnalysisCard always shows on Lab tab load,
+  // and re-syncs whenever the trend-chart dropdown selection changes
+  // (AI-03/D-14 — analysis is keyed by labResultId, so any previously-saved
+  // entry's cached analysis can be shown the same way).
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || !selectedLabParameter) return;
     let cancelled = false;
-    authFetch<{ results: CreatedLabEntry[] }>("/api/lab-results", accessToken)
+    authFetch<{ results: CreatedLabEntry[] }>(
+      `/api/lab-results?parameter=${encodeURIComponent(selectedLabParameter)}`,
+      accessToken,
+    )
       .then((res) => {
         if (cancelled) return;
         setLastSavedLab(res.results?.[0] ?? null);
@@ -97,7 +106,7 @@ export default function CatatanPage() {
     return () => {
       cancelled = true;
     };
-  }, [accessToken, labRefreshKey]);
+  }, [accessToken, labRefreshKey, selectedLabParameter]);
 
   if (isLoading) {
     return (
@@ -178,6 +187,11 @@ export default function CatatanPage() {
           })}
         </div>
 
+        {/* Wawasan tren mingguan (AI-02, D-11) — visible on every sub-tab,
+            not just Lab, since it summarizes fluid/medication/activity data
+            broadly rather than being lab-specific. */}
+        {accessToken && <WeeklyInsightCard accessToken={accessToken} />}
+
         {/* Tab content */}
         {activeTab === "cairan" && accessToken && (
           <FluidLogList
@@ -203,21 +217,6 @@ export default function CatatanPage() {
 
         {activeTab === "lab" && accessToken && (
           <div className="space-y-4">
-            {/* Wawasan tren mingguan (AI-02, D-11) */}
-            <WeeklyInsightCard accessToken={accessToken} />
-
-            {/* Analisis hasil lab — untuk entri lab terbaru milik pengguna,
-                selalu tampil saat tab Lab dimuat (AI-03, D-14 async non-blocking) */}
-            {lastSavedLab && (
-              <LabAnalysisCard
-                accessToken={accessToken}
-                labResultId={lastSavedLab.id}
-                namaParameter={lastSavedLab.namaParameter}
-                nilai={lastSavedLab.nilai}
-                nilaiRujukan={lastSavedLab.nilaiRujukan}
-              />
-            )}
-
             {/* Add button */}
             <button
               onClick={() =>
@@ -237,11 +236,27 @@ export default function CatatanPage() {
               + Catat Hasil Lab
             </button>
 
-            {/* Trend chart */}
+            {/* Trend chart — drives which parameter LabAnalysisCard analyzes */}
             <LabTrendChart
               accessToken={accessToken}
               refreshKey={labRefreshKey}
+              onParameterChange={setSelectedLabParameter}
             />
+
+            {/* Analisis hasil lab — mengikuti parameter yang dipilih di
+                dropdown tren di atas; selalu tampil saat tab Lab dimuat
+                (AI-03, D-14 async non-blocking), termasuk konteks riwayat
+                nilai-nilai sebelumnya untuk parameter yang sama. */}
+            {lastSavedLab && (
+              <LabAnalysisCard
+                key={lastSavedLab.id}
+                accessToken={accessToken}
+                labResultId={lastSavedLab.id}
+                namaParameter={lastSavedLab.namaParameter}
+                nilai={lastSavedLab.nilai}
+                nilaiRujukan={lastSavedLab.nilaiRujukan}
+              />
+            )}
 
             {/* Lab results list */}
             <LabResultList
