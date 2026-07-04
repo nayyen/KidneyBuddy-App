@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DeltaCairanCard from "@/components/beranda/DeltaCairanCard";
 import NoReminderBanner from "@/components/beranda/NoReminderBanner";
-import AiPlaceholderCard from "@/components/beranda/AiPlaceholderCard";
+import AiDailySummaryCard from "@/components/beranda/AiDailySummaryCard";
 import AnomalyAlertSection from "@/components/beranda/AnomalyAlertSection";
 import ObatCard from "@/components/beranda/ObatCard";
 import CuciDarahCard from "@/components/beranda/CuciDarahCard";
@@ -93,7 +93,7 @@ export default function DashboardPage() {
 
       {/* Row 2 */}
       <div className="md:col-span-3">
-        <AiPlaceholderCard />
+        <AiDailySummaryCard accessToken={accessToken} />
       </div>
 
       {/* Peringatan — normal-severity anomaly alerts (D-09). Renders null

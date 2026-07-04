@@ -114,6 +114,7 @@ export type DailySummaryResult = {
   ringkasanText: string; // decrypted plaintext, disclaimer already appended
   isFallback: boolean;
   fromCache: boolean;
+  createdAt: string; // ISO timestamp — 05-07 AiDailySummaryCard's "Dibuat pukul HH:mm"
 };
 
 /**
@@ -133,6 +134,7 @@ export async function getDailySummary(
     ringkasanText: decrypt(row.ringkasanText),
     isFallback: row.isFallback,
     fromCache: true,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 
@@ -180,7 +182,13 @@ export async function generateAndCacheDailySummary(
 
   const withDisclaimer = appendDisclaimer(narrative); // AI-05/D-19, unconditional
   const encrypted = encrypt(withDisclaimer);
-  await aiDailySummaryRepo.upsertSummary(userId, tanggal, encrypted, false);
+  const row = await aiDailySummaryRepo.upsertSummary(userId, tanggal, encrypted, false);
 
-  return { tanggal, ringkasanText: withDisclaimer, isFallback: false, fromCache: false };
+  return {
+    tanggal,
+    ringkasanText: withDisclaimer,
+    isFallback: false,
+    fromCache: false,
+    createdAt: row.createdAt.toISOString(),
+  };
 }

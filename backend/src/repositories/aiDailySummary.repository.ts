@@ -35,6 +35,12 @@ export async function findByUserAndDate(
  * Insert-or-overwrite the cached summary for a user+date (unique constraint
  * on userId+tanggal) — idempotent, safe for both the 20:00 batch's boot
  * catch-up (Pitfall 2) and a manual force-regenerate (D-10).
+ *
+ * `createdAt` is refreshed on conflict too (05-07 deviation): the frontend's
+ * "Dibuat pukul HH:mm" timestamp (AiDailySummaryCard) must reflect the most
+ * recent generation, not the first-ever row insert — a plain `defaultNow()`
+ * only fires on INSERT, so a manual regenerate (D-10) would otherwise keep
+ * showing a stale time.
  */
 export async function upsertSummary(
   userId: string,
@@ -42,12 +48,13 @@ export async function upsertSummary(
   ringkasanText: string,
   isFallback: boolean,
 ): Promise<AiDailySummary> {
+  const now = new Date();
   const [row] = await db
     .insert(aiDailySummaries)
-    .values({ userId, tanggal, ringkasanText, isFallback } as any)
+    .values({ userId, tanggal, ringkasanText, isFallback, createdAt: now } as any)
     .onConflictDoUpdate({
       target: [aiDailySummaries.userId, aiDailySummaries.tanggal],
-      set: { ringkasanText, isFallback },
+      set: { ringkasanText, isFallback, createdAt: now },
     })
     .returning();
   return row;
