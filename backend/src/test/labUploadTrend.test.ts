@@ -8,6 +8,13 @@
  *
  * Run: cd backend && node --import tsx --test src/test/labUploadTrend.test.ts
  *
+ * REQUIRES a live Postgres connection (the Dockerized DB) — getTrendData/
+ * createUploadEntry hit the real database, so this test MUST be run inside
+ * the backend container, not from the host:
+ *   docker exec kidneybuddy-backend node --import tsx --test src/test/labUploadTrend.test.ts
+ * Running from the host will fail with a DB connection error even though
+ * the code is correct.
+ *
  * Pattern: follows labResult.service.test.ts — injectable core functions.
  */
 import { describe, it } from "node:test";
