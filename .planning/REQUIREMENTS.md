@@ -9,21 +9,21 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Authentication & Account (AUTH)
 
-- [ ] **AUTH-01**: User can register with full name, email, password, phone number, and birth date
-- [ ] **AUTH-02**: User can log in and stays logged in across browser refresh
-- [ ] **AUTH-03**: User can log out from any page
-- [ ] **AUTH-04**: Account locks for 15 minutes after 5 failed login attempts within 10 minutes
-- [ ] **AUTH-05**: Caregiver can log in with the same account credentials as the patient, independently from a separate device
-- [ ] **AUTH-06**: User can reset their password via an emailed reset link if they forget it (gap identified during Phase 1 discuss-phase — missing from initial requirements pass, added 2026-06-25)
+- [x] **AUTH-01**: User can register with full name, email, password, phone number, and birth date
+- [x] **AUTH-02**: User can log in and stays logged in across browser refresh
+- [x] **AUTH-03**: User can log out from any page
+- [x] **AUTH-04**: Account locks for 15 minutes after 5 failed login attempts within 10 minutes
+- [x] **AUTH-05**: Caregiver can log in with the same account credentials as the patient, independently from a separate device
+- [x] **AUTH-06**: User can reset their password via an emailed reset link if they forget it (gap identified during Phase 1 discuss-phase — missing from initial requirements pass, added 2026-06-25)
 
 ### Onboarding & Therapy Profile (ONBOARD)
 
-- [ ] **ONBOARD-01**: New user completes interactive onboarding (register → select therapy method → set first reminder) in under 5 minutes
-- [ ] **ONBOARD-02**: User selects active therapy method (CAPD/HD/Transplantasi) with a plain-language "Apa ini?" explanation available inline
-- [ ] **ONBOARD-03**: User can skip setting the first reminder during onboarding; dashboard shows a banner reminding them to configure it later
-- [ ] **ONBOARD-04**: User can resume onboarding from the last completed step if they close the app before finishing
-- [ ] **ONBOARD-05**: User can change active therapy method anytime from profile settings with explicit confirmation; change is recorded in therapy history and UI/features adjust automatically
-- [ ] **ONBOARD-06**: User can replay the onboarding tutorial from Settings after initial completion
+- [x] **ONBOARD-01**: New user completes interactive onboarding (register → select therapy method → set first reminder) in under 5 minutes
+- [x] **ONBOARD-02**: User selects active therapy method (CAPD/HD/Transplantasi) with a plain-language "Apa ini?" explanation available inline
+- [x] **ONBOARD-03**: User can skip setting the first reminder during onboarding; dashboard shows a banner reminding them to configure it later
+- [x] **ONBOARD-04**: User can resume onboarding from the last completed step if they close the app before finishing
+- [x] **ONBOARD-05**: User can change active therapy method anytime from profile settings with explicit confirmation; change is recorded in therapy history and UI/features adjust automatically
+- [x] **ONBOARD-06**: User can replay the onboarding tutorial from Settings after initial completion
 
 ### Fluid Tracking (FLUID)
 
@@ -35,21 +35,21 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Medication & Therapy Reminders (REMIND)
 
-- [ ] **REMIND-01**: User can create a medication reminder with name, dose, type (minum/suntik), free-text timing note, active days + time, and optional photo
+- [x] **REMIND-01**: User can create a medication reminder with name, dose, type (minum/suntik), free-text timing note, active days + time, and optional photo
 - [x] **REMIND-02**: User receives a push notification at the scheduled reminder time showing medication name and photo if available
-- [ ] **REMIND-03**: User can confirm a medication dose was taken directly from the notification; confirmation is logged
-- [ ] **REMIND-04**: If a medication reminder isn't confirmed within 30 minutes, system sends one follow-up reminder
-- [ ] **REMIND-05**: CAPD patient can set exchange reminders with time and fluid concentration
-- [ ] **REMIND-06**: HD patient can set dialysis schedule reminders with day(s) of week and time
-- [ ] **REMIND-07**: Changing active therapy method preserves existing medication reminders and only auto-adjusts therapy-specific (CAPD/HD) reminders
-- [ ] **REMIND-08**: Caregiver logged in on a separate device receives the same therapy/medication reminders independently, if notifications are enabled on that device
+- [x] **REMIND-03**: User can confirm a medication dose was taken directly from the notification; confirmation is logged
+- [x] **REMIND-04**: If a medication reminder isn't confirmed within 30 minutes, system sends one follow-up reminder (code complete; real-device push QA pending — see v1.0-MILESTONE-AUDIT.md)
+- [x] **REMIND-05**: CAPD patient can set exchange reminders with time and fluid concentration
+- [x] **REMIND-06**: HD patient can set dialysis schedule reminders with day(s) of week and time
+- [x] **REMIND-07**: Changing active therapy method preserves existing medication reminders and only auto-adjusts therapy-specific (CAPD/HD) reminders
+- [x] **REMIND-08**: Caregiver logged in on a separate device receives the same therapy/medication reminders independently, if notifications are enabled on that device (code complete; multi-device QA pending — see v1.0-MILESTONE-AUDIT.md)
 
 ### Lab Results (LAB)
 
-- [ ] **LAB-01**: User can upload a lab result file (PDF/JPG/PNG, max 10MB) with exam date
-- [ ] **LAB-02**: User can manually enter lab parameters (name, value, unit, date) as an alternative or supplement to file upload
-- [ ] **LAB-03**: User can view a trend chart of a selected lab parameter over a chosen date range, built from manually entered data
-- [ ] **LAB-04**: Lab results cannot be permanently deleted, only archived
+- [x] **LAB-01**: User can upload a lab result file (PDF/JPG/PNG, max 10MB) with exam date
+- [x] **LAB-02**: User can manually enter lab parameters (name, value, unit, date) as an alternative or supplement to file upload
+- [x] **LAB-03**: User can view a trend chart of a selected lab parameter over a chosen date range, built from manually entered data
+- [x] **LAB-04**: Lab results cannot be permanently deleted, only archived
 
 ### AI Insights (AI)
 
@@ -68,19 +68,19 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Activity Logging (ACTIVITY)
 
-- [ ] **ACTIVITY-01**: User can start logging a daily activity with name and estimated end time from the dashboard, showing real-time status (Berlangsung/Selesai/Masih aktif)
-- [ ] **ACTIVITY-02**: User receives a reminder a few minutes before estimated end time, and an informative (non-alarm) notification every 10 minutes (customizable) after end time has passed, framed positively ("Masih aktif · [durasi] lebih", amber) rather than as "overdue"
-- [ ] **ACTIVITY-03**: After marking an activity complete, user is prompted to rate how they felt (Nyaman/Biasa/Lelah/Berat) with an optional short note
+- [x] **ACTIVITY-01**: User can start logging a daily activity with name and estimated end time from the dashboard, showing real-time status (Berlangsung/Selesai/Masih aktif)
+- [x] **ACTIVITY-02**: User receives a reminder a few minutes before estimated end time, and an informative (non-alarm) notification every 10 minutes (customizable) after end time has passed, framed positively ("Masih aktif · [durasi] lebih", amber) rather than as "overdue"
+- [x] **ACTIVITY-03**: After marking an activity complete, user is prompted to rate how they felt (Nyaman/Biasa/Lelah/Berat) with an optional short note
 
 ### Doctor Visit Reports (REPORT)
 
-- [ ] **REPORT-01**: User can generate a doctor-visit report for a selected date range, summarizing fluid in/out, medication adherence, CAPD condition frequency, and detected anomalies
-- [ ] **REPORT-02**: User can add an optional note to a generated report before showing it to the doctor; underlying data cannot be edited
+- [x] **REPORT-01**: User can generate a doctor-visit report for a selected date range, summarizing fluid in/out, medication adherence, CAPD condition frequency, and detected anomalies
+- [x] **REPORT-02**: User can add an optional note to a generated report before showing it to the doctor; underlying data cannot be edited
 
 ### Caregiver (CAREGIVER)
 
-- [ ] **CAREGIVER-01**: Caregiver sees a dashboard identical to the patient's, including daily tracking data, latest AI summary, and anomaly alerts
-- [ ] **CAREGIVER-02**: When either patient or caregiver updates a reminder schedule while both are logged in, the change applies in real time on both devices, with a notification on the device that didn't make the change
+- [x] **CAREGIVER-01**: Caregiver sees a dashboard identical to the patient's, including daily tracking data, latest AI summary, and anomaly alerts
+- [x] **CAREGIVER-02**: When either patient or caregiver updates a reminder schedule while both are logged in, the change applies in real time on both devices, with a notification on the device that didn't make the change
 
 ### Community (COMMUNITY)
 
@@ -94,9 +94,9 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Notifications & PWA (NOTIF)
 
-- [x] **NOTIF-01**: User can install KidneyBuddy to home screen as a PWA and grant browser notification permission to receive push reminders
-- [ ] **NOTIF-02**: Each device a user (patient or caregiver) logs in on registers its own push subscription, so reminders deliver independently per device on the same account
-- [x] **NOTIF-03**: On iOS, the app prompts the user to Add to Home Screen before enabling notifications, since push requires this
+- [x] **NOTIF-01**: User can install KidneyBuddy to home screen as a PWA and grant browser notification permission to receive push reminders (code complete; real browser/device QA pending — see v1.0-MILESTONE-AUDIT.md)
+- [x] **NOTIF-02**: Each device a user (patient or caregiver) logs in on registers its own push subscription, so reminders deliver independently per device on the same account
+- [x] **NOTIF-03**: On iOS, the app prompts the user to Add to Home Screen before enabling notifications, since push requires this (code complete; real iPhone QA pending — see v1.0-MILESTONE-AUDIT.md)
 
 ### Responsive Layout (RESPONSIVE)
 
@@ -105,7 +105,7 @@ Per `PRD.md` section 7.2 (Design Consideration 2 — Platform Requirement): mobi
 - [x] **RESPONSIVE-01**: On mobile (375–767px), app renders single-column layout with 5-tab bottom navigation, centered FAB ("Catat Cairan"), and a compact header
 - [x] **RESPONSIVE-02**: On tablet (768–1023px), app renders a 2-column layout for dashboard and list views (e.g., metric cards side by side), with bottom navigation unchanged from mobile
 - [x] **RESPONSIVE-03**: On desktop (1024px and above), primary navigation moves to a left sidebar (replacing bottom navigation entirely), main content uses a multi-column layout with max-width 1280px, header becomes a top bar with persistent Lab/Laporan/Profil shortcuts, and the FAB becomes a regular primary button fixed in the sidebar or bottom-right corner
-- [x] **RESPONSIVE-04**: Layout correctness is verified via browser testing on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly the 375px, 768px, 1024px, and 1280px breakpoints
+- [x] **RESPONSIVE-04**: Layout correctness is verified via browser testing on Chrome mobile, Safari iOS, Chrome desktop, and Firefox desktop at exactly the 375px, 768px, 1024px, and 1280px breakpoints (code/layout complete; real cross-browser/device QA pending — see v1.0-MILESTONE-AUDIT.md)
 
 ## v2 Requirements
 
@@ -149,49 +149,49 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| AUTH-05 | Phase 1 | Pending |
-| AUTH-06 | Phase 1 | Pending |
-| ONBOARD-01 | Phase 1 | Pending |
-| ONBOARD-02 | Phase 1 | Pending |
-| ONBOARD-03 | Phase 1 | Pending |
-| ONBOARD-04 | Phase 1 | Pending |
-| ONBOARD-05 | Phase 1 | Pending |
-| ONBOARD-06 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| AUTH-05 | Phase 1 | Complete |
+| AUTH-06 | Phase 1 | Complete |
+| ONBOARD-01 | Phase 1 | Complete |
+| ONBOARD-02 | Phase 1 | Complete |
+| ONBOARD-03 | Phase 1 | Complete |
+| ONBOARD-04 | Phase 1 | Complete |
+| ONBOARD-05 | Phase 1 | Complete |
+| ONBOARD-06 | Phase 1 | Complete |
 | FLUID-01 | Phase 2 | Complete |
 | FLUID-02 | Phase 2 | Complete |
 | FLUID-03 | Phase 2 | Complete |
 | FLUID-04 | Phase 2 | Complete |
 | FLUID-05 | Phase 2 | Complete |
-| REMIND-01 | Phase 2 | Pending |
+| REMIND-01 | Phase 2 | Complete |
 | REMIND-02 | Phase 2 | Complete |
-| REMIND-03 | Phase 2 | Pending |
-| REMIND-04 | Phase 2 | Pending |
-| REMIND-05 | Phase 2 | Pending |
-| REMIND-06 | Phase 2 | Pending |
-| REMIND-07 | Phase 2 | Pending |
-| REMIND-08 | Phase 2 | Pending |
-| NOTIF-01 | Phase 2 | Complete |
-| NOTIF-02 | Phase 2 | Pending |
-| NOTIF-03 | Phase 2 | Complete |
+| REMIND-03 | Phase 2 | Complete |
+| REMIND-04 | Phase 2 | Complete (device QA pending) |
+| REMIND-05 | Phase 2 | Complete |
+| REMIND-06 | Phase 2 | Complete |
+| REMIND-07 | Phase 2 | Complete |
+| REMIND-08 | Phase 2 | Complete (device QA pending) |
+| NOTIF-01 | Phase 2 | Complete (device QA pending) |
+| NOTIF-02 | Phase 2 | Complete |
+| NOTIF-03 | Phase 2 | Complete (device QA pending) |
 | RESPONSIVE-01 | Phase 2 | Complete |
 | RESPONSIVE-02 | Phase 2 | Complete |
 | RESPONSIVE-03 | Phase 2 | Complete |
-| RESPONSIVE-04 | Phase 2 | Complete |
-| ACTIVITY-01 | Phase 3 | Pending |
-| ACTIVITY-02 | Phase 3 | Pending |
-| ACTIVITY-03 | Phase 3 | Pending |
-| LAB-01 | Phase 3 | Pending |
-| LAB-02 | Phase 3 | Pending |
-| LAB-03 | Phase 3 | Pending |
-| LAB-04 | Phase 3 | Pending |
-| CAREGIVER-01 | Phase 4 | Pending |
-| CAREGIVER-02 | Phase 4 | Pending |
-| REPORT-01 | Phase 4 | Pending |
-| REPORT-02 | Phase 4 | Pending |
+| RESPONSIVE-04 | Phase 2 | Complete (cross-browser QA pending) |
+| ACTIVITY-01 | Phase 3 | Complete |
+| ACTIVITY-02 | Phase 3 | Complete |
+| ACTIVITY-03 | Phase 3 | Complete |
+| LAB-01 | Phase 3 | Complete |
+| LAB-02 | Phase 3 | Complete |
+| LAB-03 | Phase 3 | Complete |
+| LAB-04 | Phase 3 | Complete |
+| CAREGIVER-01 | Phase 4 | Complete |
+| CAREGIVER-02 | Phase 4 | Complete |
+| REPORT-01 | Phase 4 | Complete |
+| REPORT-02 | Phase 4 | Complete |
 | AI-01 | Phase 5 | Complete |
 | AI-02 | Phase 5 | Complete |
 | AI-03 | Phase 5 | Complete |
@@ -211,7 +211,8 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 - v1 requirements: 56 total
 - Mapped to phases: 56
 - Unmapped: 0
+- Complete: 56/56 (7 marked "device QA pending" — code is done, but require real hardware/multi-browser testing that cannot be verified via code inspection: REMIND-04, REMIND-08, NOTIF-01, NOTIF-03, RESPONSIVE-04. See `.planning/v1.0-MILESTONE-AUDIT.md` for full evidence.)
 
 ---
 *Requirements defined: 2026-06-24*
-*Last updated: 2026-06-25 after adding AUTH-06 (password reset via email link — gap surfaced during Phase 1 discuss-phase, no auth system should ship without it) mapped to Phase 1; RESPONSIVE-01..04 (mobile/tablet/desktop distinct-layout requirement from PRD.md section 7.2, missed in initial definition) mapped to Phase 2, where the main UI shell is first built; all 56 v1 requirements remain mapped across 6 phases*
+*Last updated: 2026-07-04 during the v1.0 milestone audit — this Status column and the checkbox list above had gone stale for Phases 1/2/3/4 (many showed Pending despite the underlying code being complete and, for Phases 2/4/5/6, already formally verified). Corrected against each phase's VERIFICATION.md and a dedicated integration-checker pass; see `.planning/v1.0-MILESTONE-AUDIT.md` for the full evidence trail. Previous note: added AUTH-06 (password reset via email link — gap surfaced during Phase 1 discuss-phase, no auth system should ship without it) mapped to Phase 1 on 2026-06-25; RESPONSIVE-01..04 (mobile/tablet/desktop distinct-layout requirement from PRD.md section 7.2, missed in initial definition) mapped to Phase 2, where the main UI shell is first built; all 56 v1 requirements remain mapped across 6 phases*
