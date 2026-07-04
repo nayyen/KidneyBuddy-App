@@ -124,6 +124,24 @@ export async function toggleHelpful(
     return { marked: false };
   }
 
-  await db.insert(communityReplyHelpful).values({ userId, replyId });
-  return { marked: true };
+  try {
+    await db.insert(communityReplyHelpful).values({ userId, replyId });
+    return { marked: true };
+  } catch (err: unknown) {
+    // WR-04: a near-simultaneous request (double-click, retry, two open
+    // tabs) can also read "no existing row" and race this INSERT, tripping
+    // the unique(reply_id, user_id) constraint (D-09). That's not a real
+    // error from the user's perspective — it just means the mark already
+    // exists — so treat a unique-violation (Postgres code 23505) as success
+    // instead of letting it surface as an unhandled 500.
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code?: string }).code === "23505"
+    ) {
+      return { marked: true };
+    }
+    throw err;
+  }
 }
