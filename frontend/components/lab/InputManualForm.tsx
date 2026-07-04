@@ -38,9 +38,20 @@ const inputManualSchema = z.object({
 
 type InputManualFormData = z.infer<typeof inputManualSchema>;
 
+// Minimal shape of the created row this form cares about passing upward —
+// LabAnalysisCard (05-07, AI-03) needs the new labResultId to poll its
+// async analysis, plus nilai/nilaiRujukan to determine which figure (if
+// any) is out-of-range for inline highlighting.
+export interface CreatedLabEntry {
+  id: string;
+  namaParameter: string;
+  nilai: string;
+  nilaiRujukan: string | null;
+}
+
 interface InputManualFormProps {
   accessToken: string;
-  onSuccess?: () => void;
+  onSuccess?: (created?: CreatedLabEntry) => void;
 }
 
 export default function InputManualForm({
@@ -70,14 +81,14 @@ export default function InputManualForm({
         catatan: data.catatan || null,
       };
 
-      await authFetch("/api/lab", accessToken, {
+      const created = await authFetch<CreatedLabEntry>("/api/lab", accessToken, {
         method: "POST",
         body: JSON.stringify(payload),
       });
 
       toast.success("Hasil lab berhasil disimpan");
       reset();
-      onSuccess?.();
+      onSuccess?.(created);
     } catch (err) {
       const msg =
         err instanceof Error ? err.message : "Gagal menyimpan hasil lab";

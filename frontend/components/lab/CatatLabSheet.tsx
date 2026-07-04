@@ -16,7 +16,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import InputManualForm from "./InputManualForm";
+import InputManualForm, { type CreatedLabEntry } from "./InputManualForm";
 import UploadFileForm from "./UploadFileForm";
 
 type TabId = "manual" | "upload";
@@ -25,7 +25,10 @@ interface CatatLabSheetProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   accessToken: string | null;
-  onSaved?: () => void;
+  // `created` is only populated for the manual-entry tab (AI-03/D-14 lab
+  // analysis is only triggered by labResult.service.ts::createEntry, not
+  // the upload flow) — undefined otherwise.
+  onSaved?: (created?: CreatedLabEntry) => void;
 }
 
 export default function CatatLabSheet({
@@ -38,9 +41,9 @@ export default function CatatLabSheet({
 
   if (!accessToken) return null;
 
-  const handleSaved = () => {
+  const handleSaved = (created?: CreatedLabEntry) => {
     onOpenChange(false);
-    onSaved?.();
+    onSaved?.(created);
   };
 
   const tabStyle = (tab: TabId): React.CSSProperties => {

@@ -12,6 +12,9 @@ import ActivityList from "@/components/aktivitas/ActivityList";
 import LabResultList from "@/components/lab/LabResultList";
 import LabTrendChart from "@/components/lab/LabTrendChart";
 import LabArchivedList from "@/components/lab/LabArchivedList";
+import WeeklyInsightCard from "@/components/lab/WeeklyInsightCard";
+import LabAnalysisCard from "@/components/lab/LabAnalysisCard";
+import type { CreatedLabEntry } from "@/components/lab/InputManualForm";
 
 type TabId = "cairan" | "obat" | "cucidarah" | "aktivitas" | "lab";
 
@@ -37,6 +40,9 @@ export default function CatatanPage() {
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const [labRefreshKey, setLabRefreshKey] = useState(0);
   const [showArchivedLab, setShowArchivedLab] = useState(false);
+  // Most recently manually-saved lab result (AI-03/D-14) — LabAnalysisCard
+  // mounts for this one entry only, not the whole historical list.
+  const [lastSavedLab, setLastSavedLab] = useState<CreatedLabEntry | null>(null);
 
   // Auth redirect guard
   useEffect(() => {
@@ -63,10 +69,17 @@ export default function CatatanPage() {
     return () => window.removeEventListener("activity:saved", handleActivitySaved);
   }, []);
 
-  // Listen for lab:saved to refresh list and trend
+  // Listen for lab:saved to refresh list and trend, and to mount
+  // LabAnalysisCard for a newly-saved manual entry (AI-03/D-14).
   useEffect(() => {
-    const handleLabSaved = () => {
+    const handleLabSaved = (e: Event) => {
       setLabRefreshKey((k) => k + 1);
+      const created = (e as CustomEvent).detail?.created as
+        | CreatedLabEntry
+        | undefined;
+      if (created) {
+        setLastSavedLab(created);
+      }
     };
     window.addEventListener("lab:saved", handleLabSaved);
     return () => window.removeEventListener("lab:saved", handleLabSaved);
@@ -176,6 +189,21 @@ export default function CatatanPage() {
 
         {activeTab === "lab" && accessToken && (
           <div className="space-y-4">
+            {/* Wawasan tren mingguan (AI-02, D-11) */}
+            <WeeklyInsightCard accessToken={accessToken} />
+
+            {/* Analisis hasil lab — hanya untuk entri manual yang baru
+                disimpan di sesi ini (AI-03, D-14 async non-blocking) */}
+            {lastSavedLab && (
+              <LabAnalysisCard
+                accessToken={accessToken}
+                labResultId={lastSavedLab.id}
+                namaParameter={lastSavedLab.namaParameter}
+                nilai={lastSavedLab.nilai}
+                nilaiRujukan={lastSavedLab.nilaiRujukan}
+              />
+            )}
+
             {/* Add button */}
             <button
               onClick={() =>

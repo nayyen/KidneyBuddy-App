@@ -11,6 +11,7 @@ import CatatCairanSheet from "@/components/cairan/CatatCairanSheet";
 import MulaiKegiatanSheet from "@/components/aktivitas/MulaiKegiatanSheet";
 import FeelingsRatingSheet from "@/components/aktivitas/FeelingsRatingSheet";
 import CatatLabSheet from "@/components/lab/CatatLabSheet";
+import type { CreatedLabEntry } from "@/components/lab/InputManualForm";
 import EmergencyAnomalyModal, {
   type AnomalyAlertRow,
 } from "@/components/anomaly/EmergencyAnomalyModal";
@@ -86,9 +87,12 @@ export default function AppShell({ children }: AppShellProps) {
     window.dispatchEvent(new CustomEvent("activity:saved"));
   }, []);
 
-  // Called by CatatLabSheet after a successful save — children refresh
-  const handleLabSaved = useCallback(() => {
-    window.dispatchEvent(new CustomEvent("lab:saved"));
+  // Called by CatatLabSheet after a successful save — children refresh.
+  // `created` (manual-entry only, AI-03/D-14) is forwarded in the event
+  // detail so CatatanPage can mount a LabAnalysisCard for this specific
+  // newly-saved result without a second round-trip.
+  const handleLabSaved = useCallback((created?: CreatedLabEntry) => {
+    window.dispatchEvent(new CustomEvent("lab:saved", { detail: { created } }));
   }, []);
 
   // Listen for custom events from KegiatanModuleInline and ActivityList
