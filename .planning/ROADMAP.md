@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Activity Logging & Lab Results** - Patients can log daily activities with positive framing and track lab results with trend visualization over time
 - [ ] **Phase 4: Caregiver Dashboard & Doctor Reports** - Caregivers see an identical real-time view of patient data, and patients can export a doctor-ready visit report
 - [x] **Phase 5: AI Insights & Anomaly Detection** - Patients receive calm, disclaimer-safe AI narrative summaries and trend insights, and are reliably warned of clinically meaningful anomalies without alert fatigue (completed 2026-07-04)
-- [ ] **Phase 6: Community & Education** - Patients can browse modality-filtered education content and participate in a peer community
+- [x] **Phase 6: Community & Education** - Patients can browse modality-filtered education content and participate in a peer community (completed 2026-07-04)
 
 ## Phase Details
 
@@ -208,7 +208,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 06-07-PLAN.md — Post detail + reply + membantu + archive frontend: /edukasi/komunitas/[id] route, PostDetail, ReplyList/ReplyItem optimistic toggle, owner-only archive dialog (COMMUNITY-02, COMMUNITY-03)
+- [x] 06-07-PLAN.md — Post detail + reply + membantu + archive frontend: /edukasi/komunitas/[id] route, PostDetail, ReplyList/ReplyItem optimistic toggle, owner-only archive dialog (COMMUNITY-02, COMMUNITY-03)
 
 ## Progress
 
@@ -222,4 +222,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
 | 5. AI Insights & Anomaly Detection | 7/7 | Complete    | 2026-07-04 |
-| 6. Community & Education | 6/7 | In Progress|  |
+| 6. Community & Education | 7/7 | Complete   | 2026-07-04 |
