@@ -136,7 +136,16 @@ export default function PostDetail({ postId, accessToken }: PostDetailProps) {
       });
       setReplyText("");
       setReplyRefreshKey((prev) => prev + 1);
-    } catch {
+    } catch (err) {
+      // IN-03: authFetch already retried once internally via a token
+      // refresh; a 401 surfacing here means the session is truly expired,
+      // not a network blip — redirect rather than showing a
+      // network-sounding error the user would retry forever.
+      if (err instanceof ApiError && err.status === 401) {
+        toast.error("Sesi Anda telah berakhir. Silakan masuk kembali.");
+        router.push("/login");
+        return;
+      }
       toast.error("Gagal mengirim. Periksa koneksi internet Anda dan coba lagi.");
     } finally {
       setIsSubmittingReply(false);
@@ -151,7 +160,16 @@ export default function PostDetail({ postId, accessToken }: PostDetailProps) {
       });
       setIsArchiveDialogOpen(false);
       router.push("/edukasi/komunitas");
-    } catch {
+    } catch (err) {
+      // IN-03: authFetch already retried once internally via a token
+      // refresh; a 401 surfacing here means the session is truly expired,
+      // not a network blip — redirect rather than showing a
+      // network-sounding error the user would retry forever.
+      if (err instanceof ApiError && err.status === 401) {
+        toast.error("Sesi Anda telah berakhir. Silakan masuk kembali.");
+        router.push("/login");
+        return;
+      }
       toast.error("Gagal mengirim. Periksa koneksi internet Anda dan coba lagi.");
     } finally {
       setIsArchiving(false);

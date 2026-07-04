@@ -13,13 +13,14 @@ import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { authFetch } from "@/lib/api";
+import { authFetch, ApiError } from "@/lib/api";
 
 const createPostFormSchema = z.object({
   judul: z
@@ -66,6 +67,7 @@ export default function CreatePostSheet({
   onOpenChange,
   onCreated,
 }: CreatePostSheetProps) {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -94,7 +96,16 @@ export default function CreatePostSheet({
       });
       reset();
       onCreated();
-    } catch {
+    } catch (err) {
+      // IN-03: authFetch already retried once internally via a token
+      // refresh; a 401 surfacing here means the session is truly expired,
+      // not a network blip — redirect rather than showing a
+      // network-sounding error the user would retry forever.
+      if (err instanceof ApiError && err.status === 401) {
+        toast.error("Sesi Anda telah berakhir. Silakan masuk kembali.");
+        router.replace("/login");
+        return;
+      }
       toast.error("Gagal mengirim. Periksa koneksi internet Anda dan coba lagi.");
     }
   };

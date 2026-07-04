@@ -12,8 +12,9 @@
  * newest-first from the API (D-07) — no client-side .sort() here.
  */
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Users, Plus } from "lucide-react";
-import { authFetch } from "@/lib/api";
+import { authFetch, ApiError } from "@/lib/api";
 import PostCard, { type PostItem } from "@/components/komunitas/PostCard";
 import CreatePostSheet from "@/components/komunitas/CreatePostSheet";
 
@@ -39,6 +40,7 @@ const KATEGORI_TO_ENUM: Record<Exclude<KategoriFilter, "Semua">, PostItem["kateg
 };
 
 export default function CommunityFeed({ accessToken }: CommunityFeedProps) {
+  const router = useRouter();
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -64,12 +66,20 @@ export default function CommunityFeed({ accessToken }: CommunityFeedProps) {
         accessToken,
       );
       setPosts(res.posts ?? []);
-    } catch {
+    } catch (err) {
+      // IN-03: authFetch already retried once internally via a token
+      // refresh; a 401 surfacing here means the session is truly expired,
+      // not a network blip — redirect rather than showing the generic
+      // "periksa koneksi" message the user would retry forever.
+      if (err instanceof ApiError && err.status === 401) {
+        router.replace("/login");
+        return;
+      }
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, activeKategori, activeMetode]);
+  }, [accessToken, activeKategori, activeMetode, router]);
 
   useEffect(() => {
     fetchPosts();

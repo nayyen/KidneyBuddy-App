@@ -14,8 +14,9 @@
  * follow-up GET /api/education/:id round-trip is needed.
  */
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { BookOpen } from "lucide-react";
-import { authFetch } from "@/lib/api";
+import { authFetch, ApiError } from "@/lib/api";
 import EducationCard, { type EducationItem } from "@/components/edukasi/EducationCard";
 import EducationDetail from "@/components/edukasi/EducationDetail";
 
@@ -28,6 +29,7 @@ type TherapyFilter = "Semua" | "CAPD" | "HD" | "Transplantasi" | "Umum";
 const FILTERS: TherapyFilter[] = ["Semua", "CAPD", "HD", "Transplantasi", "Umum"];
 
 export default function EducationList({ accessToken }: EducationListProps) {
+  const router = useRouter();
   const [items, setItems] = useState<EducationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -45,12 +47,20 @@ export default function EducationList({ accessToken }: EducationListProps) {
         accessToken,
       );
       setItems(res.content ?? []);
-    } catch {
+    } catch (err) {
+      // IN-03: authFetch already retried once internally via a token
+      // refresh; a 401 surfacing here means the session is truly expired,
+      // not a network blip — redirect rather than showing the generic
+      // "periksa koneksi" message the user would retry forever.
+      if (err instanceof ApiError && err.status === 401) {
+        router.replace("/login");
+        return;
+      }
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken, activeFilter]);
+  }, [accessToken, activeFilter, router]);
 
   useEffect(() => {
     fetchItems();
