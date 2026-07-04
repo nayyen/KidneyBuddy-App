@@ -198,7 +198,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Wave 2** *(blocked on Wave 1; 06-02, 06-03, 06-04 — 06-03 & 06-04 parallel after 06-02)*
 
 - [x] 06-02-PLAN.md — Education backend + real Bahasa Indonesia seed content: repository/service (therapy+type filter), controller/routes, /api/education mount, seed-education.ts (EDU-01)
-- [ ] 06-03-PLAN.md — Education frontend: Edukasi/Komunitas sub-nav pills (D-01/02/03), EducationList/Card/Detail, replace "Konten Segera Hadir", komunitas route placeholder (EDU-01)
+- [x] 06-03-PLAN.md — Education frontend: Edukasi/Komunitas sub-nav pills (D-01/02/03), EducationList/Card/Detail, replace "Konten Segera Hadir", komunitas route placeholder (EDU-01)
 - [x] 06-04-PLAN.md — Community post backend: repository/service (create/feed/detail/IDOR-safe archive), community controller+routes, /api/community mount (COMMUNITY-01, COMMUNITY-03)
 
 **Wave 3** *(06-05 & 06-06 run in parallel — no file overlap)*
@@ -222,4 +222,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
 | 5. AI Insights & Anomaly Detection | 7/7 | Complete    | 2026-07-04 |
-| 6. Community & Education | 3/7 | In Progress|  |
+| 6. Community & Education | 4/7 | In Progress|  |
