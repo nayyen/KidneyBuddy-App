@@ -63,6 +63,16 @@ function createFakeReportRepo() {
     ],
   });
 
+  /** getDialysisAdherenceByRange(userId, dari, sampai) → aggregated counts */
+  const getDialysisAdherenceByRange = async (
+    _userId: string,
+    _dari: string,
+    _sampai: string,
+  ) => ({
+    total: 4,
+    confirmed: 3,
+  });
+
   /** getCAPDConditionsByRange(userId, dari, sampai) → condition counts */
   const getCAPDConditionsByRange = async (
     _userId: string,
@@ -75,8 +85,31 @@ function createFakeReportRepo() {
     berdarah: 0,
   });
 
-  return { getFluidSummaryByRange, getMedicationAdherenceByRange, getCAPDConditionsByRange };
+  /** getAnomaliesByRangeForReport(userId, dari, sampai) → D-15 report rows */
+  const getAnomaliesByRangeForReport = async (
+    _userId: string,
+    _dari: string,
+    _sampai: string,
+  ) => [
+    {
+      tanggal: "2026-06-02",
+      tipeAnomali: "kondisi_cairan_abnormal",
+      severity: "tinggi",
+      deskripsi: "Sistem mendeteksi kondisi cairan CAPD yang tidak normal.",
+    },
+  ];
+
+  return {
+    getFluidSummaryByRange,
+    getMedicationAdherenceByRange,
+    getDialysisAdherenceByRange,
+    getCAPDConditionsByRange,
+    getAnomaliesByRangeForReport,
+  };
 }
+
+/** Fake with zero anomalies — for the "anomalies empty" assertion. */
+const emptyAnomalies = async () => [];
 
 const USER_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -133,7 +166,9 @@ describe("_generateReportCore aggregation", () => {
       "2026-06-03",
       repo.getFluidSummaryByRange,
       repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
       repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
     );
 
     assert.ok(result.fluidSummary, "fluidSummary should exist");
@@ -157,7 +192,9 @@ describe("_generateReportCore aggregation", () => {
       "2026-06-03",
       repo.getFluidSummaryByRange,
       repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
       repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
     );
 
     assert.ok(result.medicationAdherence, "medicationAdherence should exist");
@@ -180,12 +217,33 @@ describe("_generateReportCore aggregation", () => {
       "2026-06-03",
       repo.getFluidSummaryByRange,
       emptyAdherence,
+      repo.getDialysisAdherenceByRange,
       repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
     );
 
     assert.strictEqual(result.medicationAdherence.taken, 0);
     assert.strictEqual(result.medicationAdherence.scheduled, 0);
     assert.strictEqual(result.medicationAdherence.pct, 0);
+  });
+
+  it("returns dialysis adherence with pct = (confirmed/total)*100", async () => {
+    const repo = createFakeReportRepo();
+    const result = await _generateReportCore(
+      USER_ID,
+      "2026-06-01",
+      "2026-06-03",
+      repo.getFluidSummaryByRange,
+      repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
+      repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
+    );
+
+    assert.ok(result.dialysisAdherence, "dialysisAdherence should exist");
+    assert.strictEqual(result.dialysisAdherence.taken, 3);
+    assert.strictEqual(result.dialysisAdherence.scheduled, 4);
+    assert.strictEqual(result.dialysisAdherence.pct, 75); // (3/4)*100
   });
 
   it("returns CAPD condition frequency grouped by kondisiKeluar", async () => {
@@ -196,7 +254,9 @@ describe("_generateReportCore aggregation", () => {
       "2026-06-03",
       repo.getFluidSummaryByRange,
       repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
       repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
     );
 
     assert.ok(result.capdFrequency, "capdFrequency should exist");
@@ -206,7 +266,7 @@ describe("_generateReportCore aggregation", () => {
     assert.strictEqual(result.capdFrequency.berdarah, 0);
   });
 
-  it("returns anomalies as empty array (Phase 4 placeholder)", async () => {
+  it("returns anomalies as empty array when none exist in range", async () => {
     const repo = createFakeReportRepo();
     const result = await _generateReportCore(
       USER_ID,
@@ -214,10 +274,30 @@ describe("_generateReportCore aggregation", () => {
       "2026-06-03",
       repo.getFluidSummaryByRange,
       repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
       repo.getCAPDConditionsByRange,
+      emptyAnomalies,
     );
 
     assert.ok(Array.isArray(result.anomalies));
     assert.strictEqual(result.anomalies.length, 0);
+  });
+
+  it("returns real anomaly rows from getAnomaliesFn (D-15 passthrough)", async () => {
+    const repo = createFakeReportRepo();
+    const result = await _generateReportCore(
+      USER_ID,
+      "2026-06-01",
+      "2026-06-03",
+      repo.getFluidSummaryByRange,
+      repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
+      repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
+    );
+
+    assert.strictEqual(result.anomalies.length, 1);
+    assert.strictEqual(result.anomalies[0].tipeAnomali, "kondisi_cairan_abnormal");
+    assert.strictEqual(result.anomalies[0].severity, "tinggi");
   });
 });
