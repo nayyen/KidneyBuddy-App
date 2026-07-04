@@ -27,6 +27,7 @@ import assert from "node:assert";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { randomUUID } from "node:crypto";
 
 const { createPostSchema, createPost, archivePost } = await import(
   "../services/communityPost.service.js"
@@ -39,11 +40,15 @@ const OTHER_USER_ID = "00000000-0000-0000-0000-000000000002";
 
 function createInMemoryPostStore() {
   const rows: Array<Record<string, unknown>> = [];
-  let counter = 0;
 
   const insert = async (data: Record<string, unknown>) => {
     const row = {
-      id: `test-post-${++counter}`,
+      // WR-01: archivePost/getPostDetail now format-validate id as a UUID
+      // before hitting the repository, so the in-memory test double must
+      // hand out real UUIDs too (a plain "test-post-N" string would be
+      // rejected as malformed and short-circuit to null before ever
+      // reaching store.archiveById).
+      id: randomUUID(),
       userId: data.userId,
       judul: data.judul,
       isi: data.isi,

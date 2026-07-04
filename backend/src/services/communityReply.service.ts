@@ -41,6 +41,15 @@ export const createReplySchema = z.object({
 
 export type CreateReplyPayload = z.infer<typeof createReplySchema>;
 
+// WR-01: format-validate :id/:replyId route params as UUIDs before they
+// reach a Drizzle `eq(uuidColumn, id)` clause — see communityPost.service
+// .ts's isValidUuid for the full rationale (avoids a raw Postgres "invalid
+// input syntax for type uuid" surfacing as a generic 500 instead of a 404).
+const uuidParamSchema = z.string().uuid();
+function isValidUuid(value: string): boolean {
+  return uuidParamSchema.safeParse(value).success;
+}
+
 // ─── Injectable deps ────────────────────────────────────────────────────────
 //
 // Loosely typed (matches communityPost.service.ts's InsertFn convention) so
@@ -78,6 +87,12 @@ export async function createReply(
   },
 ) {
   const parsed = createReplySchema.parse(rawPayload);
+
+  // WR-01: reject a malformed postId before it ever reaches deps.findPost's
+  // `eq(uuid, postId)` clause.
+  if (!isValidUuid(postId)) {
+    throw new AppError(404, "NOT_FOUND", "Postingan tidak ditemukan");
+  }
 
   // WR-06: archiving a post is meant to freeze the discussion — the archive
   // dialog tells the owner it "akan disembunyikan dari feed komunitas".
@@ -118,6 +133,11 @@ export async function listReplies(
     findByPost: communityReplyRepository.findByPost,
   },
 ): Promise<CommunityReplyWithMeta[]> {
+  // WR-01: reject a malformed postId before it ever reaches deps.findByPost's
+  // `eq(uuid, postId)` clause.
+  if (!isValidUuid(postId)) {
+    throw new AppError(404, "NOT_FOUND", "Postingan tidak ditemukan");
+  }
   return deps.findByPost(postId, currentUserId);
 }
 
@@ -131,8 +151,12 @@ export async function toggleHelpful(
   replyId: string,
   deps: ToggleHelpfulDeps = { toggle: communityReplyRepository.toggleHelpful },
 ): Promise<{ marked: boolean }> {
-  if (typeof replyId !== "string" || replyId.length === 0) {
-    throw new Error("replyId wajib diisi");
+  // WR-01: reject a malformed replyId before it ever reaches deps.toggle's
+  // `eq(uuid, replyId)` clause (this also replaces the old dead-code
+  // typeof/length guard — Express route params are always non-empty
+  // strings by construction, but never format-validated as UUIDs).
+  if (!isValidUuid(replyId)) {
+    throw new AppError(404, "NOT_FOUND", "Balasan tidak ditemukan");
   }
 
   return deps.toggle(userId, replyId);

@@ -29,6 +29,15 @@ export const listQuerySchema = z.object({
 
 export type ListQuery = z.infer<typeof listQuerySchema>;
 
+// WR-01: format-validate the :id route param as a UUID before it reaches a
+// Drizzle `eq(uuidColumn, id)` clause — see communityPost.service.ts's
+// isValidUuid for the full rationale (avoids a raw Postgres "invalid input
+// syntax for type uuid" surfacing as a generic 500 instead of a 404).
+const uuidParamSchema = z.string().uuid();
+function isValidUuid(value: string): boolean {
+  return uuidParamSchema.safeParse(value).success;
+}
+
 // ─── Injectable deps ───────────────────────────────────────────────────────────
 //
 // Loosely typed (matches labResult.service.ts's InsertFn convention) so that
@@ -78,5 +87,6 @@ export async function getContentDetail(
   id: string,
   deps: GetContentDetailDeps = { findById: educationContentRepository.findById },
 ): Promise<EducationContent | null> {
+  if (!isValidUuid(id)) return null;
   return deps.findById(id);
 }

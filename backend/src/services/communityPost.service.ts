@@ -55,6 +55,17 @@ export const createPostSchema = z.object({
 
 export type CreatePostPayload = z.infer<typeof createPostSchema>;
 
+// WR-01: format-validate route-param ids as UUIDs before they reach a
+// Drizzle `eq(uuidColumn, id)` clause. A malformed id (e.g. a stray
+// "/edukasi/komunitas/undefined" navigation or a stale bookmark) would
+// otherwise hit Postgres's `invalid input syntax for type uuid` error,
+// which isn't a ZodError/AppError and falls through errorHandler's last
+// branch as a generic 500 instead of the intended 404.
+const uuidParamSchema = z.string().uuid();
+function isValidUuid(value: string): boolean {
+  return uuidParamSchema.safeParse(value).success;
+}
+
 export const listFeedQuerySchema = z.object({
   kategori: z.enum(["pertanyaan", "berbagi_pengalaman", "informasi"]).optional(),
   metodeTerapi: z.enum(["CAPD", "HD", "Transplantasi", "Umum"]).optional(),
@@ -132,6 +143,7 @@ export async function getPostDetail(
     findById: communityPostRepository.findById,
   },
 ): Promise<(CommunityPostWithAuthor & { isMine: boolean }) | null> {
+  if (!isValidUuid(id)) return null;
   const row = await deps.findById(id);
   if (!row) return null;
   return { ...row, isMine: row.userId === currentUserId };
@@ -147,6 +159,7 @@ export async function archivePost(
   id: string,
   deps: ArchivePostDeps = { archiveById: communityPostRepository.archiveById },
 ) {
+  if (!isValidUuid(id)) return null;
   const row = await deps.archiveById(userId, id);
   if (!row) return null;
   return row;
