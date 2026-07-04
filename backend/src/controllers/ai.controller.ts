@@ -17,6 +17,8 @@
 import type { Request, Response, NextFunction } from "express";
 import * as aiSummaryService from "../services/aiSummary.service.js";
 import * as aiInsightService from "../services/aiInsight.service.js";
+import * as aiLabAnalysisService from "../services/aiLabAnalysis.service.js";
+import * as aiLifestyleService from "../services/aiLifestyle.service.js";
 
 /**
  * GET /api/ai/daily-summary
@@ -80,6 +82,55 @@ export async function getWeeklyInsight(
       });
       return;
     }
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/ai/lab-analysis/:labResultId
+ * Cache-only read of a single lab result's AI analysis (AI-03). Never calls
+ * Groq — generation happens asynchronously via the fire-and-forget trigger
+ * on lab save (D-14). Returns `{ ready: false }` (200) both when the
+ * analysis simply hasn't finished generating yet AND when the labResultId
+ * doesn't exist / isn't owned by this user (T-05-14) — the IDOR-safe
+ * repository join can't distinguish the two cases, and collapsing them
+ * avoids leaking existence of another user's lab result via a 404 vs. 200
+ * status-code oracle.
+ */
+export async function getLabAnalysis(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const labResultId = req.params.labResultId as string;
+    const result = await aiLabAnalysisService.getLabAnalysis(req.user!.id, labResultId);
+    if (!result) {
+      res.json({ ready: false });
+      return;
+    }
+    res.json({ ready: true, ...result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/ai/lifestyle
+ * Gate-checked read of the personalized lifestyle suggestion (AI-04).
+ * Returns a gated marker (no Groq call) if the user has <3 days of
+ * tracking data; otherwise lazily generates-or-caches for today (WIB) —
+ * this surface has no separate manual regenerate route (D-13 simplicity).
+ */
+export async function getLifestyleSuggestion(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await aiLifestyleService.getLifestyleSuggestion(req.user!.id);
     res.json(result);
   } catch (err) {
     next(err);
