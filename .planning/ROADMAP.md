@@ -204,7 +204,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Wave 3** *(06-05 & 06-06 run in parallel — no file overlap)*
 
 - [x] 06-05-PLAN.md — Community reply + "membantu" backend: reply repository/service, COUNT-based helpfulCount + markedByMe, DB-deduped toggle (D-08/D-09), controller/route append (COMMUNITY-02)
-- [ ] 06-06-PLAN.md — Community feed + create-post frontend: CommunityFeed (category+therapy filters D-05/06, newest-first D-07), PostCard, CreatePostSheet (COMMUNITY-01, COMMUNITY-03)
+- [x] 06-06-PLAN.md — Community feed + create-post frontend: CommunityFeed (category+therapy filters D-05/06, newest-first D-07), PostCard, CreatePostSheet (COMMUNITY-01, COMMUNITY-03)
 
 **Wave 4** *(blocked on Wave 3)*
 
@@ -222,4 +222,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
 | 5. AI Insights & Anomaly Detection | 7/7 | Complete    | 2026-07-04 |
-| 6. Community & Education | 5/7 | In Progress|  |
+| 6. Community & Education | 6/7 | In Progress|  |

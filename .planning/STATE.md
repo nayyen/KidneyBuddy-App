@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 06 Plan 05 (community reply backend) complete - SUMMARY.md written, ready for Plan 06
-last_updated: "2026-07-04T11:56:45.525Z"
+stopped_at: Phase 06 Plan 06 (community feed frontend) complete - SUMMARY.md written, ready for Plan 07
+last_updated: "2026-07-04T12:22:47.322Z"
 last_activity: 2026-07-04 -- Phase 06 Plan 01 complete (4 tables migrated, 3 RED test scaffolds); Plan 02 next
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 36
-  completed_plans: 30
+  completed_plans: 31
   percent: 43
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 06 (community-education) — EXECUTING
-Plan: 6 of 7 (01 complete)
+Plan: 7 of 7 (01 complete)
 Phase: 03 (activity-logging-lab-results) — COMPLETE ✓
 Phase: 04 (caregiver-dashboard-doctor-reports) — COMPLETE ✓
 Phase: 06 (community-education) — IN PROGRESS
@@ -73,6 +73,7 @@ Progress: [█████░░░░░] 50%
 | Phase 06 P04 | 35min | 2 tasks | 5 files |
 | Phase 06 P03 | 35min | 3 tasks | 6 files |
 | Phase 06 P05 | ~20min | 2 tasks | 4 files |
+| Phase 06 P06 | ~45min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,7 @@ Recent decisions affecting current work:
 - [Phase 06-03]: EducationDetail reuses the already-fetched EducationList item directly (no follow-up GET /api/education/:id) since the list endpoint already returns full isi.
 - [Phase 06-03]: Doc comments in EducationCard/EducationDetail avoid the literal string dangerouslySetInnerHTML so the plan's own grep-based acceptance checks pass.
 - [Phase 06-05]: toggleHelpful (service + repository) carries NO userId-ownership WHERE guard tying the mark to the reply's author - any authenticated user may mark any reply as membantu, per D-08's intentional open-access model; the community_reply_helpful unique(reply_id,user_id) constraint from 06-01 is the DB-level dedup backstop
+- [Phase ?]: [Phase 06-06]: communityPost.repository.ts's findFeed/findById now left-join users for authorName (CommunityPostWithAuthor) — the 06-04 API had zero author attribution, a real product gap for a Quora-style feed, not cosmetic; archiveById (IDOR-sensitive) left untouched.
 
 ### Pending Todos
 
@@ -136,9 +138,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-04T11:56:45.292Z
-Stopped at: Phase 06 Plan 05 (community reply backend) complete - SUMMARY.md written, ready for Plan 06
-Resume file: .planning/phases/06-community-education/06-05-SUMMARY.md
+Last session: 2026-07-04T12:22:17.671Z
+Stopped at: Phase 06 Plan 06 (community feed frontend) complete - SUMMARY.md written, ready for Plan 07
+Resume file: .planning/phases/06-community-education/06-06-SUMMARY.md
 
 ## Phase 4 Summary
 
