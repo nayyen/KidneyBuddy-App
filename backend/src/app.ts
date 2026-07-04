@@ -19,6 +19,7 @@ import reportRoutes from "./routes/report.routes.js";
 import anomalyRoutes from "./routes/anomaly.routes.js";
 import aiRoutes from "./routes/ai.routes.js";
 import educationRoutes from "./routes/education.routes.js";
+import communityRoutes from "./routes/community.routes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -61,6 +62,7 @@ app.use("/api/report", reportRoutes);
 app.use("/api/anomaly", anomalyRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/education", educationRoutes);
+app.use("/api/community", communityRoutes);
 
 // --- Health check ---
 app.get("/api/health", (_req, res) => {
