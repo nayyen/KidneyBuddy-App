@@ -17,15 +17,25 @@
  * a real UX gap, not a cosmetic one; the join is read-only and does not
  * affect the IDOR-safe archiveById path).
  */
-import { and, eq, desc, getTableColumns } from "drizzle-orm";
+import { and, eq, desc, getTableColumns, sql } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { communityPosts } from "../db/schema/communityPost.schema.js";
+import { communityReplies } from "../db/schema/communityReply.schema.js";
+import { communityReplyHelpful } from "../db/schema/communityReplyHelpful.schema.js";
 import { users } from "../db/schema/users.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export type CommunityPost = InferSelectModel<typeof communityPosts>;
 export type NewCommunityPost = InferInsertModel<typeof communityPosts>;
 export type CommunityPostWithAuthor = CommunityPost & { authorName: string | null };
+// WR-02: feed rows additionally carry live reply/helpful aggregates. Kept as
+// a separate type (rather than adding these fields to CommunityPostWithAuthor
+// directly) since findById/archiveById don't compute them and the post
+// detail page doesn't render them.
+export type CommunityFeedItem = CommunityPostWithAuthor & {
+  replyCount: number;
+  helpfulTotal: number;
+};
 
 /**
  * Insert a community post row and return the created row.
@@ -44,7 +54,7 @@ export async function create(data: NewCommunityPost): Promise<CommunityPost> {
 export async function findFeed(options?: {
   kategori?: string;
   metodeTerapi?: string;
-}): Promise<CommunityPostWithAuthor[]> {
+}): Promise<CommunityFeedItem[]> {
   const conditions = [eq(communityPosts.diarsipkan, false)];
 
   if (options?.kategori) {
@@ -54,11 +64,31 @@ export async function findFeed(options?: {
     conditions.push(eq(communityPosts.metodeTerapi, options.metodeTerapi));
   }
 
+  // WR-02: replyCount/helpfulTotal computed via a single query (two LEFT
+  // JOINs + GROUP BY) rather than one query per post, to avoid N+1.
+  // COUNT(DISTINCT community_replies.id) dedups the fan-out introduced by
+  // the second join against community_reply_helpful; COUNT(community_reply
+  // _helpful.id) then sums every helpful mark across all of the post's
+  // replies. GROUP BY communityPosts.id is sufficient (Postgres allows
+  // selecting other communityPosts.* columns via primary-key functional
+  // dependency); users.namaLengkap is added to the GROUP BY since it isn't
+  // functionally dependent on communityPosts.id.
   return db
-    .select({ ...getTableColumns(communityPosts), authorName: users.namaLengkap })
+    .select({
+      ...getTableColumns(communityPosts),
+      authorName: users.namaLengkap,
+      replyCount: sql<number>`count(distinct ${communityReplies.id})::int`,
+      helpfulTotal: sql<number>`count(${communityReplyHelpful.id})::int`,
+    })
     .from(communityPosts)
     .leftJoin(users, eq(communityPosts.userId, users.userId))
+    .leftJoin(communityReplies, eq(communityReplies.postId, communityPosts.id))
+    .leftJoin(
+      communityReplyHelpful,
+      eq(communityReplyHelpful.replyId, communityReplies.id),
+    )
     .where(and(...conditions))
+    .groupBy(communityPosts.id, users.namaLengkap)
     .orderBy(desc(communityPosts.createdAt));
 }
 

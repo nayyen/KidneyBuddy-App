@@ -21,7 +21,10 @@
 import { z } from "zod";
 import pino from "pino";
 import * as communityPostRepository from "../repositories/communityPost.repository.js";
-import type { CommunityPostWithAuthor } from "../repositories/communityPost.repository.js";
+import type {
+  CommunityPostWithAuthor,
+  CommunityFeedItem,
+} from "../repositories/communityPost.repository.js";
 
 const logger = pino({ name: "communityPost.service" });
 
@@ -112,7 +115,7 @@ export async function listFeed(
   deps: { findFeed: typeof communityPostRepository.findFeed } = {
     findFeed: communityPostRepository.findFeed,
   },
-): Promise<CommunityPostWithAuthor[]> {
+): Promise<CommunityFeedItem[]> {
   const parsed: ListFeedQuery = options ? listFeedQuerySchema.parse(options) : {};
 
   return deps.findFeed(parsed);
