@@ -30,13 +30,21 @@ export const listQuerySchema = z.object({
 export type ListQuery = z.infer<typeof listQuerySchema>;
 
 // ─── Injectable deps ───────────────────────────────────────────────────────────
+//
+// Loosely typed (matches labResult.service.ts's InsertFn convention) so that
+// test doubles returning a minimal row shape (a subset of EducationContent's
+// columns, e.g. the 06-01 RED scaffold's in-memory store) still type-check
+// against the real repository's stricter signature.
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FindAllFn = (options?: {
   metodeTerapi?: string;
   tipeKonten?: string;
-}) => Promise<EducationContent[]>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+}) => Promise<any[]>;
 
-type FindByIdFn = (id: string) => Promise<EducationContent | null>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FindByIdFn = (id: string) => Promise<any | null>;
 
 export interface ListContentDeps {
   findAll: FindAllFn;
