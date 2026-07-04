@@ -171,7 +171,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 05-06-PLAN.md — AI lab analysis (non-blocking on lab save, D-14) + lifestyle suggestion (>=3-day gate) backend (AI-03, AI-04, AI-05)
+- [x] 05-06-PLAN.md — AI lab analysis (non-blocking on lab save, D-14) + lifestyle suggestion (>=3-day gate) backend (AI-03, AI-04, AI-05)
 
 **Wave 5** *(blocked on Wave 4)*
 
@@ -203,5 +203,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
-| 5. AI Insights & Anomaly Detection | 5/7 | In Progress|  |
+| 5. AI Insights & Anomaly Detection | 6/7 | In Progress|  |
 | 6. Community & Education | 0/TBD | Not started | - |
