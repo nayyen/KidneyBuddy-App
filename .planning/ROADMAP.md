@@ -193,7 +193,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 1** *(BLOCKING foundation)*
 
-- [ ] 06-01-PLAN.md — Foundation: 4 schemas (community_posts, community_replies, community_reply_helpful join, education_content) + index export + [BLOCKING] db:generate/db:migrate + 3 RED test scaffolds (COMMUNITY-01/02/03, EDU-01)
+- [x] 06-01-PLAN.md — Foundation: 4 schemas (community_posts, community_replies, community_reply_helpful join, education_content) + index export + [BLOCKING] db:generate/db:migrate + 3 RED test scaffolds (COMMUNITY-01/02/03, EDU-01)
 
 **Wave 2** *(blocked on Wave 1; 06-02, 06-03, 06-04 — 06-03 & 06-04 parallel after 06-02)*
 
@@ -222,4 +222,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Activity Logging & Lab Results | 0/6 | Planned | - |
 | 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
 | 5. AI Insights & Anomaly Detection | 7/7 | Complete    | 2026-07-04 |
-| 6. Community & Education | 0/7 | Planned | - |
+| 6. Community & Education | 1/7 | In Progress|  |

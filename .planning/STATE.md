@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 06 UI-SPEC approved
-last_updated: "2026-07-04T07:29:43.960Z"
-last_activity: 2026-07-04 -- Phase 06 planning complete
+stopped_at: Phase 06 Plan 01 (foundation) complete
+last_updated: "2026-07-04T08:13:18.129Z"
+last_activity: 2026-07-04 -- Phase 06 Plan 01 complete (4 tables migrated, 3 RED test scaffolds); Plan 02 next
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 29
-  completed_plans: 25
-  percent: 43
+  total_plans: 36
+  completed_plans: 26
+  percent: 46
 ---
 
 # Project State
@@ -21,16 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24)
 
 **Core value:** Pasien tidak pernah melewatkan dosis obat, sesi exchange CAPD, atau jadwal HD tanpa sadar — reliabilitas reminder dan pencatatan harian adalah hal yang harus berfungsi sempurna.
-**Current focus:** Phase 06 — community-education (next; Phase 05 complete)
+**Current focus:** Phase 06 — community-education
 
 ## Current Position
 
-Phase: 6
+Phase: 06 (community-education) — EXECUTING
+Plan: 2 of 7 (01 complete)
 Phase: 03 (activity-logging-lab-results) — COMPLETE ✓
 Phase: 04 (caregiver-dashboard-doctor-reports) — COMPLETE ✓
-Phase: 06 (community-education) — NEXT
-Status: Ready to execute
-Last activity: 2026-07-04 -- Phase 06 planning complete
+Phase: 06 (community-education) — IN PROGRESS
+Status: Executing Phase 06
+Last activity: 2026-07-04 -- Phase 06 Plan 01 complete (4 tables migrated, 3 RED test scaffolds); Plan 02 next
 
 Progress: [█████░░░░░] 50%
 
@@ -98,6 +99,9 @@ Recent decisions affecting current work:
 - [Phase 05-ai-insights-anomaly-detection P05]: aiSummary.service.ts/aiInsight.service.ts do NOT cache a static-template fallback on Groq call failure (unlike 05-03's anomalyExplanation.service.ts, which does) — they throw AppError(503, "AI_UNAVAILABLE") so the batch job's per-user try/catch skips that user for the cycle (D-18) and an interactive regenerate call sees the friendly error directly. This was a real bug found and fixed during resumed-session verification: an interrupted session's uncommitted code had copied 05-03's cache-a-fallback pattern, which silently defeated D-18 fault isolation (the service never threw, so failures were invisible to the batch loop). Established as the pattern 05-06 should also follow for lab analysis/lifestyle suggestions unless that plan's text says otherwise.
 - [Phase ?]: [Phase 05-ai-insights-anomaly-detection P06]: aiLabAnalysis.service.ts/aiLifestyle.service.ts follow 05-05's throw-on-Groq-failure pattern (AppError 503 AI_UNAVAILABLE, no cached fallback) rather than 05-03's cache-a-fallback pattern, consistent with the on-demand-narration-of-already-saved-facts nature of both surfaces
 - [Phase ?]: [Phase 05-ai-insights-anomaly-detection P06]: AI-04's tracking-days gate signal is distinct fluid_log dates (not a union across fluid/medication/dialysis/activity tables) — fluid tracking is the app's universal daily touchpoint across CAPD/HD/transplant patients, matching aiInsight.service.ts's existing daysWithFluidData concept; follows Assumption A3 (UI-SPEC's simpler >=3-day gate, not PRD FR-SYS-006's stricter +>=1-lab-result wording)
+- [Phase 06 P01]: community/education tables carry NO application-layer encryption — public/peer-visible content, not sensitive health data (RESEARCH Pitfall 1); community_reply_helpful's one-mark-per-user rule is enforced by a DB unique(reply_id,user_id) constraint, not client logic (D-09).
+- [Phase 06 P01]: Deps-injection contract fixed for 06-02/06-04/06-05 to implement against: createPost(userId, payload, {insert}), archivePost(userId, id, {archiveById}), createReply(userId, postId, payload, {insert}), toggleHelpful(userId, replyId, {toggle}), listContent(options, {findAll}) — each accepts an optional trailing deps object defaulting to the real repository; the 06-01 RED test scaffolds are written against this exact shape.
+- [Phase 06 P01]: educationContent's metodeTerapi filter is a strict equality match (CAPD returns only CAPD, never HD/Transplantasi/Umum) — resolves an ambiguity between 06-01-PLAN.md and 06-02-PLAN.md wording in favor of 06-02's more specific "never HD/Transplantasi" phrasing.
 
 ### Pending Todos
 
@@ -122,9 +126,9 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-04T06:49:31.496Z
-Stopped at: Phase 06 UI-SPEC approved
-Resume file: .planning/phases/06-community-education/06-UI-SPEC.md
+Last session: 2026-07-04 (current)
+Stopped at: Phase 06 Plan 01 (foundation) complete — SUMMARY.md written, ready for Plan 02
+Resume file: .planning/phases/06-community-education/06-01-SUMMARY.md
 
 ## Phase 4 Summary
 
@@ -175,7 +179,7 @@ Phase 4 delivered the Caregiver Dashboard & Doctor Reports vertical slice:
 
 ## Phase 6: Community Support Forum (Q&A)
 
-| 6   | Community Support Forum (Q&A)                      | not started  | -           |
+| 6   | Community Support Forum (Q&A) (1/7 plans: 06-01)   | in progress  | -           |
 
 ## Phase 7: Doctor View & Report Sharing
 
