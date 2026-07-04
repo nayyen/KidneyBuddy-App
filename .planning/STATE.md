@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 06 Plan 02 (education backend) complete — SUMMARY.md written, ready for Plan 03
-last_updated: "2026-07-04T09:03:35.513Z"
+last_updated: "2026-07-04T09:16:42.282Z"
 last_activity: 2026-07-04 -- Phase 06 Plan 01 complete (4 tables migrated, 3 RED test scaffolds); Plan 02 next
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 36
-  completed_plans: 27
+  completed_plans: 28
   percent: 43
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-24)
 ## Current Position
 
 Phase: 06 (community-education) — EXECUTING
-Plan: 3 of 7 (01 complete)
+Plan: 4 of 7 (01 complete)
 Phase: 03 (activity-logging-lab-results) — COMPLETE ✓
 Phase: 04 (caregiver-dashboard-doctor-reports) — COMPLETE ✓
 Phase: 06 (community-education) — IN PROGRESS
@@ -70,6 +70,7 @@ Progress: [█████░░░░░] 50%
 | Phase 05-ai-insights-anomaly-detection P05 | ~25min (resumed) | 3 tasks | 13 files |
 | Phase 05 P06 | ~40min | 3 tasks | 5 files |
 | Phase 06 P02 | 40min | 3 tasks | 7 files |
+| Phase 06 P04 | 35min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,7 @@ Recent decisions affecting current work:
 - [Phase 06 P01]: educationContent's metodeTerapi filter is a strict equality match (CAPD returns only CAPD, never HD/Transplantasi/Umum) — resolves an ambiguity between 06-01-PLAN.md and 06-02-PLAN.md wording in favor of 06-02's more specific "never HD/Transplantasi" phrasing.
 - [Phase ?]: [Phase 06 P02]: educationContent.repository.ts carries zero occurrences of userId (including comments) — content is shared/public reference material, not scoped to any account, unlike every other repository in this codebase.
 - [Phase ?]: [Phase 06 P02]: educationContent.service.ts's injectable deps are loosely (any-)typed to match labResult.service.ts's InsertFn convention, letting the 06-01 RED test's minimal in-memory row shape type-check without weakening the real repository's return types.
+- [Phase ?]: [Phase 06 P04]: communityPost.repository.ts's findFeed/findById are NOT userId-scoped (public feed by design, mirrors educationContent.repository.ts's non-scoping precedent for a different reason) — only archiveById is userId-scoped for the IDOR ownership guard.
 
 ### Pending Todos
 
@@ -129,7 +131,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-04T09:03:35.392Z
+Last session: 2026-07-04T09:15:36.562Z
 Stopped at: Phase 06 Plan 02 (education backend) complete — SUMMARY.md written, ready for Plan 03
 Resume file: .planning/phases/06-community-education/06-02-SUMMARY.md
 

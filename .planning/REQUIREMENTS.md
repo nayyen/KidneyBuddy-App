@@ -84,9 +84,9 @@ Seluruh scope MVP dari `PRD.md` section 4.1. Setiap requirement memetakan ke sat
 
 ### Community (COMMUNITY)
 
-- [ ] **COMMUNITY-01**: User can create a post with title, content, category (pertanyaan/berbagi pengalaman/informasi), and relevant therapy method tag
+- [x] **COMMUNITY-01**: User can create a post with title, content, category (pertanyaan/berbagi pengalaman/informasi), and relevant therapy method tag
 - [ ] **COMMUNITY-02**: User can reply to a post and mark a reply as "membantu" (helpful)
-- [ ] **COMMUNITY-03**: User can archive their own post; posts are never hard-deleted
+- [x] **COMMUNITY-03**: User can archive their own post; posts are never hard-deleted
 
 ### Education (EDU)
 
@@ -201,9 +201,9 @@ Each v1 requirement maps to exactly one phase in `.planning/ROADMAP.md`.
 | ANOMALY-02 | Phase 5 | Complete |
 | ANOMALY-03 | Phase 5 | Complete |
 | ANOMALY-04 | Phase 5 | Complete |
-| COMMUNITY-01 | Phase 6 | Pending |
+| COMMUNITY-01 | Phase 6 | Complete |
 | COMMUNITY-02 | Phase 6 | Pending |
-| COMMUNITY-03 | Phase 6 | Pending |
+| COMMUNITY-03 | Phase 6 | Complete |
 | EDU-01 | Phase 6 | Complete |
 
 **Coverage:**
