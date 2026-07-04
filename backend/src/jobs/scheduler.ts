@@ -14,6 +14,7 @@ import { dispatchActivityEndReminders } from "./activityEndReminder.job.js";
 import { runAnomalyDetectionBatch } from "./anomalyDetection.job.js";
 import { runDailySummaryBatch } from "./dailySummary.job.js";
 import { runWeeklyInsightBatch } from "./weeklyInsight.job.js";
+import { wibHHmm, wibDayNameLower } from "../utils/wib.js";
 
 const logger = pino({ name: "scheduler" });
 
@@ -34,15 +35,23 @@ export function startScheduler(): void {
     logger.error({ err }, "boot catch-up anomaly batch failed"),
   );
   // Boot catch-up for the 20:00 daily summary (AI-01) and Sunday 19:00 weekly
-  // insight (AI-02) batches — safe to re-run unconditionally because both
-  // generate-or-cache functions no-op on a cache hit (D-16/Pitfall 2), so a
-  // restart never re-triggers a Groq call for a day/week already summarized.
-  runDailySummaryBatch().catch((err) =>
-    logger.error({ err }, "boot catch-up daily summary batch failed"),
-  );
-  runWeeklyInsightBatch().catch((err) =>
-    logger.error({ err }, "boot catch-up weekly insight batch failed"),
-  );
+  // insight (AI-02) batches — ONLY runs if the scheduled time has already
+  // passed today (code review CR-04, 2026-07-04). The cache-hit no-op
+  // (D-16/Pitfall 2) only guarantees no DUPLICATE Groq call, not that the
+  // cached DATA is correct for the call time: a restart at, say, 09:00 WIB
+  // would otherwise generate-and-permanently-cache a summary/insight
+  // describing an incomplete day/week, which the real 20:00/Sunday-19:00
+  // cron run would then see as a cache hit and silently never correct.
+  if (wibHHmm() >= "20:00") {
+    runDailySummaryBatch().catch((err) =>
+      logger.error({ err }, "boot catch-up daily summary batch failed"),
+    );
+  }
+  if (wibDayNameLower() === "minggu" && wibHHmm() >= "19:00") {
+    runWeeklyInsightBatch().catch((err) =>
+      logger.error({ err }, "boot catch-up weekly insight batch failed"),
+    );
+  }
 
   // Every minute: dispatch due reminders
   schedule("* * * * *", () => {
