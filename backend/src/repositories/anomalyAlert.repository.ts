@@ -28,13 +28,23 @@ export type NewAnomalyAlertInput = Omit<
 // same type is still aktif/dibaca (not yet ditindaklanjuti).
 const UNRESOLVED_STATUSES = ["aktif", "dibaca"] as const;
 
+// Optional transaction-scoped client — `findActiveByType` and `insertAlert`
+// accept this (defaulting to the module-level `db`) so
+// anomalyOrchestrator.service.ts can run the dedup-check-then-insert
+// sequence inside a single transaction guarded by a Postgres advisory lock
+// (code review WR-03, 2026-07-04), closing the TOCTOU race where two
+// near-simultaneous tracking entries could both pass the dedup check before
+// either had inserted, producing duplicate alerts/duplicate emergency pushes.
+type DbClient = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 // ─── Insert ────────────────────────────────────────────────────────────────
 
 export async function insertAlert(
   userId: string,
   data: NewAnomalyAlertInput,
+  dbClient: DbClient = db,
 ): Promise<AnomalyAlert> {
-  const [row] = await db
+  const [row] = await dbClient
     .insert(anomalyAlerts)
     .values({ ...data, userId } as any)
     .returning();
@@ -44,15 +54,27 @@ export async function insertAlert(
 // ─── Query ─────────────────────────────────────────────────────────────────
 
 /**
- * Find unresolved (aktif/dibaca) alerts of a given type for same-day/
- * same-episode dedup — don't insert a new alert of this type while one is
- * still active (Pitfall 3, Open Question 2).
+ * Find unresolved (aktif/dibaca) alerts of a given type CREATED TODAY (WIB)
+ * for same-day dedup — don't insert a new alert of this type while one from
+ * today is still unresolved (Pitfall 3, Open Question 2).
+ *
+ * Bounded to today's WIB day on purpose (code review CR-01, 2026-07-04): an
+ * unbounded "any unresolved row, regardless of age" check meant a single
+ * acknowledged-but-never-actioned ("dibaca") alert could permanently block
+ * every future occurrence of that anomaly type for a patient, forever — a
+ * genuine recurrence days/weeks later (e.g. a second CAPD peritonitis
+ * episode) would silently never re-fire, contradicting the reminder/alert
+ * reliability core value. Bounding to "today" means a recurrence on any
+ * later day is always eligible to fire again, regardless of whether
+ * yesterday's alert was ever read or given feedback.
  */
 export async function findActiveByType(
   userId: string,
   tipeAnomali: string,
+  dbClient: DbClient = db,
 ): Promise<AnomalyAlert[]> {
-  return db
+  const { start, end } = wibDayBounds();
+  return dbClient
     .select()
     .from(anomalyAlerts)
     .where(
@@ -60,6 +82,8 @@ export async function findActiveByType(
         eq(anomalyAlerts.userId, userId as any),
         eq(anomalyAlerts.tipeAnomali, tipeAnomali),
         inArray(anomalyAlerts.status, UNRESOLVED_STATUSES as unknown as string[]),
+        gte(anomalyAlerts.createdAt, start),
+        lte(anomalyAlerts.createdAt, end),
       ),
     );
 }
