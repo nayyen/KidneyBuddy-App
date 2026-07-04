@@ -137,6 +137,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] 04-04-PLAN.md — REPORT-02 report UI: /laporan date-range + doctor note, /laporan/preview print-friendly 4-section report, window.print() + @media print CSS (REPORT-01, REPORT-02)
 
+### Phase 4.1: UX Polish, Data Consistency & Cuci Darah Compliance (INSERTED)
+
+**Goal**: Close a set of WIB time-consistency bugs discovered across medication/fluid/reminder logging after Phase 4, add Cuci Darah (HD dialysis session) tracking that was missing from the core tracking surface, and polish assorted UX rough edges on `/catatan`, `/pengingat`, and dashboard cards.
+**Mode:** quick-task (executed via `/gsd-quick`, no formal PLAN/SUMMARY artifacts — tracked via commit history in STATE.md instead)
+**Depends on**: Phase 4
+**Requirements**: None formally mapped (bugfix/polish phase, not new-feature phase)
+**Completed**: 2026-07-02, across 8 commits (`de33e83`, `281e17c`, `a9e3f02`, `5f8c1a9`, `1084a6d`, `4e01c1e`, `f1b2c3d`, `4b89ab6`) — see STATE.md's "Phase 4.1 Summary" section for the full recap.
+
+_Added to this roadmap document 2026-07-04 during the v1.0 milestone audit — the phase directory and STATE.md summary already existed but this phase was never declared here (W007 health-check finding)._
+
 ### Phase 5: AI Insights & Anomaly Detection
 
 **Goal**: Patients receive AI-generated daily summaries, weekly trend insights, lab analysis, and lifestyle suggestions in calm, non-diagnostic Bahasa Indonesia with an enforced medical disclaimer, and are reliably alerted to clinically meaningful anomalies via a deterministic rule engine with LLM-generated explanation only — built last so real tracking data volume and the rule-based safety layer exist first, and so the Groq rate-limit risk is isolated and load-tested deliberately
