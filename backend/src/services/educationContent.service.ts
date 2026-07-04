@@ -22,9 +22,36 @@ const logger = pino({ name: "educationContent.service" });
 
 // ─── Zod validation schema ────────────────────────────────────────────────────
 
+// IN-01: without a custom errorMap, an actual invalid-enum value (correct
+// type, value not in the allowed set) falls back to Zod's untranslated
+// default message ("Invalid enum value..."). Localize it to Bahasa
+// Indonesia per CLAUDE.md's "Seluruh UI dan konten edukasi dalam Bahasa
+// Indonesia awam" constraint — see communityPost.service.ts's enumErrorMap
+// for the fuller rationale (kept local here since these filters are
+// `.optional()` and have no "required" case to localize).
+function invalidEnumErrorMap(message: string): z.ZodErrorMap {
+  return (issue, ctx) => {
+    if (
+      issue.code === z.ZodIssueCode.invalid_enum_value ||
+      issue.code === z.ZodIssueCode.invalid_type
+    ) {
+      return { message };
+    }
+    return { message: ctx.defaultError };
+  };
+}
+
 export const listQuerySchema = z.object({
-  metodeTerapi: z.enum(["CAPD", "HD", "Transplantasi", "Umum"]).optional(),
-  tipeKonten: z.enum(["artikel", "panduan_senam", "gaya_hidup"]).optional(),
+  metodeTerapi: z
+    .enum(["CAPD", "HD", "Transplantasi", "Umum"], {
+      errorMap: invalidEnumErrorMap("Metode terapi tidak valid"),
+    })
+    .optional(),
+  tipeKonten: z
+    .enum(["artikel", "panduan_senam", "gaya_hidup"], {
+      errorMap: invalidEnumErrorMap("Tipe konten tidak valid"),
+    })
+    .optional(),
 });
 
 export type ListQuery = z.infer<typeof listQuerySchema>;

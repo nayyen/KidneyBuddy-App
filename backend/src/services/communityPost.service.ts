@@ -30,6 +30,33 @@ const logger = pino({ name: "communityPost.service" });
 
 // ─── Zod validation schemas ───────────────────────────────────────────────────
 
+// IN-01: z.enum's `required_error`/`invalid_type_error` shorthand only
+// localizes the "missing" and "wrong-type" cases. An actual invalid-enum
+// value (correct type, value not in the allowed set — e.g. a tampered
+// `kategori` bypassing the client's pill selector) falls back to Zod's
+// untranslated default ("Invalid enum value..."). A custom errorMap covers
+// all three cases in Bahasa Indonesia, matching CLAUDE.md's "Seluruh UI dan
+// konten edukasi dalam Bahasa Indonesia awam" constraint. Note: Zod
+// disallows combining `errorMap` with `required_error`/`invalid_type_error`
+// on the same schema, so this replaces (not supplements) that shorthand.
+function enumErrorMap(messages: {
+  required: string;
+  invalid: string;
+}): z.ZodErrorMap {
+  return (issue, ctx) => {
+    if (issue.code === z.ZodIssueCode.invalid_enum_value) {
+      return { message: messages.invalid };
+    }
+    if (typeof ctx.data === "undefined") {
+      return { message: messages.required };
+    }
+    if (issue.code === z.ZodIssueCode.invalid_type) {
+      return { message: messages.invalid };
+    }
+    return { message: ctx.defaultError };
+  };
+}
+
 export const createPostSchema = z.object({
   judul: z
     .string({
@@ -44,12 +71,16 @@ export const createPostSchema = z.object({
     .min(1, "Isi tidak boleh kosong")
     .max(5000, "Isi maksimal 5000 karakter"),
   kategori: z.enum(["pertanyaan", "berbagi_pengalaman", "informasi"], {
-    required_error: "Kategori wajib diisi",
-    invalid_type_error: "Kategori tidak valid",
+    errorMap: enumErrorMap({
+      required: "Kategori wajib diisi",
+      invalid: "Kategori tidak valid",
+    }),
   }),
   metodeTerapi: z.enum(["CAPD", "HD", "Transplantasi", "Umum"], {
-    required_error: "Metode terapi wajib diisi",
-    invalid_type_error: "Metode terapi tidak valid",
+    errorMap: enumErrorMap({
+      required: "Metode terapi wajib diisi",
+      invalid: "Metode terapi tidak valid",
+    }),
   }),
 });
 
