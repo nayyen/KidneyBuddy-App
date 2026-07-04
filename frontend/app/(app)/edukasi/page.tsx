@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { BookOpen } from "lucide-react";
 import LifestyleSuggestionCard from "@/components/edukasi/LifestyleSuggestionCard";
+import EdukasiSubNav from "@/components/edukasi/EdukasiSubNav";
+import EducationList from "@/components/edukasi/EducationList";
 
 export default function EdukasiPage() {
   const router = useRouter();
@@ -29,25 +30,14 @@ export default function EdukasiPage() {
 
   return (
     <div className="space-y-4">
+      {/* Sub-nav: Edukasi (active, D-04) / Komunitas (D-01/D-02/D-03) */}
+      <EdukasiSubNav />
+
       {/* Saran gaya hidup personalisasi (AI-04, D-12) */}
       <LifestyleSuggestionCard accessToken={accessToken} />
 
-      {/* Konten edukasi terjadwal — Phase 6 scope, tetap sebagai placeholder */}
-      <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
-        <BookOpen size={48} color="#cfe8e4" strokeWidth={1.5} />
-        <h2
-          className="font-heading font-bold"
-          style={{ fontSize: 14, color: "#1a2e2c" }}
-        >
-          Konten Segera Hadir
-        </h2>
-        <p
-          className="font-sans font-medium max-w-xs"
-          style={{ fontSize: 14, color: "#3d6b66" }}
-        >
-          Artikel dan panduan edukasi akan tersedia di update berikutnya.
-        </p>
-      </div>
+      {/* Konten edukasi terfilter berdasarkan metode terapi (EDU-01) */}
+      <EducationList accessToken={accessToken} />
     </div>
   );
 }
