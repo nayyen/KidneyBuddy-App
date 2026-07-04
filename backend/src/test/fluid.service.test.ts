@@ -172,7 +172,7 @@ describe("fluidLog _createEntryCore", () => {
     const store = createInMemoryFluidStore();
     const result = await _createEntryCore(
       USER_ID,
-      { tipe: "masuk", sumber: "minuman", volume: 250, satuan: "ml", tanggal: TODAY, waktu: "08:00" },
+      { tipe: "masuk", sumber: "lainnya", volume: 250, satuan: "ml", tanggal: TODAY, waktu: "08:00" },
       store.insertEntry,
       encrypt,
       decrypt

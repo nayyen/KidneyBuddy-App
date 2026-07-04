@@ -34,7 +34,8 @@ function makeDeps(overrides: Partial<DispatchDeps> = {}): DispatchDeps & {
   const dispatched: string[] = [];
   return {
     findDue: async () => [],
-    insertLog: async (data) => { insertedLogs.push(data); return data; },
+    insertMedLog: async (data) => { insertedLogs.push(data); return data; },
+    insertDialysisLog: async (data) => { insertedLogs.push(data); return data; },
     sendToAll: async (userId, payload) => { sentNotifications.push({ userId, payload }); },
     markDispatched: async (id) => { dispatched.push(id); },
     insertedLogs,
@@ -63,7 +64,7 @@ describe("dispatchDueReminders", () => {
     assert.strictEqual(log.namaObat, "Amlodipine");
   });
 
-  it("calls sendToAll with correct title and reminderId", async () => {
+  it("calls sendToAll with correct title and url", async () => {
     const deps = makeDeps({ findDue: async () => [BASE_REMINDER as any] });
     await _dispatchCore("08:00", "Senin", deps);
     assert.strictEqual(deps.sentNotifications.length, 1);
@@ -71,7 +72,7 @@ describe("dispatchDueReminders", () => {
     assert.strictEqual(userId, "user-1");
     const p = payload as any;
     assert.match(p.title, /Amlodipine/);
-    assert.strictEqual(p.reminderId, "rem-1");
+    assert.strictEqual(p.url, "/catatan");
   });
 
   it("marks lastNotificationSentAt after dispatch (dedup guard)", async () => {
