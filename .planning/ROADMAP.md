@@ -13,10 +13,11 @@ KidneyBuddy ships as six vertical-MVP phases, each delivering a complete, demoab
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation, Auth & Onboarding** - Patients and caregivers can register, log in securely, and complete therapy-method-aware onboarding in under 5 minutes
+- [x] **Phase 1: Foundation, Auth & Onboarding** - Patients and caregivers can register, log in securely, and complete therapy-method-aware onboarding in under 5 minutes (completed 2026-06-26; formally verified 2026-07-04 during v1.0 milestone audit — see `.planning/v1.0-MILESTONE-AUDIT.md`)
 - [x] **Phase 2: Fluid & Medication Tracking with Reminders** - Patients install KidneyBuddy as a working PWA and never miss logging fluid or taking medication without a reliable, multi-device, modality-aware push reminder catching them, on a UI shell that's fully responsive across mobile/tablet/desktop
-- [ ] **Phase 3: Activity Logging & Lab Results** - Patients can log daily activities with positive framing and track lab results with trend visualization over time
-- [ ] **Phase 4: Caregiver Dashboard & Doctor Reports** - Caregivers see an identical real-time view of patient data, and patients can export a doctor-ready visit report
+- [x] **Phase 3: Activity Logging & Lab Results** - Patients can log daily activities with positive framing and track lab results with trend visualization over time (completed 2026-06-29; formally verified 2026-07-04 during v1.0 milestone audit — see `.planning/v1.0-MILESTONE-AUDIT.md`)
+- [x] **Phase 4: Caregiver Dashboard & Doctor Reports** - Caregivers see an identical real-time view of patient data, and patients can export a doctor-ready visit report
+- [x] **Phase 4.1: UX Polish, Data Consistency & Cuci Darah Compliance** (INSERTED) - WIB time-consistency fixes across medication/fluid/reminder logging, adds Cuci Darah (HD dialysis session) tracking, and assorted UX polish across /catatan, /pengingat, and dashboard cards (completed 2026-07-02; added to this roadmap doc 2026-07-04 during v1.0 milestone audit — it existed on disk and was already tracked in STATE.md, but was never declared here, per `.planning/v1.0-MILESTONE-AUDIT.md`)
 - [x] **Phase 5: AI Insights & Anomaly Detection** - Patients receive calm, disclaimer-safe AI narrative summaries and trend insights, and are reliably warned of clinically meaningful anomalies without alert fatigue (completed 2026-07-04)
 - [x] **Phase 6: Community & Education** - Patients can browse modality-filtered education content and participate in a peer community (completed 2026-07-04)
 
@@ -40,20 +41,20 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 5 plans (Walking Skeleton — produces 01-SKELETON.md)Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Walking Skeleton: 3-container Docker scaffold (Next.js + Express + Postgres) + end-to-end register slice with Argon2id
+- [x] 01-01-PLAN.md — Walking Skeleton: 3-container Docker scaffold (Next.js + Express + Postgres) + end-to-end register slice with Argon2id
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02-PLAN.md — Auth slice: persistent login (JWT access + refresh cookie), logout, server-side account lockout w/ live countdown, multi-device login (AUTH-02..05)
+- [x] 01-02-PLAN.md — Auth slice: persistent login (JWT access + refresh cookie), logout, server-side account lockout w/ live countdown, multi-device login (AUTH-02..05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — Password reset via single-use, time-limited emailed link (AUTH-06)
-- [ ] 01-04-PLAN.md — Onboarding wizard: therapy select + inline "Apa ini?", set/skip first reminder, resume-on-reopen (ONBOARD-01..04)
+- [x] 01-03-PLAN.md — Password reset via single-use, time-limited emailed link (AUTH-06)
+- [x] 01-04-PLAN.md — Onboarding wizard: therapy select + inline "Apa ini?", set/skip first reminder, resume-on-reopen (ONBOARD-01..04)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 01-05-PLAN.md — Profile: confirmation-gated therapy-method change with history + replay onboarding tutorial (ONBOARD-05, ONBOARD-06)
+- [x] 01-05-PLAN.md — Profile: confirmation-gated therapy-method change with history + replay onboarding tutorial (ONBOARD-05, ONBOARD-06)
 
 ### Phase 2: Fluid & Medication Tracking with Reminders
 
@@ -92,21 +93,21 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Activity backend core: daily_activities schema + push + service/routes (start/active/list/complete, encrypted feelings note) (ACTIVITY-01, ACTIVITY-03)
+- [x] 03-01-PLAN.md — Activity backend core: daily_activities schema + push + service/routes (start/active/list/complete, encrypted feelings note) (ACTIVITY-01, ACTIVITY-03)
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 03-02-PLAN.md — Activity pre-end-time push cron (WIB, reminderSent dedupe, restart-safe) (ACTIVITY-02)
-- [ ] 03-03-PLAN.md — Activity frontend: Beranda module + Aktivitas tab list + start/feelings sheets, amber "Masih aktif" in-app (ACTIVITY-01/02/03)
-- [ ] 03-04-PLAN.md — Lab backend core: lab_results schema + push + manual entry/list/archive (soft-delete, encrypted note) (LAB-02, LAB-04)
+- [x] 03-02-PLAN.md — Activity pre-end-time push cron (WIB, reminderSent dedupe, restart-safe) (ACTIVITY-02)
+- [x] 03-03-PLAN.md — Activity frontend: Beranda module + Aktivitas tab list + start/feelings sheets, amber "Masih aktif" in-app (ACTIVITY-01/02/03)
+- [x] 03-04-PLAN.md — Lab backend core: lab_results schema + push + manual entry/list/archive (soft-delete, encrypted note) (LAB-02, LAB-04)
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 03-05-PLAN.md — Lab backend: PDF upload (multer + static serve) + JSONB trend/parameters queries (LAB-01, LAB-03)
+- [x] 03-05-PLAN.md — Lab backend: PDF upload (multer + static serve) + JSONB trend/parameters queries (LAB-01, LAB-03)
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 03-06-PLAN.md — Lab frontend: recharts trend chart + list/archive + two-tab add sheet, enable Lab tab (LAB-01/02/03/04)
+- [x] 03-06-PLAN.md — Lab frontend: recharts trend chart + list/archive + two-tab add sheet, enable Lab tab (LAB-01/02/03/04)
 
 ### Phase 4: Caregiver Dashboard & Doctor Reports
 
@@ -125,16 +126,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 0** *(BLOCKING foundation)*
 
-- [ ] 04-01-PLAN.md — Foundation: add reminder_schedule.updated_at + migration 0008 + drizzle-kit push, install shadcn textarea, create REPORT-01/CAREGIVER-02 failing test scaffolds
+- [x] 04-01-PLAN.md — Foundation: add reminder_schedule.updated_at + migration 0008 + drizzle-kit push, install shadcn textarea, create REPORT-01/CAREGIVER-02 failing test scaffolds
 
 **Wave 1** *(blocked on Wave 0; 04-02 and 04-03 run in parallel — no file overlap)*
 
-- [ ] 04-02-PLAN.md — CAREGIVER-02 sync slice: updatedAt mutation + push fan-out on reminder update + 30s polling on Pengingat page (CAREGIVER-01, CAREGIVER-02)
-- [ ] 04-03-PLAN.md — REPORT-01 backend: report repository (WIB-correct date-range aggregation) + service (injectable core, 90-day cap) + controller/route + /api/report mount (REPORT-01)
+- [x] 04-02-PLAN.md — CAREGIVER-02 sync slice: updatedAt mutation + push fan-out on reminder update + 30s polling on Pengingat page (CAREGIVER-01, CAREGIVER-02)
+- [x] 04-03-PLAN.md — REPORT-01 backend: report repository (WIB-correct date-range aggregation) + service (injectable core, 90-day cap) + controller/route + /api/report mount (REPORT-01)
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 04-04-PLAN.md — REPORT-02 report UI: /laporan date-range + doctor note, /laporan/preview print-friendly 4-section report, window.print() + @media print CSS (REPORT-01, REPORT-02)
+- [x] 04-04-PLAN.md — REPORT-02 report UI: /laporan date-range + doctor note, /laporan/preview print-friendly 4-section report, window.print() + @media print CSS (REPORT-01, REPORT-02)
 
 ### Phase 5: AI Insights & Anomaly Detection
 
@@ -217,9 +218,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation, Auth & Onboarding | 0/5 | Planned | - |
-| 2. Fluid & Medication Tracking with Reminders | 6/7 | In Progress|  |
-| 3. Activity Logging & Lab Results | 0/6 | Planned | - |
-| 4. Caregiver Dashboard & Doctor Reports | 0/4 | Planned | - |
-| 5. AI Insights & Anomaly Detection | 7/7 | Complete    | 2026-07-04 |
-| 6. Community & Education | 7/7 | Complete   | 2026-07-04 |
+| 1. Foundation, Auth & Onboarding | 5/5 | Complete | 2026-06-26 |
+| 2. Fluid & Medication Tracking with Reminders | 7/7 | Complete | 2026-06-29 |
+| 3. Activity Logging & Lab Results | 6/6 | Complete | 2026-06-29 |
+| 4. Caregiver Dashboard & Doctor Reports | 4/4 | Complete | 2026-06-30 |
+| 4.1. UX Polish, Data Consistency & Cuci Darah (INSERTED) | 8/8 commits | Complete | 2026-07-02 |
+| 5. AI Insights & Anomaly Detection | 7/7 | Complete | 2026-07-04 |
+| 6. Community & Education | 7/7 | Complete | 2026-07-04 |
