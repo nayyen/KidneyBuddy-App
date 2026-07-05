@@ -155,6 +155,7 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
                         src={`${API_BASE}${log.fotoObat}`}
                         alt={`Foto obat untuk ${log.namaObat}`}
                         fill
+                        unoptimized
                         style={{ objectFit: "cover" }}
                         onError={() => setPhotoFailed(true)}
                       />

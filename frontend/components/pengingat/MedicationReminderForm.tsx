@@ -388,6 +388,7 @@ export default function MedicationReminderForm({
                 src={`${API_BASE}${initialData!.fotoObat}`}
                 alt={`Foto obat untuk ${initialData!.nama}`}
                 fill
+                unoptimized
                 style={{ objectFit: "cover" }}
               />
             </div>

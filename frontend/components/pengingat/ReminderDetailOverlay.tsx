@@ -65,6 +65,7 @@ export default function ReminderDetailOverlay({ reminder, onClose }: Props) {
                       src={`${API_BASE}${reminder.fotoObat}`}
                       alt={`Foto obat untuk ${reminder.nama}`}
                       fill
+                      unoptimized
                       style={{ objectFit: "cover" }}
                       onError={() => setPhotoFailed(true)}
                     />
