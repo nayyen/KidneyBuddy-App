@@ -12,10 +12,10 @@
 // as the first statement:
 //   const permission = await Notification.requestPermission(); // ← FIRST
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, BellOff } from "lucide-react";
 import { isIos, isInStandaloneMode } from "@/lib/pwaDetection";
-import { subscribeAndRegister } from "@/lib/pushClient";
+import { subscribeAndRegister, ensureFreshSubscription } from "@/lib/pushClient";
 import InstallPrompt from "./InstallPrompt";
 
 interface NotificationPermissionBannerProps {
@@ -35,6 +35,26 @@ export default function NotificationPermissionBanner({
     return Notification.permission as PermissionState;
   });
   const [error, setError] = useState<string | null>(null);
+
+  // BUGFIX (quick-260705-9n4 task 4, live-test finding): browser-level
+  // Notification permission persists across app-account switches on the same
+  // device/browser (a common shared-device/demo-account scenario). Previously,
+  // when permission was ALREADY "granted", this component rendered the
+  // "already active" state below and NEVER called subscribeAndRegister() for
+  // the newly logged-in user — so a second account on the same device/browser
+  // never got a push_subscriptions row at all. Re-run the same
+  // ensureFreshSubscription() helper used on visibilitychange here on mount
+  // (keyed on accessToken) so the CURRENTLY authenticated user's session gets
+  // (re-)registered/reassigned to this device, without changing the visible
+  // "already active" UI. Safe to call repeatedly — subscribeAndRegister()
+  // re-POSTs the existing browser subscription idempotently.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+    if (!accessToken) return;
+    ensureFreshSubscription(accessToken);
+  }, [accessToken]);
 
   // ── iOS Add-to-Home-Screen gate ─────────────────────────────────────────
   // If the user is on iOS Safari but has NOT yet added the app to Home Screen,

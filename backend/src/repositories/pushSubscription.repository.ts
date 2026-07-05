@@ -21,8 +21,19 @@ export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
  * Upsert a push subscription by endpoint.
  * - First call: inserts a new row.
  * - Subsequent call with the same endpoint: updates subscriptionObject,
- *   sets aktif=true, and refreshes lastConfirmedAt.
+ *   REASSIGNS userId to whoever is currently authenticated, sets aktif=true,
+ *   and refreshes lastConfirmedAt.
  * This ensures a re-subscribed device doesn't duplicate rows.
+ *
+ * BUGFIX (quick-260705-9n4 task 4, live-test finding): a browser's push
+ * subscription endpoint is DEVICE-scoped, not account-scoped. When a second
+ * app account subscribes from the same browser/device as a first account
+ * (a common demo/shared-device scenario), this upsert previously hit the
+ * same endpoint conflict but left `userId` untouched — silently leaving the
+ * device's subscription attached to the FIRST account forever, so the
+ * second account never received any push. Reassigning `userId` on conflict
+ * matches realistic single-device behavior: whoever last (re-)subscribed on
+ * this device receives that device's pushes.
  */
 export async function upsertByEndpoint(data: {
   userId: string;
@@ -44,6 +55,7 @@ export async function upsertByEndpoint(data: {
       // Conflict target: endpoint (one row per device URL)
       target: pushSubscriptions.endpoint,
       set: {
+        userId: data.userId,
         subscriptionObject: data.subscriptionObject,
         aktif: true,
         lastConfirmedAt: new Date(),

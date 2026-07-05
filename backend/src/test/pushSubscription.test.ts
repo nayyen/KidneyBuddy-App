@@ -116,9 +116,14 @@ function createInMemoryRepo() {
   }): MockSub => {
     const existing = store.get(data.endpoint);
     if (existing) {
-      // Simulate ON CONFLICT DO UPDATE — update, do NOT insert new row
+      // Simulate ON CONFLICT DO UPDATE — update, do NOT insert new row.
+      // userId IS reassigned on conflict (quick-260705-9n4 task 4 live-test
+      // bugfix): a browser's subscription endpoint is device-scoped, not
+      // account-scoped, so re-subscribing from a different logged-in account
+      // on the same device must hand this device's subscription to them.
       const updated = {
         ...existing,
+        userId: data.userId,
         subscriptionObject: data.subscriptionObject,
         aktif: true,
         lastConfirmedAt: new Date(),
@@ -193,6 +198,30 @@ describe("push_sub upsert algorithm", () => {
     repo.deactivate(rowsA[0].id);
     const rowsAAfter = repo.findActiveByUser(USER_A);
     assert.strictEqual(rowsAAfter.length, 1, "After deactivate, findActiveByUser must exclude inactive row");
+  });
+
+  it("re-subscribing the same endpoint from a DIFFERENT account reassigns userId (shared-device bugfix)", () => {
+    const repo = createInMemoryRepo();
+    const USER_B = "00000000-0000-0000-0000-000000000002";
+    const ENDPOINT = "https://push.example.com/sub/shared-device";
+
+    // USER_A subscribes first from this device/browser
+    const first = repo.upsertByEndpoint({ userId: USER_A, endpoint: ENDPOINT, subscriptionObject: SUB_OBJ });
+    assert.strictEqual(first.userId, USER_A);
+    assert.strictEqual(repo.findActiveByUser(USER_A).length, 1);
+
+    // USER_B logs in on the SAME device/browser and (re-)subscribes — the
+    // endpoint is identical (same device), so this must hit the same row
+    // and hand it over to USER_B, not silently leave it owned by USER_A.
+    const second = repo.upsertByEndpoint({ userId: USER_B, endpoint: ENDPOINT, subscriptionObject: SUB_OBJ });
+    assert.strictEqual(second.userId, USER_B, "subscription row must be reassigned to the newly authenticated user");
+    assert.strictEqual(repo.findActiveByUser(USER_A).length, 0, "USER_A must no longer see this device as active");
+    assert.strictEqual(repo.findActiveByUser(USER_B).length, 1, "USER_B must now see this device as active");
+
+    // Still exactly one row total (no duplicate created by the account switch)
+    const rowsA = repo.findActiveByUser(USER_A);
+    const rowsB = repo.findActiveByUser(USER_B);
+    assert.strictEqual(rowsA.length + rowsB.length, 1);
   });
 
   it("deactivate sets aktif=false for EXACTLY that row — other rows unaffected", () => {
