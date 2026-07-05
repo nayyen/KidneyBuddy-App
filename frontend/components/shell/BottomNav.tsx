@@ -30,11 +30,11 @@ export default function BottomNav() {
             <Icon
               size={22}
               strokeWidth={isActive ? 2.5 : 1.5}
-              color={isActive ? "#2a9d8f" : "#cfe8e4"}
+              color={isActive ? "#2a9d8f" : "#3d6b66"}
             />
             <span
               className="font-sans text-[10px] font-medium"
-              style={{ color: isActive ? "#2a9d8f" : "#cfe8e4" }}
+              style={{ color: isActive ? "#2a9d8f" : "#3d6b66" }}
             >
               {item.label}
             </span>
