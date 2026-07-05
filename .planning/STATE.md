@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_audit_complete
-stopped_at: v1.0 milestone audit complete — all 6 phases (36/36 plans) confirmed functionally complete; status tech_debt (documentation gaps only, zero unsatisfied requirements); see .planning/v1.0-MILESTONE-AUDIT.md for remediation items and the /gsd-complete-milestone decision
-last_updated: "2026-07-05T12:17:41.628Z"
-last_activity: "2026-07-06 - Completed quick task 260706-573: fixed duplicate obat overdue status text, root-caused and fixed the recurring medication photo not-displaying bug (Docker-only UPLOAD_DIR path mismatch), added photo preview/remove to the medication edit form."
+status: completed
+stopped_at: Phase 06 Plan 07 (post detail + replies + membantu + archive UI) complete - SUMMARY.md written, Phase 6 complete
+last_updated: "2026-07-05T22:36:19.047Z"
+last_activity: "2026-07-06 - Completed quick task 260706-6oj: fixed 9 reported bugs/features (login password toggle, medication photo display, desktop /notifikasi sidebar entry, real Resend forgot-password email, Terlambat overdue badge, CAPD konsentrasi display, push label generalization, no-reminder banner count gate, tutorial-mode onboarding therapy scoping)."
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 36
-  completed_plans: 36
+  total_phases: 7
+  completed_phases: 7
+  total_plans: 37
+  completed_plans: 37
   percent: 100
 ---
 
@@ -33,7 +33,7 @@ Phase: 04.1 (ux-polish-data-consistency-cuci-darah) — COMPLETE ✓
 Phase: 05 (ai-insights-anomaly-detection) — COMPLETE ✓
 Phase: 06 (community-education) — COMPLETE ✓
 Status: All 6 phases (36/36 plans) complete. v1.0-MILESTONE-AUDIT.md status: tech_debt (documentation/tracking gaps only — zero unsatisfied requirements, see audit for full evidence).
-Last activity: 2026-07-05 - Completed quick task 260705-quo: fixed onboarding stepper alignment + Selesai label, reorganized Atur Pengingat Pertama to reuse real /pengingat forms with therapy-constrained jenis options.
+Last activity: 2026-07-06 - Completed quick task 260706-6oj: fixed 9 reported bugs/features (login password toggle, medication photo display, desktop /notifikasi sidebar entry, real Resend forgot-password email, Terlambat overdue badge, CAPD konsentrasi display, push label generalization, no-reminder banner count gate, tutorial-mode onboarding therapy scoping).
 
 Progress: [██████░░░░] 57%
 
@@ -52,6 +52,7 @@ Progress: [██████░░░░] 57%
 | 2026-07-05 | 260705-quo-perbaiki-ui-onboarding-garis-progress-da | `frontend/app/(app)/onboarding/_components/{StepProgress,FirstReminderStep}.tsx`, `frontend/app/(app)/onboarding/page.tsx`, `backend/src/services/onboarding.service.ts`, `backend/src/controllers/onboarding.controller.ts`, `backend/src/routes/onboarding.routes.ts` | Fixed onboarding stepper misalignment (circles now centered above their own labels via one flex-col per step instead of mismatched flex-1/justify-between rows) and renamed "Langkah 3" to "Selesai". Reorganized "Atur Pengingat Pertama" step: Jenis dropdown moved to top, options constrained by Step 1's chosen therapy (CAPD→Obat/Exchange CAPD, HD→Obat/Jadwal HD, Transplantasi→Obat only), and now reuses the real /pengingat per-jenis form components (`MedicationReminderForm`/`CAPDReminderForm`/`HDReminderForm`) instead of a separate implementation, avoiding drift. Added a completion-only `POST /api/onboarding/complete-reminder` endpoint so the reused forms' own `/api/reminders` POST isn't double-submitted. 3 commits, frontend+backend tsc clean. Pending: human walkthrough of all 3 therapy paths + visual stepper check (noted in SUMMARY). |
 | 2026-07-06 | 260705-r8b-perbaikan-halaman-beranda-1-pengingat-be | `backend/src/repositories/reminderSchedule.repository.ts`, `backend/src/jobs/{activityFollowUp,activityEndReminder}.job.ts` (new/updated), `backend/src/scheduler.ts`, DB migration `0013_oval_photon.sql`, `frontend/components/aktivitas/KegiatanModuleInline.tsx`, `frontend/app/(app)/beranda/page.tsx` | Fixed Pengingat Berikutnya reverting a past-due-today reminder back to "next" on uncheck (tomorrow-fallback branch now excludes today's already-passed slots). Added a second, gentler ~10-min-after-estimasi activity follow-up push (`followUpSent` column, new `activityFollowUp.job.ts`, node-cron pattern) alongside the existing at-estimasi push (copy softened to "Kegiatan Hampir Selesai"). Removed the unused "Kegiatan Aktif — Melebihi Estimasi" banner; running-activity indicator now live-switches from elapsed "· Xm" to red "Terlewat X Menit" past estimate; beranda Selesai button now dispatches the shared `activity:complete` event (same overlay as /catatan) for both overdue and non-overdue states; Mulai Kegiatan card no longer stretches to match taller siblings (`self-start`). 4 commits, backend+frontend tsc clean, 6 relevant backend test files green. Pending: human browser/device verification of all 5 fixes + confirming the 2nd push actually arrives (noted in SUMMARY). |
 | 2026-07-06 | 260706-573-perbaikan-catatan-tab-obat-dan-pengingat | `frontend/components/catatan/MedicationLogItem.tsx`, `backend/src/lib/upload.ts`, `backend/src/services/{medicationLog,reminders}.service.ts`, `backend/src/controllers/reminders.controller.ts`, `frontend/components/pengingat/MedicationReminderForm.tsx`, `.gitignore` | Removed duplicate overdue status text on obat card (kept single "Terlambat — segera minum obat"). **Root-caused the recurring medication-photo-not-displaying bug** (persisted through 2 prior fix attempts): `upload.ts` defaulted `UPLOAD_DIR` to the Docker-only absolute path `/app/uploads/medication-photos`, which silently diverged from `app.ts`'s static-serve path whenever the backend ran outside Docker (confirmed via filesystem check — no `/app` dir exists, local dev runs via nodemon from source) — fixed to derive the same way as the static server, plus broadened the photo lookup to not depend on the reminder's `aktif` flag. Edit form now shows existing photo with a remove button before allowing a new single-file upload. 3 commits, tsc clean, 21/21 relevant backend tests pass. **Flagged, not fixed (out of scope):** `uploadLab.ts` has the identical Docker-only-path bug for lab file uploads — likely dormant until lab uploads are tested outside Docker. Pending: human browser verification of photo rendering + edit UX (checkpoint left open, see SUMMARY). |
+| 2026-07-06 | 260706-6oj-fix-9-items-password-visibility-toggle-o | 17 files across backend + frontend | Fixed all 9 individually-reported bugs/features: login password show/hide eye toggle; medication photo display made robust via `unoptimized` next/image prop across all 3 display sites (detail overlay, reminder detail overlay, edit form preview); desktop sidebar dedicated "Notifikasi" nav entry (`BellRing` icon + unread badge); **real Resend email integration** for forgot-password (`sendPasswordResetEmail` now async with an injectable sender, dev-safe console fallback when `RESEND_API_KEY` unset, single-use token enforcement confirmed unchanged) — closes AUTH-06's emailed-link requirement; "Terlambat" overdue badge on activities (/catatan + /beranda); CAPD `konsentrasiCapd` surfaced on reminder card faces; push notification confirm label generalized "Sudah diminum" → "Sudah" (requires SW rebuild to take effect); no-reminder banner gated on actual `GET /api/reminders` count instead of onboarding flag; tutorial-mode onboarding scopes Pilih Jenis Terapi to the user's existing therapy only. 10 commits (RED+GREEN TDD gate for Resend task), frontend+backend tsc clean, 10/10 backend password-reset tests pass. Pending: human browser verification of all 9 items + a real `RESEND_API_KEY` to be pasted in for live email sending (noted in SUMMARY). |
 
 ## Performance Metrics
 
@@ -128,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase ?]: [Phase 06-06]: communityPost.repository.ts's findFeed/findById now left-join users for authorName (CommunityPostWithAuthor) — the 06-04 API had zero author attribution, a real product gap for a Quora-style feed, not cosmetic; archiveById (IDOR-sensitive) left untouched.
 - [Phase 06-07]: communityReply.repository.ts's findByPost now left-joins users to attach authorName (CommunityReplyWithMeta) -- same Rule 2 precedent as 06-06's communityPost authorName join; toggleHelpful's D-08 open-access logic left untouched.
 - [Phase ?]: [Quick 260705-q7w]: therapyReminderScope.ts (activeCuciDarahJenis/isReminderVisibleForTherapy) is the single source of truth for jenis-vs-therapy reminder visibility, replacing destructive aktif=false therapy-change deactivation; aktif is now exclusively the user-facing enable/disable toggle.
+- [Phase ?]: Quick 260706-6oj: sendPasswordResetEmail now takes an injectable ResendSender (defaults to real Resend-backed impl, dev-safe console fallback when RESEND_API_KEY unset) -- AUTH-06's emailed reset link is real, no longer console-log-only.
 
 ### Pending Todos
 
@@ -152,7 +154,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-05T12:16:08.244Z
+Last session: 2026-07-05T22:35:37.198Z
 Stopped at: Phase 06 Plan 07 (post detail + replies + membantu + archive UI) complete - SUMMARY.md written, Phase 6 complete
 Resume file: None
 
