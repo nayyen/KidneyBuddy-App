@@ -75,6 +75,52 @@ describe("dispatchDueReminders", () => {
     assert.strictEqual(p.url, "/catatan");
   });
 
+  // Jenis-aware emoji/title polish (quick-260705-9n4, post-Task-4 request)
+  it("single obat reminder title has a pill emoji + 'Pengingat Obat' label", async () => {
+    const deps = makeDeps({ findDue: async () => [BASE_REMINDER as any] });
+    await _dispatchCore("08:00", "Senin", deps);
+    const p = deps.sentNotifications[0].payload as any;
+    assert.strictEqual(p.title, "💊 Pengingat Obat: Amlodipine");
+  });
+
+  it("single hd reminder title has a blood-drop emoji + 'Pengingat Cuci Darah' label", async () => {
+    const hdReminder = { ...BASE_REMINDER, id: "rem-hd", jenis: "hd", nama: "Jadwal HD RS Harapan" };
+    const deps = makeDeps({ findDue: async () => [hdReminder as any] });
+    await _dispatchCore("08:00", "Senin", deps);
+    const p = deps.sentNotifications[0].payload as any;
+    assert.strictEqual(p.title, "🩸 Pengingat Cuci Darah: Jadwal HD RS Harapan");
+  });
+
+  it("single capd reminder title has a water-drop emoji (distinct from hd) + 'Pengingat Cuci Darah' label", async () => {
+    const capdReminder = { ...BASE_REMINDER, id: "rem-capd", jenis: "capd", nama: "Exchange CAPD Pagi" };
+    const deps = makeDeps({ findDue: async () => [capdReminder as any] });
+    await _dispatchCore("08:00", "Senin", deps);
+    const p = deps.sentNotifications[0].payload as any;
+    assert.strictEqual(p.title, "💧 Pengingat Cuci Darah: Exchange CAPD Pagi");
+  });
+
+  it("multi-reminder batch of the SAME jenis uses that jenis's emoji/label in the title", async () => {
+    const rem2 = { ...BASE_REMINDER, id: "rem-2", nama: "Furosemide" };
+    const deps = makeDeps({ findDue: async () => [BASE_REMINDER, rem2] as any[] });
+    await _dispatchCore("08:00", "Senin", deps);
+    assert.strictEqual(deps.sentNotifications.length, 1);
+    const p = deps.sentNotifications[0].payload as any;
+    assert.strictEqual(p.title, "💊 2 Pengingat Obat");
+    assert.match(p.body, /Amlodipine/);
+    assert.match(p.body, /Furosemide/);
+  });
+
+  it("multi-reminder batch of MIXED jenis groups the body by jenis with per-group emoji", async () => {
+    const hdReminder = { ...BASE_REMINDER, id: "rem-hd", jenis: "hd", nama: "Jadwal HD" };
+    const deps = makeDeps({ findDue: async () => [BASE_REMINDER, hdReminder] as any[] });
+    await _dispatchCore("08:00", "Senin", deps);
+    assert.strictEqual(deps.sentNotifications.length, 1);
+    const p = deps.sentNotifications[0].payload as any;
+    assert.strictEqual(p.title, "🔔 Beberapa Pengingat untuk jam 08:00");
+    assert.match(p.body, /💊 Obat: Amlodipine/);
+    assert.match(p.body, /🩸 Cuci Darah: Jadwal HD/);
+  });
+
   it("marks lastNotificationSentAt after dispatch (dedup guard)", async () => {
     const deps = makeDeps({ findDue: async () => [BASE_REMINDER as any] });
     await _dispatchCore("08:00", "Senin", deps);

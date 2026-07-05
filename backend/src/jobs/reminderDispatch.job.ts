@@ -31,6 +31,30 @@ import {
 
 const logger = pino({ name: "reminderDispatch.job" });
 
+// ─── Jenis-aware notification copy (quick-260705-9n4 polish request) ──────────
+// Distinguishes HD (literally blood dialysis) from CAPD (fluid-exchange
+// dialysis) with different emoji, while sharing the same Indonesian label
+// ("Cuci Darah") since both are dialysis-therapy reminders from the
+// patient's perspective.
+const JENIS_EMOJI: Record<string, string> = {
+  obat: "💊",
+  capd: "💧",
+  hd: "🩸",
+};
+const JENIS_LABEL: Record<string, string> = {
+  obat: "Obat",
+  capd: "Cuci Darah",
+  hd: "Cuci Darah",
+};
+
+function jenisEmoji(jenis: string): string {
+  return JENIS_EMOJI[jenis] ?? "🔔";
+}
+
+function jenisLabel(jenis: string): string {
+  return JENIS_LABEL[jenis] ?? "Pengingat";
+}
+
 export type DispatchDeps = {
   findDue: (time: string, day: string) => Promise<ReminderSchedule[]>;
   insertMedLog: (data: Parameters<typeof insertMedLog>[0]) => Promise<unknown>;
@@ -94,20 +118,41 @@ export async function _dispatchCore(
         }
       }
 
-      // 2. Construct one grouped notification
+      // 2. Construct one grouped notification — jenis-aware emoji + label
+      //    (quick-260705-9n4 polish request) so a patient can tell at a
+      //    glance whether a push is about medication or a dialysis session
+      //    without opening the app.
       let title: string;
       let body: string;
 
       if (reminders.length === 1) {
         const r = reminders[0];
-        title = `Pengingat: ${r.nama}`;
+        title = `${jenisEmoji(r.jenis)} Pengingat ${jenisLabel(r.jenis)}: ${r.nama}`;
         body = r.dosis
           ? `${r.dosis} — ketuk untuk konfirmasi`
           : "Ketuk untuk konfirmasi";
       } else {
-        title = `Beberapa pengingat untuk jam ${time}`;
-        const names = reminders.map(r => r.nama).join(", ");
-        body = `Saatnya untuk: ${names}. Ketuk untuk konfirmasi.`;
+        const distinctJenis = new Set(reminders.map((r) => r.jenis));
+        if (distinctJenis.size === 1) {
+          // Whole batch shares the same jenis — use its emoji/label in the title.
+          const jenis = reminders[0].jenis;
+          const names = reminders.map((r) => r.nama).join(", ");
+          title = `${jenisEmoji(jenis)} ${reminders.length} Pengingat ${jenisLabel(jenis)}`;
+          body = `Saatnya untuk: ${names}. Ketuk untuk konfirmasi.`;
+        } else {
+          // Mixed jenis in the same time slot — group the body by jenis,
+          // each with its own emoji, so the distinction isn't lost.
+          title = `🔔 Beberapa Pengingat untuk jam ${time}`;
+          const byJenis = new Map<string, string[]>();
+          for (const r of reminders) {
+            if (!byJenis.has(r.jenis)) byJenis.set(r.jenis, []);
+            byJenis.get(r.jenis)!.push(r.nama);
+          }
+          body =
+            Array.from(byJenis.entries())
+              .map(([jenis, names]) => `${jenisEmoji(jenis)} ${jenisLabel(jenis)}: ${names.join(", ")}`)
+              .join(" · ") + ". Ketuk untuk konfirmasi.";
+        }
       }
       
       // 3. Send the single push
