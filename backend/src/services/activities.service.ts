@@ -353,6 +353,20 @@ export async function listActivities(
 }
 
 /**
+ * Core delete-activity logic with injectable dependencies.
+ * Exported for unit testing without a live DB (quick-260705-psi task 1).
+ */
+export async function _deleteActivityCore(
+  userId: string,
+  id: string,
+  deleteFn: (uid: string, actId: string) => Promise<any>,
+): Promise<ActivityResult | null> {
+  const row = await deleteFn(userId, id);
+  if (!row) return null;
+  return formatActivity(row, realDecrypt);
+}
+
+/**
  * Delete (cancel) an activity by ID.
  * Returns the updated activity or null if not found.
  */
@@ -360,9 +374,11 @@ export async function deleteActivity(
   userId: string,
   id: string,
 ): Promise<ActivityResult | null> {
-  const row = await dailyActivityRepository.deleteById(userId, id);
-  if (!row) return null;
-  return formatActivity(row, realDecrypt);
+  return _deleteActivityCore(
+    userId,
+    id,
+    (uid, actId) => dailyActivityRepository.deleteById(uid, actId),
+  );
 }
 
 /**
@@ -414,11 +430,28 @@ export async function updateActivity(
 }
 
 /**
+ * Core list-all-activities logic with injectable dependencies.
+ * Exported for unit testing without a live DB (quick-260705-psi task 1) —
+ * lets the RED test assert a deleted activity's status filter without a
+ * live Postgres connection, mirroring the injected-store pattern used by
+ * _createActivityCore/_completeActivityCore above.
+ */
+export async function _listAllActivitiesCore(
+  userId: string,
+  listFn: (uid: string) => Promise<any[]>,
+): Promise<ActivityResult[]> {
+  const rows = await listFn(userId);
+  return rows.map((row) => formatActivity(row, realDecrypt));
+}
+
+/**
  * List ALL activities for a user (across all dates), ordered by waktuMulai desc.
  */
 export async function listAllActivities(
   userId: string,
 ): Promise<ActivityResult[]> {
-  const rows = await dailyActivityRepository.findAllByUser(userId);
-  return rows.map((row) => formatActivity(row, realDecrypt));
+  return _listAllActivitiesCore(
+    userId,
+    (uid) => dailyActivityRepository.findAllByUser(uid),
+  );
 }

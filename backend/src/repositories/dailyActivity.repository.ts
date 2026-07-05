@@ -6,7 +6,7 @@
  *
  * Pattern: follows fluidLog.repository.ts (InferInsertModel, InferSelectModel).
  */
-import { and, eq, lte, gte, desc } from "drizzle-orm";
+import { and, eq, lte, gte, desc, ne } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { dailyActivities } from "../db/schema/dailyActivity.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -45,6 +45,10 @@ export async function findActiveByUser(userId: string): Promise<DailyActivity | 
  * Find activities for a user on a specific date (WIB-based).
  * Determines the date range from waktuMulai.
  * Orders active-first then most recent.
+ *
+ * Excludes soft-deleted (status='dibatalkan') rows — quick-260705-psi task 1:
+ * a cancelled activity must never resurface on any user-facing list (beranda
+ * or the by-date /catatan view), matching findAllByUser's exclusion below.
  */
 export async function findByDate(
   userId: string,
@@ -57,6 +61,7 @@ export async function findByDate(
     .where(
       and(
         eq(dailyActivities.userId, userId as any),
+        ne(dailyActivities.status, "dibatalkan"),
         gte(dailyActivities.waktuMulai, dateStart),
         lte(dailyActivities.waktuMulai, dateEnd),
       ),
@@ -135,6 +140,11 @@ export async function updateById(
 /**
  * Find ALL activities for a user, ordered by waktuMulai descending.
  * Used by ActivityList to show history across dates.
+ *
+ * Excludes soft-deleted (status='dibatalkan') rows — quick-260705-psi task 1
+ * bugfix: `deleteById` only sets status='dibatalkan', it never removed the
+ * row, so a deleted activity was reappearing as "belum selesai" on reload
+ * because this query returned every status including cancelled ones.
  */
 export async function findAllByUser(
   userId: string,
@@ -144,7 +154,10 @@ export async function findAllByUser(
     .select()
     .from(dailyActivities)
     .where(
-      eq(dailyActivities.userId, userId as any),
+      and(
+        eq(dailyActivities.userId, userId as any),
+        ne(dailyActivities.status, "dibatalkan"),
+      ),
     )
     .orderBy(dailyActivities.waktuMulai);
 }

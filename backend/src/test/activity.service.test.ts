@@ -33,6 +33,8 @@ const {
   createActivitySchema,
   _createActivityCore,
   _completeActivityCore,
+  _deleteActivityCore,
+  _listAllActivitiesCore,
 } = await import("../services/activities.service.js");
 
 // ─── In-memory store for test isolation ──────────────────────────────────────
@@ -97,7 +99,23 @@ function createInMemoryActivityStore() {
     return rows[idx];
   };
 
-  return { rows, insertActivity, completeById };
+  // deleteById mirrors dailyActivity.repository.ts's soft-delete: sets
+  // status='dibatalkan', does NOT remove the row (quick-260705-psi task 1).
+  const deleteById = async (userId: string, id: string): Promise<StoredActivity | null> => {
+    const idx = rows.findIndex((r) => r.id === id && r.userId === userId);
+    if (idx === -1) return null;
+    rows[idx] = { ...rows[idx], status: "dibatalkan" };
+    return rows[idx];
+  };
+
+  // findAllByUser mirrors the FIXED repository query — excludes
+  // status='dibatalkan' rows (the bug being tested: before the fix, this
+  // filter was absent and cancelled activities reappeared as "belum selesai").
+  const findAllByUser = async (userId: string): Promise<StoredActivity[]> => {
+    return rows.filter((r) => r.userId === userId && r.status !== "dibatalkan");
+  };
+
+  return { rows, insertActivity, completeById, deleteById, findAllByUser };
 }
 
 const USER_ID = "00000000-0000-0000-0000-000000000001";
@@ -247,5 +265,47 @@ describe("activity _completeActivityCore", () => {
     assert.strictEqual(result.status, "selesai", "Status should be selesai");
     assert.strictEqual(result.perasaan, null, "perasaan should be null");
     assert.strictEqual(result.catatanPerasaan, null, "catatanPerasaan should be null");
+  });
+});
+
+// ─── _deleteActivityCore + _listAllActivitiesCore (quick-260705-psi task 1) ──
+//
+// Regression test for the "deleted activity reappears as belum selesai after
+// reload" bug: deleteActivity soft-deletes (status='dibatalkan') but the list
+// query never excluded that status. Asserts the fixed findAllByUser-shaped
+// query never returns a deleted activity's id.
+
+describe("activity delete persistence (quick-260705-psi)", () => {
+  it("after deleteActivity, the id no longer appears in listAllActivities result", async () => {
+    const store = createInMemoryActivityStore();
+
+    const activity = await store.insertActivity({
+      userId: USER_ID,
+      namaKegiatan: "Jalan pagi",
+      waktuMulai: new Date(),
+      estimasiSelesai: new Date(Date.now() + 3600000),
+      status: "berlangsung",
+      reminderSent: false,
+      createdAt: new Date(),
+    });
+    const keptActivity = await store.insertActivity({
+      userId: USER_ID,
+      namaKegiatan: "Yoga",
+      waktuMulai: new Date(),
+      estimasiSelesai: new Date(Date.now() + 3600000),
+      status: "berlangsung",
+      reminderSent: false,
+      createdAt: new Date(),
+    });
+
+    const deleted = await _deleteActivityCore(USER_ID, activity.id, store.deleteById);
+    assert.ok(deleted, "deleteActivity must return the soft-deleted row");
+    assert.strictEqual(deleted!.status, "dibatalkan");
+
+    const list = await _listAllActivitiesCore(USER_ID, store.findAllByUser);
+    const ids = list.map((a) => a.id);
+
+    assert.ok(!ids.includes(activity.id), "Deleted activity id must NOT appear in the list result");
+    assert.ok(ids.includes(keptActivity.id), "Non-deleted activity id must still appear in the list result");
   });
 });
