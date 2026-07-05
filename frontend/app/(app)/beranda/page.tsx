@@ -21,7 +21,10 @@ interface OnboardingProgress {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { accessToken, isLoading, isAuthenticated } = useAuth();
+  const { accessToken, isLoading, isAuthenticated, user } = useAuth();
+  // quick-260705-q7w: dialysis (cuci darah) is not relevant to transplant
+  // patients — hide the card entirely rather than showing an empty one.
+  const isTransplant = (user?.metodeTerapiAktif ?? "").toLowerCase() === "transplantasi";
   const [onboardingProgress, setOnboardingProgress] =
     useState<OnboardingProgress | null>(null);
   const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
@@ -119,7 +122,9 @@ export default function DashboardPage() {
           onCompleteActivity={(id, nama) => { /* logic to open completion form */ }}
         />
         <ObatCard accessToken={accessToken} />
-        <CuciDarahCard accessToken={accessToken} />
+        {!isTransplant && (
+          <CuciDarahCard accessToken={accessToken} />
+        )}
       </div>
     </div>
   );
