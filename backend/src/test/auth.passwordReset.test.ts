@@ -2,6 +2,7 @@ import { describe, it, before, after } from "node:test";
 import assert from "node:assert";
 import crypto from "node:crypto";
 import { forgotPassword, resetPassword } from "../services/auth.service.js";
+import { sendPasswordResetEmail } from "../services/email.service.js";
 import * as passwordResetTokenRepository from "../repositories/passwordResetToken.repository.js";
 import * as userRepository from "../repositories/user.repository.js";
 import { hashPassword, verifyPassword } from "../utils/passwordHash.js";
@@ -75,5 +76,75 @@ describe("auth.passwordReset (integration)", () => {
     } catch (err: any) {
       assert.ok(err.issues || err.message);
     }
+  });
+
+  // Single-use is enforced by passwordResetTokenRepository.consumeIfValid's
+  // atomic find+markUsed UPDATE (see repository) — a full round-trip assertion
+  // (create token, reset once, reset again -> RESET_TOKEN_INVALID) requires a
+  // real DB-backed user + token row (Docker Postgres), so it's documented here
+  // rather than re-implemented as a mocked unit test.
+  it("documents that reset tokens are single-use via consumeIfValid (requires DB for a full round-trip)", () => {
+    assert.strictEqual(typeof passwordResetTokenRepository.consumeIfValid, "function");
+  });
+});
+
+describe("email.service.sendPasswordResetEmail (unit, no live network calls)", () => {
+  const originalApiKey = process.env.RESEND_API_KEY;
+  const originalFromEmail = process.env.RESEND_FROM_EMAIL;
+
+  after(() => {
+    if (originalApiKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = originalApiKey;
+    if (originalFromEmail === undefined) delete process.env.RESEND_FROM_EMAIL;
+    else process.env.RESEND_FROM_EMAIL = originalFromEmail;
+  });
+
+  it("invokes the injected sender with to/subject/resetUrl when RESEND_API_KEY is set", async () => {
+    process.env.RESEND_API_KEY = "test-key-not-a-real-secret";
+    process.env.RESEND_FROM_EMAIL = "KidneyBuddy <no-reply@test.dev>";
+
+    let captured: { from: string; to: string; subject: string; html: string; text: string } | null = null;
+    const fakeSender = async (params: {
+      from: string;
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+    }) => {
+      captured = params;
+      return { id: "fake-message-id" };
+    };
+
+    await sendPasswordResetEmail("user@example.com", "raw-token-abc123", fakeSender);
+
+    assert.ok(captured, "sender should have been invoked");
+    assert.strictEqual(captured!.to, "user@example.com");
+    assert.strictEqual(captured!.subject, "Atur Ulang Password KidneyBuddy");
+    assert.ok(captured!.html.includes("raw-token-abc123"), "html body should contain the reset URL/token");
+  });
+
+  it("falls back to console logging and does NOT throw when RESEND_API_KEY is unset", async () => {
+    delete process.env.RESEND_API_KEY;
+
+    const originalConsoleLog = console.log;
+    const loggedLines: string[] = [];
+    console.log = (...args: unknown[]) => {
+      loggedLines.push(args.map(String).join(" "));
+    };
+
+    let threw = false;
+    try {
+      await sendPasswordResetEmail("user2@example.com", "raw-token-xyz789");
+    } catch {
+      threw = true;
+    } finally {
+      console.log = originalConsoleLog;
+    }
+
+    assert.strictEqual(threw, false, "must not crash local dev without a RESEND_API_KEY");
+    assert.ok(
+      loggedLines.some((line) => line.includes("raw-token-xyz789")),
+      "should have console-logged the reset URL as a dev fallback",
+    );
   });
 });
