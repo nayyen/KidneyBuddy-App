@@ -20,13 +20,28 @@ interface MulaiKegiatanFormProps {
   onClose?: () => void;
 }
 
+/**
+ * Default the time picker to 30 minutes from now, in the browser's own
+ * local timezone (quick-260705-9n4 task 8) — a sensible starting point the
+ * user can adjust, rather than forcing them to pick a time from scratch.
+ */
+function defaultEstimasiSelesaiJam(): string {
+  const d = new Date(Date.now() + 30 * 60 * 1000);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 export default function MulaiKegiatanForm({
   accessToken,
   onSuccess,
   onClose,
 }: MulaiKegiatanFormProps) {
   const [namaKegiatan, setNamaKegiatan] = useState("");
-  const [estimasiMenit, setEstimasiMenit] = useState("");
+  // B5 (quick-260705-9n4 task 8): collects a wall-clock FINISH TIME
+  // ("Estimasi Selesai Jam", e.g. "17:00") instead of a duration in minutes —
+  // matches the backend's estimasiSelesaiJam contract, which builds the
+  // absolute finish timestamp for today in the user's own local timezone
+  // (backend resolves the user's stored IANA timezone from task 2).
+  const [estimasiSelesaiJam, setEstimasiSelesaiJam] = useState(defaultEstimasiSelesaiJam);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,9 +51,8 @@ export default function MulaiKegiatanForm({
       toast("Nama kegiatan tidak boleh kosong", { duration: 2000 });
       return;
     }
-    const menit = parseInt(estimasiMenit, 10);
-    if (isNaN(menit) || menit <= 0) {
-      toast("Estimasi durasi harus angka lebih dari 0", { duration: 2000 });
+    if (!/^\d{2}:\d{2}$/.test(estimasiSelesaiJam)) {
+      toast("Pilih jam estimasi selesai", { duration: 2000 });
       return;
     }
 
@@ -48,7 +62,7 @@ export default function MulaiKegiatanForm({
         method: "POST",
         body: JSON.stringify({
           namaKegiatan: namaKegiatan.trim(),
-          estimasiMenit: menit,
+          estimasiSelesaiJam,
         }),
       });
 
@@ -95,21 +109,20 @@ export default function MulaiKegiatanForm({
         />
       </div>
 
-      {/* Estimasi Durasi */}
+      {/* Estimasi Selesai Jam */}
       <div className="space-y-1.5">
         <label
-          htmlFor="estimasiMenit"
+          htmlFor="estimasiSelesaiJam"
           className="font-sans font-medium"
           style={{ fontSize: 13, color: "#1a2e2c" }}
         >
-          Estimasi Durasi (menit)
+          Estimasi Selesai Jam
         </label>
         <input
-          id="estimasiMenit"
-          type="number"
-          placeholder="Contoh: 30"
-          value={estimasiMenit}
-          onChange={(e) => setEstimasiMenit(e.target.value)}
+          id="estimasiSelesaiJam"
+          type="time"
+          value={estimasiSelesaiJam}
+          onChange={(e) => setEstimasiSelesaiJam(e.target.value)}
           disabled={isSubmitting}
           className="w-full font-sans rounded-xl border px-4 py-3 outline-none transition-colors"
           style={{
@@ -120,7 +133,7 @@ export default function MulaiKegiatanForm({
           }}
         />
         <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66" }}>
-          Masukkan perkiraan waktu dalam satuan menit.
+          Pilih perkiraan jam kegiatan ini selesai.
         </p>
       </div>
 

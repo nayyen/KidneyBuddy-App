@@ -15,14 +15,29 @@
  * dependencies so unit tests run without a live Postgres connection.
  */
 import { z } from "zod";
+import { AppError } from "../middleware/errorHandler.js";
 import { encrypt as realEncrypt, decrypt as realDecrypt } from "../lib/encryption.js";
 import * as dailyActivityRepository from "../repositories/dailyActivity.repository.js";
+import * as userRepository from "../repositories/user.repository.js";
 import type { NewDailyActivity } from "../repositories/dailyActivity.repository.js";
 import {
   wibDateStr,
   wibHHmm,
   wibDayName,
+  localDateStr,
+  localDateFromHHmm,
 } from "../utils/wib.js";
+
+const DEFAULT_TIMEZONE = "Asia/Jakarta";
+
+/**
+ * Look up the requesting user's stored IANA timezone (quick-260705-9n4 task
+ * 2 pattern), falling back to Asia/Jakarta if the user row is missing one.
+ */
+async function getUserTimezone(userId: string): Promise<string> {
+  const user = await userRepository.findById(userId);
+  return user?.timezone || DEFAULT_TIMEZONE;
+}
 
 // ─── WIB offset (UTC+7) ──────────────────────────────────────────────────────
 // All activity timestamp comparisons use WIB (CR-02).
@@ -63,6 +78,12 @@ function combineWIBDateAndTime(hhmm: string): Date {
 
 // ─── Zod validation schemas ───────────────────────────────────────────────────
 
+// B5 (quick-260705-9n4 task 8): estimasiSelesaiJam replaces the old
+// estimasiMenit (duration-in-minutes) contract — the form now collects a
+// wall-clock FINISH TIME (e.g. "17:00"), matching jamPengingat's HH:mm
+// convention used elsewhere (reminders). The absolute estimasiSelesai
+// timestamp is built server-side from this HH:mm + the user's own local
+// timezone (task 2), for "today" unless an explicit tanggal is given.
 export const createActivitySchema = z.object({
   namaKegiatan: z
     .string({
@@ -71,13 +92,12 @@ export const createActivitySchema = z.object({
     })
     .min(1, "Nama kegiatan tidak boleh kosong")
     .max(100, "Nama kegiatan maksimal 100 karakter"),
-  estimasiMenit: z.coerce
-    .number({
-      required_error: "Estimasi durasi wajib diisi",
-      invalid_type_error: "Estimasi durasi harus berupa angka",
+  estimasiSelesaiJam: z
+    .string({
+      required_error: "Estimasi selesai wajib diisi",
+      invalid_type_error: "Estimasi selesai harus berupa teks jam (HH:mm)",
     })
-    .int()
-    .positive("Estimasi durasi harus lebih dari 0"),
+    .regex(/^\d{2}:\d{2}$/, "Format jam wajib HH:mm (contoh: 17:00)"),
   tanggal: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD")
@@ -158,17 +178,38 @@ function formatActivity(
 /**
  * Core create-activity logic with injectable dependencies.
  * Exported for unit testing without a live DB.
+ *
+ * @param deps.waktuMulai - injectable "now" for testing (defaults to `new Date()`)
+ * @param deps.timezone - injectable IANA timezone for testing (defaults to
+ *   Asia/Jakarta, matching the production default in getUserTimezone())
  */
 export async function _createActivityCore(
   userId: string,
   rawPayload: unknown,
   insertFn: InsertFn,
-  waktuMulai?: Date, // for testing
+  deps?: { waktuMulai?: Date; timezone?: string },
 ): Promise<ActivityResult> {
-  const now = waktuMulai ?? new Date();
+  const now = deps?.waktuMulai ?? new Date();
+  const timezone = deps?.timezone ?? DEFAULT_TIMEZONE;
   const parsed = createActivitySchema.parse(rawPayload);
 
-  const estimasiSelesai = new Date(now.getTime() + parsed.estimasiMenit * 60 * 1000);
+  // Build the absolute finish timestamp from the picked HH:mm + the target
+  // calendar date (explicit `tanggal`, or "today" in the user's own local
+  // timezone) — B5's clock-time contract (quick-260705-9n4 task 8).
+  const dateStr = parsed.tanggal ?? localDateStr(timezone, now);
+  const estimasiSelesai = localDateFromHHmm(timezone, parsed.estimasiSelesaiJam, dateStr);
+
+  // A picked finish time that has already passed (relative to "now") is
+  // never valid — the old duration-based contract made this impossible by
+  // construction (any positive minute count was always in the future), but
+  // a wall-clock time the user can freely pick needs an explicit guard.
+  if (estimasiSelesai.getTime() <= now.getTime()) {
+    throw new AppError(
+      400,
+      "ESTIMASI_SELESAI_LAMPAU",
+      "Estimasi selesai harus di waktu yang akan datang",
+    );
+  }
 
   const newActivity = await insertFn({
     userId: userId as any,
@@ -226,18 +267,27 @@ export async function _completeActivityCore(
 
 /**
  * Create a new daily activity for the authenticated user.
- * Combines today's WIB date with the HH:mm estimasiSelesai.
+ * Combines today's date (in the user's own local timezone) with the picked
+ * HH:mm estimasiSelesaiJam to build the absolute estimasiSelesai timestamp.
+ *
+ * BUGFIX (quick-260705-9n4 task 8 audit): previously called
+ * _createActivityCore(userId, rawPayload, insertFn, realEncrypt, realDecrypt)
+ * — 5 arguments against a 3-4-arg signature (a pre-existing tsc build error,
+ * `error TS2554: Expected 3-4 arguments, but got 5`, logged in
+ * deferred-items.md). _createActivityCore never took encrypt/decrypt
+ * params — catatanPerasaan encryption only applies to completeActivity, not
+ * activity creation. Fixed by passing the correct deps object.
  */
 export async function createEntry(
   userId: string,
   rawPayload: unknown,
 ): Promise<ActivityResult> {
+  const timezone = await getUserTimezone(userId);
   return _createActivityCore(
     userId,
     rawPayload,
     (data) => dailyActivityRepository.insertActivity(data),
-    realEncrypt,
-    realDecrypt,
+    { timezone },
   );
 }
 

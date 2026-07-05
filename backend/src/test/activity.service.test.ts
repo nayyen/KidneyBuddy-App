@@ -13,6 +13,10 @@
  * Design: follows fluid.service.test.ts pattern — the service exports core
  * functions (_createActivityCore, _completeActivityCore) with injectable
  * dependencies so tests run without a live Postgres connection.
+ *
+ * Updated quick-260705-9n4 task 8 (B5): the create-activity contract changed
+ * from estimasiMenit (duration in minutes) to estimasiSelesaiJam (wall-clock
+ * HH:mm finish time) — see MulaiKegiatanForm.tsx / activities.service.ts.
  */
 import { describe, it } from "node:test";
 import assert from "node:assert";
@@ -99,22 +103,30 @@ function createInMemoryActivityStore() {
 const USER_ID = "00000000-0000-0000-0000-000000000001";
 
 // ─── Schema validation (pure zod) ────────────────────────────────────────────
+//
+// B5 (quick-260705-9n4 task 8): estimasiMenit (duration in minutes) was
+// replaced by estimasiSelesaiJam (wall-clock HH:mm finish time), matching
+// jamPengingat's convention used elsewhere (reminders). This fixture was
+// updated to match — the old estimasiMenit contract no longer exists.
 
 describe("activity schema validation", () => {
   it("empty namaKegiatan is rejected", () => {
-    const result = createActivitySchema.safeParse({ namaKegiatan: "", estimasiMenit: 30 });
-    assert.strictEqual(result.success, false);
-  });
-
-  it("non-positive estimasiMenit is rejected", () => {
     const result = createActivitySchema.safeParse({
-      namaKegiatan: "Jalan pagi",
-      estimasiMenit: 0,
+      namaKegiatan: "",
+      estimasiSelesaiJam: "17:00",
     });
     assert.strictEqual(result.success, false);
   });
 
-  it("missing estimasiMenit is rejected", () => {
+  it("malformed estimasiSelesaiJam (not HH:mm) is rejected", () => {
+    const result = createActivitySchema.safeParse({
+      namaKegiatan: "Jalan pagi",
+      estimasiSelesaiJam: "5pm",
+    });
+    assert.strictEqual(result.success, false);
+  });
+
+  it("missing estimasiSelesaiJam is rejected", () => {
     const result = createActivitySchema.safeParse({ namaKegiatan: "Jalan pagi" });
     assert.strictEqual(result.success, false);
   });
@@ -122,39 +134,51 @@ describe("activity schema validation", () => {
   it("valid payload passes schema", () => {
     const result = createActivitySchema.safeParse({
       namaKegiatan: "Jalan pagi",
-      estimasiMenit: 30,
+      estimasiSelesaiJam: "17:00",
     });
     assert.strictEqual(result.success, true);
   });
 });
 
 // ─── _createActivityCore with injected store ─────────────────────────────────
+//
+// Fixed reference "now" (2026-07-05T10:00:00Z == 17:00 Asia/Jakarta) so
+// future-vs-past assertions are deterministic regardless of when the test
+// runner executes.
+const FIXED_NOW = new Date("2026-07-05T10:00:00.000Z");
 
 describe("activity _createActivityCore", () => {
-  it("createActivity with valid payload returns berlangsung status and future estimasiSelesai", async () => {
+  it("createActivity with a future estimasiSelesaiJam returns berlangsung status and future estimasiSelesai", async () => {
     const store = createInMemoryActivityStore();
 
     const result = await _createActivityCore(
       USER_ID,
-      { namaKegiatan: "Jalan pagi", estimasiMenit: 60 },
+      { namaKegiatan: "Jalan pagi", estimasiSelesaiJam: "18:00" }, // 18:00 Jakarta > 17:00 "now"
       store.insertActivity,
+      { waktuMulai: FIXED_NOW, timezone: "Asia/Jakarta" },
     );
 
     assert.ok(result, "Must return an activity object");
     assert.strictEqual(result.status, "berlangsung");
     assert.ok(result.estimasiSelesai instanceof Date, "estimasiSelesai must be a Date");
-    assert.ok(result.estimasiSelesai > new Date(), "estimasiSelesai must be in the future");
+    assert.ok(
+      result.estimasiSelesai.getTime() > FIXED_NOW.getTime(),
+      "estimasiSelesai must be in the future relative to waktuMulai",
+    );
+    // 18:00 Jakarta (UTC+7) == 11:00 UTC
+    assert.strictEqual(result.estimasiSelesai.toISOString(), "2026-07-05T11:00:00.000Z");
     assert.strictEqual(result.namaKegiatan, "Jalan pagi");
   });
 
-  it("negative estimasiMenit is rejected before insert", async () => {
+  it("a past estimasiSelesaiJam (relative to waktuMulai) is rejected before insert", async () => {
     const store = createInMemoryActivityStore();
 
     await assert.rejects(() =>
       _createActivityCore(
         USER_ID,
-        { namaKegiatan: "Jalan pagi", estimasiMenit: -5 },
+        { namaKegiatan: "Jalan pagi", estimasiSelesaiJam: "08:00" }, // 08:00 Jakarta < 17:00 "now"
         store.insertActivity,
+        { waktuMulai: FIXED_NOW, timezone: "Asia/Jakarta" },
       ),
     );
   });

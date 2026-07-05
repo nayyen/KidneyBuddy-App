@@ -12,7 +12,8 @@ import * as activitiesService from "../services/activities.service.js";
 /**
  * POST /api/activities
  * Create a new daily activity for the authenticated user.
- * Expects { namaKegiatan, estimasiSelesai (HH:mm) } in the request body.
+ * Expects { namaKegiatan, estimasiSelesaiJam (HH:mm) } in the request body
+ * (quick-260705-9n4 task 8 — B5's clock-time contract).
  */
 export async function create(
   req: Request,

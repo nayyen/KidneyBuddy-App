@@ -30,16 +30,19 @@ which expect `string`. Confirmed present before this quick task's first commit.
 Not in Task 1's assigned file list (only the two `*Log.service.ts` files were
 assigned). A real fix belongs in a follow-up task/PR that also addresses item 3.
 
-## 3. `activities.service.ts` call-site argument-count mismatch
+## 3. ~~`activities.service.ts` call-site argument-count mismatch~~ — RESOLVED in Task 8
 
 ```
 src/services/activities.service.ts(240,5): error TS2554: Expected 3-4 arguments, but got 5.
 ```
 
-Confirmed present before this quick task's first commit. Task 8 of this plan
-(Mulai Kegiatan estimasiSelesai rework) touches `activities.service.ts` — if
-Task 8 ends up modifying the same function, this pre-existing error will be
-addressed incidentally; otherwise it remains deferred here.
+Confirmed present before this quick task's first commit. Task 8 (Mulai
+Kegiatan estimasiSelesai rework) rewrote `_createActivityCore`'s signature
+to accept a `deps` object (`{ waktuMulai?, timezone? }`) instead of
+positional args, and fixed `createEntry`'s call site to match — the extra
+`realEncrypt, realDecrypt` arguments it was incorrectly passing (which
+`_createActivityCore` never accepted; encryption only applies to
+`completeActivity`) are gone. No longer present as of Task 8's commit.
 
 All three items were re-verified as pre-existing via:
 ```bash
