@@ -1,9 +1,11 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Droplets, Play } from "lucide-react";
+import { Droplets, Play, BellRing } from "lucide-react";
 import { NAV_ITEMS } from "@/lib/nav";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { useUnreadAnomalyCount } from "@/lib/hooks/useUnreadAnomalyCount";
 
 interface SidebarProps {
   onCatatCairan?: () => void;
@@ -12,6 +14,9 @@ interface SidebarProps {
 export default function Sidebar({ onCatatCairan }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { accessToken } = useAuth();
+  const unreadCount = useUnreadAnomalyCount(accessToken);
+  const isNotifikasiActive = pathname.startsWith("/notifikasi");
 
   return (
     <aside
@@ -78,6 +83,51 @@ export default function Sidebar({ onCatatCairan }: SidebarProps) {
             </button>
           );
         })}
+
+        {/* Notifikasi — dedicated desktop nav entry (distinct from Pengingat's Bell icon) */}
+        <button
+          onClick={() => router.push("/notifikasi")}
+          aria-label="Notifikasi"
+          aria-current={isNotifikasiActive ? "page" : undefined}
+          className={cn(
+            "relative flex items-center gap-3 w-full cursor-pointer transition-colors rounded-lg px-3",
+            isNotifikasiActive
+              ? "border-l-[3px] border-primary bg-[#f0faf9] text-primary"
+              : "border-l-[3px] border-transparent"
+          )}
+          style={{ height: 48 }}
+        >
+          <span className="relative inline-flex">
+            <BellRing
+              size={20}
+              strokeWidth={isNotifikasiActive ? 2 : 1.5}
+              color={isNotifikasiActive ? "#2a9d8f" : "#3d6b66"}
+            />
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "#ef9f27",
+                  transform: "translate(25%, -25%)",
+                }}
+              />
+            )}
+          </span>
+          <span
+            className="font-sans font-medium"
+            style={{
+              fontSize: 14,
+              color: isNotifikasiActive ? "#2a9d8f" : "#1a2e2c",
+            }}
+          >
+            Notifikasi
+          </span>
+        </button>
       </nav>
 
       {/* Action buttons — bottom-anchored */}
