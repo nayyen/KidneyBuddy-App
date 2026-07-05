@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { authFetch, ApiError } from "@/lib/api";
-import type { TherapyFormData, FirstReminderFormData } from "@/lib/validators/onboarding.schema";
+import type { TherapyFormData } from "@/lib/validators/onboarding.schema";
 import StepProgress from "./_components/StepProgress";
 import TherapySelectStep from "./_components/TherapySelectStep";
 import FirstReminderStep from "./_components/FirstReminderStep";
@@ -27,7 +27,7 @@ interface ProgressData {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { accessToken, isLoading: authLoading, isAuthenticated } = useAuth();
+  const { accessToken, user, isLoading: authLoading, isAuthenticated } = useAuth();
   const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const isTutorialMode = searchParams?.get("mode") === "tutorial";
 
@@ -37,6 +37,12 @@ export default function OnboardingPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTherapy, setSelectedTherapy] = useState<string | null>(null);
+
+  // Therapy chosen in step 1 this session, falling back to the persisted
+  // therapy (useAuth's user) for the re-entry/tutorial path that can land
+  // directly on step 2 without step 1 having run in-session.
+  const activeTherapy = selectedTherapy ?? user?.metodeTerapiAktif ?? null;
 
   // ── Redirect if not authenticated ────────────────────────────────
   useEffect(() => {
@@ -111,6 +117,7 @@ export default function OnboardingPage() {
           method: "POST",
           body: JSON.stringify({ therapy: data.metodeTerapi }),
         });
+        setSelectedTherapy(data.metodeTerapi);
         setCurrentStep(2);
       } catch (err) {
         setError(
@@ -123,28 +130,24 @@ export default function OnboardingPage() {
     [accessToken]
   );
 
-  // ── Step 2: Save reminder ─────────────────────────────────────────
-  const handleReminderSubmit = useCallback(
-    async (data: FirstReminderFormData) => {
-      if (!accessToken) return;
-      setIsSaving(true);
-      setError(null);
-      try {
-        await authFetch("/api/onboarding/reminder", accessToken, {
-          method: "POST",
-          body: JSON.stringify(data),
-        });
-        setCurrentStep(3);
-      } catch (err) {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal menyimpan. Silakan coba lagi."
-        );
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [accessToken]
-  );
+  // ── Step 2: Reminder created via the reused /pengingat form ────────
+  // The reminder itself is already saved by the reused form's own POST to
+  // /api/reminders — this call only records onboarding completion so the
+  // user is never asked to re-enter step 2 on a later visit.
+  const handleReminderCreated = useCallback(async () => {
+    if (!accessToken) return;
+    setError(null);
+    try {
+      await authFetch("/api/onboarding/complete-reminder", accessToken, {
+        method: "POST",
+      });
+      setCurrentStep(3);
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : "Gagal menyimpan. Silakan coba lagi."
+      );
+    }
+  }, [accessToken]);
 
   // ── Step 2: Skip reminder ────────────────────────────────────────
   const handleSkipReminder = useCallback(async () => {
@@ -224,11 +227,12 @@ export default function OnboardingPage() {
             />
           )}
 
-          {currentStep === 2 && (
+          {currentStep === 2 && accessToken && (
             <FirstReminderStep
-              onSubmit={handleReminderSubmit}
+              metodeTerapiAktif={activeTherapy}
+              accessToken={accessToken}
+              onReminderCreated={handleReminderCreated}
               onSkip={handleSkipReminder}
-              isSaving={isSaving}
               isSkipping={isSkipping}
               onBack={handleBack}
             />

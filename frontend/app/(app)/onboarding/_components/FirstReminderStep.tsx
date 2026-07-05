@@ -1,47 +1,55 @@
 "use client";
 
-import { useForm, type SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  firstReminderSchema,
-  type FirstReminderFormData,
-  reminderJenisLabels,
-} from "@/lib/validators/onboarding.schema";
+/**
+ * FirstReminderStep.tsx — onboarding "Atur Pengingat Pertama" step
+ *
+ * Jenis is the FIRST field, constrained by the therapy chosen in step 1
+ * (mirrors AddReminderSheet.tsx's therapy-scoping exactly):
+ *   - Obat — always available
+ *   - Exchange CAPD — only when metodeTerapiAktif === "CAPD"
+ *   - Jadwal HD — only when metodeTerapiAktif === "HD"
+ *
+ * Once a jenis is chosen, the IDENTICAL per-jenis reminder form used on
+ * /pengingat is rendered (imported directly, never reimplemented), so the
+ * two forms can never drift out of sync. Those forms own their own
+ * validation and POST directly to /api/reminders.
+ */
+
+import { useState } from "react";
+import { reminderJenisLabels } from "@/lib/validators/onboarding.schema";
+import MedicationReminderForm from "@/components/pengingat/MedicationReminderForm";
+import CAPDReminderForm from "@/components/pengingat/CAPDReminderForm";
+import HDReminderForm from "@/components/pengingat/HDReminderForm";
+
+type ReminderJenis = "obat" | "capd" | "hd";
 
 interface FirstReminderStepProps {
-  onSubmit: (data: FirstReminderFormData) => Promise<void>;
+  metodeTerapiAktif: string | null;
+  accessToken: string;
+  onReminderCreated: () => void | Promise<void>;
   onSkip: () => Promise<void>;
-  isSaving: boolean;
   isSkipping: boolean;
   onBack: () => void;
 }
 
 export default function FirstReminderStep({
-  onSubmit,
+  metodeTerapiAktif,
+  accessToken,
+  onReminderCreated,
   onSkip,
-  isSaving,
   isSkipping,
   onBack,
 }: FirstReminderStepProps) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FirstReminderFormData>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(firstReminderSchema) as any,
-    defaultValues: {
-      jenis: "obat",
-      nama: "",
-      jamPengingat: "",
-      catatanWaktu: "",
-    },
-  });
+  // Which jenis to offer depends on the therapy chosen in step 1 —
+  // identical scoping to AddReminderSheet.tsx used on /pengingat.
+  const availableTypes: ReminderJenis[] = ["obat"];
+  if (metodeTerapiAktif === "CAPD") availableTypes.push("capd");
+  if (metodeTerapiAktif === "HD") availableTypes.push("hd");
 
-  const onFormSubmit: SubmitHandler<FirstReminderFormData> = (data) => onSubmit(data);
+  const [selectedJenis, setSelectedJenis] = useState<ReminderJenis>("obat");
 
   return (
-    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
+    <div className="space-y-5">
       <div>
         <h2 className="font-heading text-lg font-bold text-foreground mb-1">
           Atur Pengingat Pertama
@@ -51,95 +59,57 @@ export default function FirstReminderStep({
         </p>
       </div>
 
-      {/* Nama */}
-      <div>
-        <label htmlFor="nama" className="block text-sm font-medium font-sans text-foreground mb-1">
-          Nama Pengingat
-        </label>
-        <input
-          {...register("nama")}
-          id="nama"
-          className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="Contoh: Minum obat pagi"
-        />
-        {errors.nama && (
-          <p className="mt-1 text-xs text-destructive font-sans">{errors.nama.message}</p>
-        )}
-      </div>
-
-      {/* Jam */}
-      <div>
-        <label htmlFor="jamPengingat" className="block text-sm font-medium font-sans text-foreground mb-1">
-          Jam
-        </label>
-        <input
-          {...register("jamPengingat")}
-          id="jamPengingat"
-          type="time"
-          className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-        {errors.jamPengingat && (
-          <p className="mt-1 text-xs text-destructive font-sans">{errors.jamPengingat.message}</p>
-        )}
-      </div>
-
-      {/* Jenis */}
+      {/* Jenis — always the first field */}
       <div>
         <label htmlFor="jenis" className="block text-sm font-medium font-sans text-foreground mb-1">
           Jenis
         </label>
         <select
-          {...register("jenis")}
           id="jenis"
+          value={selectedJenis}
+          onChange={(e) => setSelectedJenis(e.target.value as ReminderJenis)}
           className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          {Object.entries(reminderJenisLabels).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
+          {availableTypes.map((type) => (
+            <option key={type} value={type}>
+              {reminderJenisLabels[type]}
             </option>
           ))}
         </select>
-        {errors.jenis && (
-          <p className="mt-1 text-xs text-destructive font-sans">{errors.jenis.message}</p>
-        )}
       </div>
 
-      {/* Catatan waktu (optional) */}
-      <div>
-        <label htmlFor="catatanWaktu" className="block text-sm font-medium font-sans text-foreground mb-1">
-          Catatan (opsional)
-        </label>
-        <input
-          {...register("catatanWaktu")}
-          id="catatanWaktu"
-          className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="Contoh: Setelah sarapan"
+      {/* Reused canonical per-jenis form from /pengingat */}
+      {selectedJenis === "obat" && (
+        <MedicationReminderForm
+          accessToken={accessToken}
+          onSuccess={onReminderCreated}
+          onCancel={() => setSelectedJenis("obat")}
         />
-      </div>
-
-      {errors.root && (
-        <p className="text-xs text-destructive font-sans">{errors.root.message}</p>
+      )}
+      {selectedJenis === "capd" && (
+        <CAPDReminderForm
+          accessToken={accessToken}
+          onSuccess={onReminderCreated}
+          onCancel={() => setSelectedJenis("obat")}
+        />
+      )}
+      {selectedJenis === "hd" && (
+        <HDReminderForm
+          accessToken={accessToken}
+          onSuccess={onReminderCreated}
+          onCancel={() => setSelectedJenis("obat")}
+        />
       )}
 
-      {/* Actions */}
-      <div className="space-y-3">
-        <button
-          type="submit"
-          disabled={isSaving}
-          className="w-full rounded-[10px] bg-primary px-4 py-2.5 text-sm font-semibold font-sans text-primary-foreground shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isSaving ? "Menyimpan..." : "Simpan & Lanjutkan"}
-        </button>
-
-        <button
-          type="button"
-          onClick={onSkip}
-          disabled={isSkipping}
-          className="w-full text-center text-sm font-medium text-muted-foreground hover:text-foreground font-sans transition-colors disabled:opacity-50"
-        >
-          {isSkipping ? "..." : "Lewati untuk sekarang"}
-        </button>
-      </div>
+      {/* Skip */}
+      <button
+        type="button"
+        onClick={onSkip}
+        disabled={isSkipping}
+        className="w-full text-center text-sm font-medium text-muted-foreground hover:text-foreground font-sans transition-colors disabled:opacity-50"
+      >
+        {isSkipping ? "..." : "Lewati untuk sekarang"}
+      </button>
 
       {/* Back */}
       <button
@@ -149,6 +119,6 @@ export default function FirstReminderStep({
       >
         ← Kembali
       </button>
-    </form>
+    </div>
   );
 }
