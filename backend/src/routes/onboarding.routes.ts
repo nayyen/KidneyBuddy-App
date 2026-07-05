@@ -12,5 +12,6 @@ router.get("/therapy-content", onboardingController.getTherapyContent);
 router.post("/therapy", onboardingController.saveTherapy);
 router.post("/reminder", onboardingController.saveReminder);
 router.post("/skip-reminder", onboardingController.skipReminder);
+router.post("/complete-reminder", onboardingController.completeReminder);
 
 export default router;

@@ -71,3 +71,16 @@ export async function skipReminder(
     next(err);
   }
 }
+
+export async function completeReminder(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await onboardingService.completeReminderStep(req.user!.id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}

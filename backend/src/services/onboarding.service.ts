@@ -72,6 +72,23 @@ export async function saveFirstReminder(
   return { message: "Pengingat berhasil disimpan" };
 }
 
+// ─── Complete Reminder Step (reminder already created via /api/reminders) ──
+// Used when the onboarding reminder step reuses the real /pengingat per-jenis
+// forms, which POST directly to /api/reminders. This endpoint only records
+// onboarding completion — it must NOT insert into reminderScheduleRepository,
+// otherwise the reminder would be duplicated.
+
+export async function completeReminderStep(userId: string) {
+  await onboardingProgressRepository.upsertProgress({
+    userId,
+    lastCompletedStep: 2,
+    reminderConfigured: true,
+    completedAt: new Date(),
+  });
+
+  return { message: "Onboarding selesai" };
+}
+
 // ─── Skip First Reminder ───────────────────────────────────────────────
 
 export async function skipFirstReminder(userId: string) {
