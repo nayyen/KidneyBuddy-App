@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: milestone_audit_complete
 stopped_at: v1.0 milestone audit complete — all 6 phases (36/36 plans) confirmed functionally complete; status tech_debt (documentation gaps only, zero unsatisfied requirements); see .planning/v1.0-MILESTONE-AUDIT.md for remediation items and the /gsd-complete-milestone decision
-last_updated: "2026-07-04T14:45:00.000Z"
-last_activity: 2026-07-04 -- Ran /gsd-health + /gsd-audit-milestone after discovering ROADMAP.md/REQUIREMENTS.md tracking had gone stale for Phases 1/2/3/4 (code was complete, docs weren't updated). Fixed: moved misplaced phase-3 SUMMARY.md files, corrected stale 02-VERIFICATION.md table, rewrote REQUIREMENTS.md and ROADMAP.md checkboxes/progress table to match evidence, declared missing Phase 4.1, removed stale non-existent extra-phase references left over from an early 8-phase draft roadmap (this project's roadmap only ever goes up to phase six). Next decision: /gsd-complete-milestone v1.0 (accept minor tech debt) vs. a cleanup phase first.
+last_updated: "2026-07-05T12:17:41.628Z"
+last_activity: "2026-07-05 - Completed quick task 260705-q7w: replaced destructive aktif=false therapy-change deactivation with non-destructive, reversible jenis-vs-metodeTerapiAktif query-time filtering across /pengingat, /beranda, next-upcoming, and push dispatch; hid the beranda Cuci Darah card for Transplantasi patients."
 progress:
   total_phases: 6
   completed_phases: 6
@@ -33,7 +33,7 @@ Phase: 04.1 (ux-polish-data-consistency-cuci-darah) — COMPLETE ✓
 Phase: 05 (ai-insights-anomaly-detection) — COMPLETE ✓
 Phase: 06 (community-education) — COMPLETE ✓
 Status: All 6 phases (36/36 plans) complete. v1.0-MILESTONE-AUDIT.md status: tech_debt (documentation/tracking gaps only — zero unsatisfied requirements, see audit for full evidence).
-Last activity: 2026-07-05 - Completed quick task 260705-psi: fixed root cause of deleted activities reappearing on reload (soft-delete filter missing), added missing aktivitas delete confirm dialog, wired sync-event refresh for aktivitas + lab archive/restore.
+Last activity: 2026-07-05 - Completed quick task 260705-q7w: replaced destructive aktif=false therapy-change deactivation with non-destructive, reversible jenis-vs-metodeTerapiAktif query-time filtering across /pengingat, /beranda, next-upcoming, and push dispatch; hid the beranda Cuci Darah card for Transplantasi patients.
 
 Progress: [██████░░░░] 57%
 
@@ -48,6 +48,7 @@ Progress: [██████░░░░] 57%
 | 2026-07-05 | 260705-p9y-perbaiki-teks-notifikasi-pengingat-terle | `backend/src/lib/reminderNotificationCopy.ts` (new), `backend/src/jobs/reminderFollowUp.job.ts`, `backend/src/jobs/reminderDispatch.job.ts`, `backend/src/lib/forbiddenPhrases.ts`, `backend/src/services/anomalyExplanation.service.ts` | Missed-reminder push now jenis-aware (💊 Obat / 💧🩸 Cuci Darah CAPD-HD) and fixes wrong body text "belum mengonfirmasi dosis ini" → "belum mengonfirmasi minum obat ini", sharing a new `reminderNotificationCopy.ts` helper with the existing dispatch job. Anomaly alert AI (Groq) system prompt hardened + a new `containsFalseContactClaim()` safety-gate (extending the existing forbidden-phrase pattern) now blocks generated text implying the app/system will directly contact a doctor/nurse, on all severities, falling back to safe user-initiated static templates. 2 commits, 233/236 backend tests passing (3 pre-existing container-only DB failures, unrelated). |
 | 2026-07-05 | 260705-pmi-tambahkan-tombol-bell-di-navigasi-deskto | `frontend/components/shell/BottomNav.tsx` | Darkened bottom-nav inactive icon/label from washed-out `#cfe8e4` to `#3d6b66` (matches desktop `Sidebar.tsx` inactive icon) for legibility against white background. Desktop bell for `/notifikasi` was found already implemented in `TopBar.tsx` (wired to `onNotificationClick` + unread badge) — no code change needed there. Pending: human browser check to confirm both fixes visually (checkpoint left open, see SUMMARY). |
 | 2026-07-05 | 260705-psi-audit-semua-aksi-hapus-edit-data-di-app- | `backend/src/repositories/dailyActivity.repository.ts`, `backend/src/services/activities.service.ts`, `frontend/components/aktivitas/ActivityList.tsx`, `frontend/components/lab/{LabResultList,LabArchivedList}.tsx` | Root-caused and fixed the "deleted activity reappears as belum selesai after reload" bug: `findAllByUser`/`findByDate` weren't excluding soft-deleted (`status='dibatalkan'`) rows. Added missing confirm dialog (reusing `DeleteReminderConfirm.tsx` pattern) before aktivitas delete — the only entity missing one; cairan/pengingat/obat already had proper confirms per audit. Wired `ACTIVITY_SAVED`/`LAB_SAVED` sync-event dispatches on aktivitas delete/edit and lab archive/restore so beranda + /catatan refresh without manual reload. 3 commits, tsc clean, 9/9 relevant backend tests pass. |
+| 2026-07-05 | 260705-q7w-pengingat-cuci-darah-harus-tersegmentasi | `backend/src/lib/therapyReminderScope.ts` (new), `backend/src/services/{reminders,dialysisLog,profile}.service.ts`, `backend/src/repositories/reminderSchedule.repository.ts`, `backend/src/test/{therapyReminderScope,therapyChange.reminders}.test.ts`, `frontend/app/(app)/beranda/page.tsx` | Fixed the cuci-darah (CAPD/HD) reminder therapy-scoping bug at its root: the old `changeTherapyMethod` destructively set `aktif=false` on the old therapy's reminders, conflating therapy scoping with the user's manual enable/disable toggle and permanently losing reminders on switch-back. Replaced with a new pure `therapyReminderScope.ts` helper (`activeCuciDarahJenis`/`isReminderVisibleForTherapy`) applied as a non-destructive, reversible query-time filter across `/pengingat` list, next-upcoming, `/beranda`+`/catatan` today's-logs, and the push-dispatch SQL (inner-join + OR on `users.metodeTerapiAktif`). `/beranda` Cuci Darah card now hidden for Transplantasi. 3 commits, 25/25 targeted backend tests pass, backend+frontend tsc clean. |
 
 ## Performance Metrics
 
@@ -123,6 +124,7 @@ Recent decisions affecting current work:
 - [Phase 06-05]: toggleHelpful (service + repository) carries NO userId-ownership WHERE guard tying the mark to the reply's author - any authenticated user may mark any reply as membantu, per D-08's intentional open-access model; the community_reply_helpful unique(reply_id,user_id) constraint from 06-01 is the DB-level dedup backstop
 - [Phase ?]: [Phase 06-06]: communityPost.repository.ts's findFeed/findById now left-join users for authorName (CommunityPostWithAuthor) — the 06-04 API had zero author attribution, a real product gap for a Quora-style feed, not cosmetic; archiveById (IDOR-sensitive) left untouched.
 - [Phase 06-07]: communityReply.repository.ts's findByPost now left-joins users to attach authorName (CommunityReplyWithMeta) -- same Rule 2 precedent as 06-06's communityPost authorName join; toggleHelpful's D-08 open-access logic left untouched.
+- [Phase ?]: [Quick 260705-q7w]: therapyReminderScope.ts (activeCuciDarahJenis/isReminderVisibleForTherapy) is the single source of truth for jenis-vs-therapy reminder visibility, replacing destructive aktif=false therapy-change deactivation; aktif is now exclusively the user-facing enable/disable toggle.
 
 ### Pending Todos
 
@@ -147,7 +149,7 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-04T12:48:51.059Z
+Last session: 2026-07-05T12:16:08.244Z
 Stopped at: Phase 06 Plan 07 (post detail + replies + membantu + archive UI) complete - SUMMARY.md written, Phase 6 complete
 Resume file: None
 
@@ -201,4 +203,3 @@ Phase 4 delivered the Caregiver Dashboard & Doctor Reports vertical slice:
 ## Phase 6: Community Support Forum (Q&A)
 
 | 6   | Community Support Forum (Q&A) (7/7 plans: 06-01..06-07) | complete ✓ | 2026-07-04 |
-
