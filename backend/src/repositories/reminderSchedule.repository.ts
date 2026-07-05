@@ -256,15 +256,22 @@ export async function remove(id: string, userId: string): Promise<boolean> {
  * Find all active reminders due at the given HH:mm on the given Indonesian day name.
  * Guards against duplicate dispatch: last_notification_sent_at must be NULL or older than 90s.
  * Used by dispatchDueReminders every minute.
+ *
+ * Therapy-scoped (quick-260705-q7w): joins users so cuci-darah (capd/hd)
+ * reminders only dispatch when their jenis matches the owner's CURRENT
+ * metodeTerapiAktif — obat always dispatches via the OR below. Without
+ * this, Task 1's removal of the destructive aktif=false deactivation would
+ * otherwise let a stale therapy's cuci-darah reminders keep firing pushes.
  */
 export async function findDueReminders(
   currentTime: string,  // "HH:mm"
   dayName: string,      // Indonesian day name e.g. "Senin"
 ): Promise<ReminderSchedule[]> {
   const cutoff = new Date(Date.now() - 90 * 1000);
-  return db
-    .select()
+  const rows = await db
+    .select({ reminderSchedule })
     .from(reminderSchedule)
+    .innerJoin(users, eq(reminderSchedule.userId, users.userId))
     .where(
       and(
         eq(reminderSchedule.aktif, true),
@@ -276,8 +283,15 @@ export async function findDueReminders(
           isNull(reminderSchedule.lastNotificationSentAt),
           lt(reminderSchedule.lastNotificationSentAt, cutoff),
         ),
+        // therapy scoping: obat always passes; capd/hd only when it matches
+        // the owner's current active therapy method
+        or(
+          eq(reminderSchedule.jenis, "obat"),
+          sql`lower(${users.metodeTerapiAktif}) = ${reminderSchedule.jenis}`,
+        ),
       ),
     );
+  return rows.map((r) => r.reminderSchedule);
 }
 
 /**
@@ -285,6 +299,10 @@ export async function findDueReminders(
  * stored timezone equals `timezone` (quick-260705-9n4 task 2). Same dedup
  * guard as findDueReminders(); joins users to scope by per-user timezone
  * instead of assuming every user is on WIB.
+ *
+ * Therapy-scoped (quick-260705-q7w): same jenis-vs-metodeTerapiAktif OR
+ * condition as findDueReminders() above — obat always dispatches; cuci-darah
+ * only dispatches for the owner's currently active therapy.
  */
 export async function findDueRemindersForTimezone(
   currentTime: string, // "HH:mm"
@@ -305,6 +323,10 @@ export async function findDueRemindersForTimezone(
         or(
           isNull(reminderSchedule.lastNotificationSentAt),
           lt(reminderSchedule.lastNotificationSentAt, cutoff),
+        ),
+        or(
+          eq(reminderSchedule.jenis, "obat"),
+          sql`lower(${users.metodeTerapiAktif}) = ${reminderSchedule.jenis}`,
         ),
       ),
     );
