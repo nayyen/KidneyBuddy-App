@@ -12,7 +12,9 @@ import { AppError } from "../middleware/errorHandler.js";
 import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import type { NewReminderSchedule, NextUpcomingGrouped } from "../repositories/reminderSchedule.repository.js";
 import * as medicationLogRepository from "../repositories/medicationLog.repository.js";
+import * as userRepository from "../repositories/user.repository.js";
 import { wibDateFromHHmm, wibDayNameLower, wibHHmm, localDateFromHHmm } from "../utils/wib.js";
+import { isReminderVisibleForTherapy } from "../lib/therapyReminderScope.js";
 
 // ─── Shared base validation ────────────────────────────────────────────────
 
@@ -223,17 +225,39 @@ export async function createReminder(
   );
 }
 
+/**
+ * getNextUpcoming — therapy-scoped (quick-260705-q7w): the cuciDarah group
+ * is filtered down to reminders whose jenis matches the user's current
+ * metodeTerapiAktif. The obat group is never filtered.
+ */
 export async function getNextUpcoming(userId: string): Promise<NextUpcomingGrouped> {
-  return _getNextUpcomingCore(
-    userId,
-    () => reminderScheduleRepository.findNextUpcoming(userId)
-  );
+  const [grouped, user] = await Promise.all([
+    _getNextUpcomingCore(userId, () => reminderScheduleRepository.findNextUpcoming(userId)),
+    userRepository.findById(userId),
+  ]);
+  const metode = user?.metodeTerapiAktif ?? null;
+  return {
+    obat: grouped.obat,
+    cuciDarah: grouped.cuciDarah.filter((r) => isReminderVisibleForTherapy(r.jenis, metode)),
+  };
 }
 
+/**
+ * listReminders — therapy-scoped (quick-260705-q7w): capd/hd reminders are
+ * hidden unless they match the user's current metodeTerapiAktif. obat
+ * reminders are always included. IMPORTANT: this filter is ONLY about
+ * jenis-vs-therapy — reminders with aktif=false are still returned so the
+ * /pengingat list can show (and let the user re-enable) disabled reminders.
+ */
 export async function listReminders(
   userId: string,
 ): Promise<reminderScheduleRepository.ReminderSchedule[]> {
-  return reminderScheduleRepository.listByUser(userId);
+  const [all, user] = await Promise.all([
+    reminderScheduleRepository.listByUser(userId),
+    userRepository.findById(userId),
+  ]);
+  const metode = user?.metodeTerapiAktif ?? null;
+  return all.filter((r) => isReminderVisibleForTherapy(r.jenis, metode));
 }
 
 export async function updateReminder(

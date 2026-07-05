@@ -10,6 +10,7 @@ import type { DialysisLog } from "../repositories/dialysisLog.repository.js";
 import * as userRepository from "../repositories/user.repository.js";
 import { AppError } from "../middleware/errorHandler.js";
 import { localDateFromHHmm, localDayNameLower, localDayBounds } from "../utils/wib.js";
+import { isReminderVisibleForTherapy } from "../lib/therapyReminderScope.js";
 
 const DEFAULT_TIMEZONE = "Asia/Jakarta";
 
@@ -114,7 +115,9 @@ export async function unconfirmById(
  * Merges scheduled cuci darah reminders with existing logs, dedup by reminderId.
  */
 export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
-  const timezone = await getUserTimezone(userId);
+  const user = await userRepository.findById(userId);
+  const timezone = user?.timezone || DEFAULT_TIMEZONE;
+  const metode = user?.metodeTerapiAktif ?? null;
   const logs = await dialysisLogRepository.findTodayByUser(
     userId,
     localDayBounds(timezone),
@@ -124,7 +127,12 @@ export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
   const allActive = await reminderScheduleRepository.findActiveCuciDarahByUser(
     userId,
   );
-  const scheduled = allActive.filter((r) => {
+  // Therapy-scoped (quick-260705-q7w): only the reminder jenis matching the
+  // user's current metodeTerapiAktif is scheduled today. For Transplantasi
+  // this yields zero cuci-darah entries — the beranda card / /catatan tab
+  // then show nothing to schedule.
+  const therapyScoped = allActive.filter((r) => isReminderVisibleForTherapy(r.jenis, metode));
+  const scheduled = therapyScoped.filter((r) => {
     const hariAktif = (r.hariAktif as string[]) ?? [];
     return hariAktif.length > 0 && hariAktif.includes(todayDayLower);
   });

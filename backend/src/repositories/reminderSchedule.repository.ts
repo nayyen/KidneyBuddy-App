@@ -253,11 +253,6 @@ export async function remove(id: string, userId: string): Promise<boolean> {
 }
 
 /**
- * Deactivate all therapy-specific reminders (jenis = 'capd' or 'hd') for a user.
- * Called when the user's therapy method changes (REMIND-07).
- * Only targets the specified jenis — medication (obat) reminders are NEVER touched.
- */
-/**
  * Find all active reminders due at the given HH:mm on the given Indonesian day name.
  * Guards against duplicate dispatch: last_notification_sent_at must be NULL or older than 90s.
  * Used by dispatchDueReminders every minute.
@@ -334,19 +329,4 @@ export async function markFollowUpSent(id: string): Promise<void> {
     .update(reminderSchedule)
     .set({ followUpSent: true })
     .where(eq(reminderSchedule.id, id as any));
-}
-
-export async function deactivateTherapySpecific(
-  userId: string,
-  jenisToDeactivate: string,
-): Promise<void> {
-  await db
-    .update(reminderSchedule)
-    .set({ aktif: false })
-    .where(
-      and(
-        eq(reminderSchedule.userId, userId as any),
-        eq(reminderSchedule.jenis, jenisToDeactivate),
-      ),
-    );
 }
