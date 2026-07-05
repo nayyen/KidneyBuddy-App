@@ -20,6 +20,7 @@ export interface DialysisLog {
   waktuPengingat: string;
   waktuKonfirmasi: string | null;
   createdAt: string;
+  catatanWaktu?: string | null;
 }
 
 interface DialysisLogItemProps {
@@ -80,6 +81,16 @@ export default function DialysisLogItem({ log, onConfirm, onUnconfirm }: Dialysi
             <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
               {formatTime(log.waktuPengingat)} · {JENIS_LABELS[log.jenis] ?? log.jenis}
             </p>
+            {log.jenis === "capd" && log.konsentrasiCapd && (
+              <p className="font-sans" style={{ fontSize: 13, color: "#7a8c8a" }}>
+                Konsentrasi {log.konsentrasiCapd}
+              </p>
+            )}
+            {log.catatanWaktu && (
+              <p className="font-sans" style={{ fontSize: 13, color: "#7a8c8a" }}>
+                Catatan: {log.catatanWaktu}
+              </p>
+            )}
             {isLate && (
               <p className="font-sans font-medium" style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}>
                 Terlambat — segera lakukan cuci darah

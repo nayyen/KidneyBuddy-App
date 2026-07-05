@@ -26,6 +26,7 @@ export interface MedicationLog {
   waktuPengingat: string; // ISO timestamp
   waktuKonfirmasi: string | null;
   fotoObat?: string | null;
+  catatanWaktu?: string | null;
 }
 
 interface MedicationLogItemProps {
@@ -88,6 +89,22 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
             >
               {formatTime(log.waktuPengingat)}
             </p>
+            {log.dosis && (
+              <p
+                className="font-sans mt-0.5"
+                style={{ fontSize: 13, color: "#7a8c8a" }}
+              >
+                Dosis {log.dosis}
+              </p>
+            )}
+            {log.catatanWaktu && (
+              <p
+                className="font-sans mt-0.5"
+                style={{ fontSize: 13, color: "#7a8c8a" }}
+              >
+                Catatan: {log.catatanWaktu}
+              </p>
+            )}
             {isLate && (
               <p className="font-sans font-medium" style={{ fontSize: 13, color: "#d4183d", marginTop: 2 }}>
                 Terlambat — segera minum obat

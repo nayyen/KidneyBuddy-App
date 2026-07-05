@@ -24,6 +24,8 @@ interface MedicationEntry {
   namaObat: string;
   status: "dikonfirmasi" | "tertunda" | "terlewat";
   waktuPengingat: string;
+  dosis?: string | null;
+  catatanWaktu?: string | null;
 }
 
 interface ObatCardProps {
@@ -236,6 +238,22 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                   >
                     {formatTime(entry.waktuPengingat)}
                   </p>
+                  {entry.dosis && (
+                    <p
+                      className="font-sans"
+                      style={{ fontSize: 13, color: "#7a8c8a", marginTop: 2 }}
+                    >
+                      Dosis {entry.dosis}
+                    </p>
+                  )}
+                  {entry.catatanWaktu && (
+                    <p
+                      className="font-sans"
+                      style={{ fontSize: 13, color: "#7a8c8a", marginTop: 2 }}
+                    >
+                      Catatan: {entry.catatanWaktu}
+                    </p>
+                  )}
                     {isLate && (
                       <p
                         className="font-sans font-medium"

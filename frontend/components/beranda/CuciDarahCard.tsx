@@ -24,6 +24,7 @@ interface DialysisEntry {
   konsentrasiCapd: string | null;
   status: "dikonfirmasi" | "tertunda" | "terlewat";
   waktuPengingat: string;
+  catatanWaktu?: string | null;
 }
 
 interface CuciDarahCardProps {
@@ -241,6 +242,11 @@ export default function CuciDarahCard({
                   {entry.jenis === "capd" && entry.konsentrasiCapd && (
                     <p className="font-sans" style={{ fontSize: 13, color: "#7a8c8a" }}>
                       Konsentrasi: {entry.konsentrasiCapd}
+                    </p>
+                  )}
+                  {entry.catatanWaktu && (
+                    <p className="font-sans" style={{ fontSize: 13, color: "#7a8c8a" }}>
+                      Catatan: {entry.catatanWaktu}
                     </p>
                   )}
                   {isLate && (

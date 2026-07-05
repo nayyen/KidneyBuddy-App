@@ -149,6 +149,11 @@ export default function ReminderItem({
               <p className="font-sans font-medium text-xs text-[#1a2e2c] leading-tight">
                 {reminder.nama}
               </p>
+              {reminder.jenis === "obat" && reminder.dosis && (
+                <p className="font-sans text-xs text-[#7a8c8a] mt-0.5">
+                  Dosis {reminder.dosis}
+                </p>
+              )}
               {reminder.jenis === "capd" && reminder.konsentrasiCapd && (
                 <p className="font-sans text-xs text-[#7a8c8a] mt-0.5">
                   Konsentrasi {reminder.konsentrasiCapd}

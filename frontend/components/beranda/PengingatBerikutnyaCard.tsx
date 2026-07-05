@@ -22,6 +22,8 @@ interface NextReminder {
   nama: string;
   jamPengingat: string;
   catatanWaktu?: string | null;
+  dosis?: string | null;
+  konsentrasiCapd?: string | null;
 }
 interface GroupedNextReminder {
   obat: NextReminder[];
@@ -253,6 +255,11 @@ export default function PengingatBerikutnyaCard({
                           <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
                             {rem.nama}
                           </p>
+                          {rem.dosis && (
+                            <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#7a8c8a" }}>
+                              Dosis {rem.dosis}
+                            </p>
+                          )}
                           {rem.catatanWaktu && (
                             <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
                               {rem.catatanWaktu}
@@ -318,6 +325,11 @@ export default function PengingatBerikutnyaCard({
                           <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
                             {rem.nama}
                           </p>
+                          {rem.jenis === "capd" && rem.konsentrasiCapd && (
+                            <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#7a8c8a" }}>
+                              Konsentrasi {rem.konsentrasiCapd}
+                            </p>
+                          )}
                           {rem.catatanWaktu && (
                             <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
                               {rem.catatanWaktu}
