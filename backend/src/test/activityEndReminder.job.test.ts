@@ -83,7 +83,7 @@ describe("activityEndReminder._dispatchActivityEndCore", () => {
 
     assert.strictEqual(deps.sentNotifications.length, 1, "should send exactly 1 notification");
     assert.strictEqual(deps.sentNotifications[0].userId, "user-1");
-    assert.strictEqual((deps.sentNotifications[0].payload as any).title, "Masih Aktif");
+    assert.strictEqual((deps.sentNotifications[0].payload as any).title, "Kegiatan Hampir Selesai");
     assert.ok(
       (deps.sentNotifications[0].payload as any).body.includes("Jalan pagi"),
       "body should include activity name",
