@@ -200,8 +200,23 @@ export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
   }
 
 
-  // 6. The final merged list is the values from the map, sorted by time.
-  const merged = Array.from(scheduledMap.values());
+  // 6. B3 (quick-260705-9n4 task 7): a scheduled-but-not-yet-due item should
+  //    behave like a reminder — hidden from "Obat Hari Ini" until its
+  //    jamPengingat actually arrives, not visible for the whole day. This
+  //    ONLY filters pseudo "scheduled-<reminderId>" entries with no real log
+  //    row yet; any REAL DB row (dispatched-and-still-tertunda, or already
+  //    dikonfirmasi/terlewat) always remains visible regardless of time,
+  //    since it represents actual persisted activity, not just an upcoming
+  //    schedule slot.
+  const now = new Date();
+  const merged = Array.from(scheduledMap.values()).filter((log) => {
+    const isPendingPseudoEntry = log.id.startsWith(SCHEDULED_PREFIX);
+    if (isPendingPseudoEntry && log.waktuPengingat.getTime() > now.getTime()) {
+      return false; // not due yet — hide until jamPengingat arrives
+    }
+    return true;
+  });
+
   merged.sort(
     (a, b) => a.waktuPengingat.getTime() - b.waktuPengingat.getTime(),
   );

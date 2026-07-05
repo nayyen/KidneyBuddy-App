@@ -153,7 +153,19 @@ export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
     }
   }
 
-  const merged = Array.from(scheduledMap.values());
+  // B3 (quick-260705-9n4 task 7): mirrors medicationLog.service.ts's
+  // getTodayLogs — hide scheduled-but-not-yet-due pseudo entries until their
+  // jamPengingat arrives; real DB rows (dispatched-tertunda, dikonfirmasi,
+  // terlewat) always remain visible.
+  const now = new Date();
+  const merged = Array.from(scheduledMap.values()).filter((log) => {
+    const isPendingPseudoEntry = log.id.startsWith(SCHEDULED_PREFIX);
+    if (isPendingPseudoEntry && log.waktuPengingat.getTime() > now.getTime()) {
+      return false;
+    }
+    return true;
+  });
+
   merged.sort((a, b) => a.waktuPengingat.getTime() - b.waktuPengingat.getTime());
   return merged;
 }

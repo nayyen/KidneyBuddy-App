@@ -13,8 +13,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
-import { Bell, Droplets, Pill } from "lucide-react";
-import { SYNC_EVENTS } from "@/lib/syncEvents";
+import { Bell, Check, Droplets, Pill } from "lucide-react";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
 
 interface NextReminder {
   id: string;
@@ -55,6 +55,10 @@ export default function PengingatBerikutnyaCard({
     });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Reminder ids currently being confirmed — disables the button + shows a
+  // brief optimistic "done" state until the refetch (triggered by the sync
+  // event below) removes the item from this widget for real (B4).
+  const [confirmingIds, setConfirmingIds] = useState<Set<string>>(new Set());
 
   const fetchNext = useCallback(async () => {
     if (!accessToken) return;
@@ -104,6 +108,47 @@ export default function PengingatBerikutnyaCard({
         document.removeEventListener("visibilitychange", onVisibility);
       };
     }, [fetchNext]);
+
+    // B4 (quick-260705-9n4 task 7): inline check/confirm directly from this
+    // widget. "Slot" = identical jamPengingat HH:mm among the currently-
+    // upcoming reminders of the same jenis — /api/reminders/next already
+    // groups by identical slot (reminderSchedule.repository.ts#findNextUpcoming),
+    // so grouped.obat / grouped.cuciDarah ARE the current slot's items.
+    // Confirming here uses the REMINDER-based confirm endpoint (not a logId —
+    // this widget only has reminder_schedule rows, not log rows), then
+    // dispatches the same sync event Task 5 standardized so ObatCard/
+    // CuciDarahCard (which will now show this item as done under "Hari Ini")
+    // and this widget's own refetch (via the listener above) both update.
+    // Once ALL items in the current slot are confirmed, the next fetchNext()
+    // naturally advances to the next upcoming slot, since the backend
+    // excludes already-confirmed-today reminders from findNextUpcoming.
+    const handleConfirm = async (rem: NextReminder) => {
+      if (confirmingIds.has(rem.id)) return;
+      setConfirmingIds((prev) => new Set(prev).add(rem.id));
+      try {
+        const isObat = rem.jenis === "obat";
+        await authFetch(
+          isObat ? "/api/medication-log/confirm" : "/api/dialysis-log/confirm",
+          accessToken,
+          {
+            method: "POST",
+            body: JSON.stringify({ reminderId: rem.id }),
+          },
+        );
+        dispatchSyncEvent(
+          isObat ? SYNC_EVENTS.OBAT_CONFIRMED : SYNC_EVENTS.CUCIDARAH_CONFIRMED,
+        );
+      } catch {
+        // Swallow — the button re-enables and the item remains in this
+        // widget so the user can retry.
+      } finally {
+        setConfirmingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(rem.id);
+          return next;
+        });
+      }
+    };
 
   return (
     <div
@@ -171,23 +216,49 @@ export default function PengingatBerikutnyaCard({
                 ) : (
                   <div className="space-y-2">
                     {grouped.obat.map((rem) => (
-                      <div key={rem.id}>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
-                            {rem.jamPengingat}
-                          </span>
-                          <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).text }}>
-                            {TYPE_LABELS[rem.jenis] ?? rem.jenis}
-                          </span>
-                        </div>
-                        <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                          {rem.nama}
-                        </p>
-                        {rem.catatanWaktu && (
-                          <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
-                            {rem.catatanWaktu}
+                      <div key={rem.id} className="flex items-start gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleConfirm(rem)}
+                          disabled={confirmingIds.has(rem.id)}
+                          aria-label="Tandai sudah diminum"
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            flexShrink: 0,
+                            marginTop: 2,
+                            cursor: confirmingIds.has(rem.id) ? "default" : "pointer",
+                            backgroundColor: "transparent",
+                            border: "1.5px solid #cfe8e4",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            opacity: confirmingIds.has(rem.id) ? 0.5 : 1,
+                          }}
+                        >
+                          {confirmingIds.has(rem.id) && (
+                            <Check size={12} color="#2a9d8f" strokeWidth={2.5} />
+                          )}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
+                              {rem.jamPengingat}
+                            </span>
+                            <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).text }}>
+                              {TYPE_LABELS[rem.jenis] ?? rem.jenis}
+                            </span>
+                          </div>
+                          <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
+                            {rem.nama}
                           </p>
-                        )}
+                          {rem.catatanWaktu && (
+                            <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
+                              {rem.catatanWaktu}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -210,23 +281,49 @@ export default function PengingatBerikutnyaCard({
                   </div>
                   <div className="space-y-2">
                     {grouped.cuciDarah.map((rem) => (
-                      <div key={rem.id}>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
-                            {rem.jamPengingat}
-                          </span>
-                          <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).text }}>
-                            {TYPE_LABELS[rem.jenis] ?? rem.jenis}
-                          </span>
-                        </div>
-                        <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
-                          {rem.nama}
-                        </p>
-                        {rem.catatanWaktu && (
-                          <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
-                            {rem.catatanWaktu}
+                      <div key={rem.id} className="flex items-start gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleConfirm(rem)}
+                          disabled={confirmingIds.has(rem.id)}
+                          aria-label="Tandai sudah cuci darah"
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            flexShrink: 0,
+                            marginTop: 2,
+                            cursor: confirmingIds.has(rem.id) ? "default" : "pointer",
+                            backgroundColor: "transparent",
+                            border: "1.5px solid #cfe8e4",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            opacity: confirmingIds.has(rem.id) ? 0.5 : 1,
+                          }}
+                        >
+                          {confirmingIds.has(rem.id) && (
+                            <Check size={12} color="#2a9d8f" strokeWidth={2.5} />
+                          )}
+                        </button>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-heading font-bold" style={{ fontSize: 20, color: "#0d4a44", lineHeight: 1.2 }}>
+                              {rem.jamPengingat}
+                            </span>
+                            <span className="font-sans font-medium" style={{ fontSize: 13, paddingLeft: 6, paddingRight: 6, paddingTop: 2, paddingBottom: 2, borderRadius: 5, backgroundColor: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).bg, color: (TYPE_COLORS[rem.jenis] ?? TYPE_COLORS.obat).text }}>
+                              {TYPE_LABELS[rem.jenis] ?? rem.jenis}
+                            </span>
+                          </div>
+                          <p className="font-sans font-medium" style={{ fontSize: 14, color: "#1a2e2c" }}>
+                            {rem.nama}
                           </p>
-                        )}
+                          {rem.catatanWaktu && (
+                            <p className="font-sans mt-0.5" style={{ fontSize: 13, color: "#3d6b66" }}>
+                              {rem.catatanWaktu}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
