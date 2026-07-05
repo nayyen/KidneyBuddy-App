@@ -11,6 +11,17 @@ import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { Clock, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ActivityResult {
   id: string;
@@ -94,6 +105,8 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   const [editTanggal, setEditTanggal] = useState("");
   const [editPerasaan, setEditPerasaan] = useState<string>("");
   const [editCatatan, setEditCatatan] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<ActivityResult | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchActivities = useCallback(async () => {
     if (!accessToken) return;
@@ -112,11 +125,18 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   useEffect(() => { fetchActivities(); }, [fetchActivities, refreshKey]);
 
   const handleDelete = async (id: string) => {
+    setIsDeleting(true);
     try {
       await authFetch(`/api/activities/${id}`, accessToken, { method: "DELETE" });
       toast.success("Aktivitas dihapus");
       setActivities((prev) => prev.filter((a) => a.id !== id));
-    } catch { toast.error("Gagal menghapus"); }
+      dispatchSyncEvent(SYNC_EVENTS.ACTIVITY_SAVED);
+    } catch {
+      toast.error("Gagal menghapus");
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
   };
 
   const startEdit = (activity: ActivityResult) => {
@@ -150,6 +170,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
       setActivities((prev) => prev.map((a) => (a.id === id ? updated : a)));
       setEditingId(null);
       toast.success("Aktivitas diperbarui");
+      dispatchSyncEvent(SYNC_EVENTS.ACTIVITY_SAVED);
     } catch { toast.error("Gagal memperbarui"); }
   };
 
@@ -195,6 +216,44 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
 
   return (
     <div className="space-y-4">
+      {/* Delete confirm — single instance at root, driven by deleteTarget
+          (quick-260705-psi task 2), reusing the DeleteReminderConfirm.tsx pattern. */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-heading font-bold" style={{ fontSize: 14, color: "#1a2e2c" }}>
+              Hapus Aktivitas?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
+              Aktivitas &apos;{deleteTarget?.namaKegiatan}&apos; akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="font-sans font-medium"
+              style={{ fontSize: 12, borderRadius: 20, height: 36 }}
+            >
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
+              disabled={isDeleting}
+              className="font-sans font-medium disabled:opacity-50"
+              style={{
+                fontSize: 12,
+                borderRadius: 20,
+                height: 36,
+                backgroundColor: "#d4183d",
+                color: "#ffffff",
+                border: "none",
+              }}
+            >
+              {isDeleting ? "Menghapus..." : "Hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {sortedDates.map((dateKey) => {
         const items = groups[dateKey];
         return (
@@ -328,7 +387,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                           <button onClick={() => startEdit(activity)} className="p-3 rounded-lg hover:bg-teal-50 transition-colors flex items-center justify-center" aria-label="Edit aktivitas" style={{ minHeight: 44, minWidth: 44 }}>
                             <Pencil className="h-5 w-5" style={{ color: "#3d6b66" }} />
                           </button>
-                          <button onClick={() => handleDelete(activity.id)} className="p-3 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center" aria-label="Hapus aktivitas" style={{ minHeight: 44, minWidth: 44 }}>
+                          <button onClick={() => setDeleteTarget(activity)} className="p-3 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center" aria-label="Hapus aktivitas" style={{ minHeight: 44, minWidth: 44 }}>
                             <Trash2 className="h-5 w-5" style={{ color: "#d4183d" }} />
                           </button>
                         </div>
