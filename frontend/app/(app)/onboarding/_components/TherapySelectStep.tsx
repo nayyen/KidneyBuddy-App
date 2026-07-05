@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -45,6 +45,16 @@ export default function TherapySelectStep({
   function handleSelect(therapyId: TherapyType) {
     setValue("metodeTerapi", therapyId, { shouldValidate: true });
   }
+
+  // Item 9: when only a single therapy option is passed in (tutorial-mode
+  // re-entry for a user who already has a therapy set), pre-select it so
+  // "Lanjutkan" is immediately enabled — the single card is the only choice.
+  useEffect(() => {
+    if (therapyOptions.length === 1) {
+      handleSelect(therapyOptions[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [therapyOptions]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

@@ -44,6 +44,14 @@ export default function OnboardingPage() {
   // directly on step 2 without step 1 having run in-session.
   const activeTherapy = selectedTherapy ?? user?.metodeTerapiAktif ?? null;
 
+  // Item 9: tutorial-mode re-entry for an existing user with a therapy already
+  // set must only show that one therapy on the Pilih Jenis Terapi step (a new
+  // user with no therapy set keeps seeing all options, tutorial or not).
+  const displayedTherapyOptions =
+    isTutorialMode && user?.metodeTerapiAktif
+      ? therapyOptions.filter((t) => t.id === user.metodeTerapiAktif)
+      : therapyOptions;
+
   // ── Redirect if not authenticated ────────────────────────────────
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -221,7 +229,7 @@ export default function OnboardingPage() {
 
           {currentStep === 1 && (
             <TherapySelectStep
-              therapyOptions={therapyOptions}
+              therapyOptions={displayedTherapyOptions}
               onSubmit={handleTherapySubmit}
               isLoading={isSaving}
             />
