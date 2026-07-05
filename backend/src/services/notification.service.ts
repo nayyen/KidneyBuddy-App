@@ -46,7 +46,21 @@ export async function fanOut(
 
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
-    if (result.status === "rejected") {
+    if (result.status === "fulfilled") {
+      // DIAGNOSTIC (quick-260705-9n4 task 4 live-debug): fanOut previously had
+      // ZERO success-path logging — a successful send was indistinguishable
+      // from "nothing happened" in the logs. web-push's sendNotification()
+      // resolves to a SendResult ({ statusCode, headers, body }) reflecting
+      // the push service's own HTTP response when accepted for delivery
+      // (NOT proof of on-device display — that happens later, client-side,
+      // in the service worker's "push" handler). Log it so "delivered to
+      // push service" vs "silent failure" is no longer indistinguishable.
+      const sendResult = result.value as { statusCode?: number } | undefined;
+      logger.info(
+        { subId: subs[i].id, statusCode: sendResult?.statusCode },
+        "push notification delivered to push service",
+      );
+    } else {
       const err = result.reason as { statusCode?: number; message?: string };
       if (err?.statusCode === 410) {
         // Subscription expired — deactivate ONLY this device\'s row

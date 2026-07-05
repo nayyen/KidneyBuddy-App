@@ -112,6 +112,15 @@ swSelf.addEventListener("fetch", (event) => {
 // ─── Push notification handler (NOTIF-01, REMIND-02 client half) ──────────────
 // Receives a push payload from the backend's webpush.sendNotification() call
 // and displays a native notification with confirm/dismiss actions.
+//
+// DIAGNOSTIC LOGGING (quick-260705-9n4 task 4 live-debug, kept intentionally
+// — reminder reliability is this app's core value, so client-side push
+// observability is a permanent feature, not throwaway debug noise): before
+// this, there was ZERO logging in this handler, so it was impossible to tell
+// from the SW-scoped DevTools console whether the "push" event ever fired at
+// all, or whether showNotification() resolved/rejected. View via DevTools →
+// Application → Service Workers (or the Console tab's execution-context
+// dropdown, scoped to the SW).
 swSelf.addEventListener("push", (event) => {
   const data = event.data?.json() as {
     title: string;
@@ -120,10 +129,12 @@ swSelf.addEventListener("push", (event) => {
     url?: string;
   } | null;
 
+  console.log("[sw] push event received", data);
+
   if (!data) return;
 
-  event.waitUntil(
-    swSelf.registration.showNotification(data.title, {
+  const showNotificationPromise = swSelf.registration
+    .showNotification(data.title, {
       body: data.body,
       icon: "/icons/icon-192.png",
       badge: "/icons/badge-72.png",
@@ -134,8 +145,15 @@ swSelf.addEventListener("push", (event) => {
         { action: "confirm", title: "Sudah diminum" },
         { action: "dismiss", title: "Tutup" },
       ],
-    }),
-  );
+    })
+    .then(() => {
+      console.log("[sw] showNotification resolved");
+    })
+    .catch((err) => {
+      console.error("[sw] showNotification failed", err);
+    });
+
+  event.waitUntil(showNotificationPromise);
 });
 
 // ─── Notification click handler (REMIND-03 client half) ───────────────────────
