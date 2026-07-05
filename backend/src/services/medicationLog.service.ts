@@ -28,22 +28,88 @@ export async function confirm(
   );
 }
 
+export const SCHEDULED_PREFIX = "scheduled-";
+
+export type ConfirmByIdDeps = {
+  markConfirmedById: (logId: string, userId: string) => Promise<void>;
+  confirmByReminderId: (
+    userId: string,
+    reminderId: string,
+  ) => Promise<{ confirmed: boolean; logId: string }>;
+};
+
+export type UnconfirmByIdDeps = {
+  markUnconfirmedById: (logId: string, userId: string) => Promise<void>;
+  findByReminderAndUser: (
+    reminderId: string,
+    userId: string,
+  ) => Promise<{ id: string } | undefined>;
+};
+
+/**
+ * _confirmByIdCore — injectable core for confirmById (testable without a DB).
+ *
+ * getTodayLogs() emits pseudo-entries with id="scheduled-<reminderId>" for
+ * reminders that have no real log row yet. That literal string is never a
+ * valid uuid, so a direct markConfirmedById(logId, ...) throws Postgres's
+ * "invalid input syntax for type uuid" (500). Detect the prefix and delegate
+ * to the reminder-based confirm() path, which creates-or-updates the real row.
+ */
+export async function _confirmByIdCore(
+  userId: string,
+  logId: string,
+  deps: ConfirmByIdDeps,
+): Promise<{ confirmed: boolean; logId: string }> {
+  if (logId.startsWith(SCHEDULED_PREFIX)) {
+    const reminderId = logId.slice(SCHEDULED_PREFIX.length);
+    return deps.confirmByReminderId(userId, reminderId);
+  }
+
+  await deps.markConfirmedById(logId, userId);
+  return { confirmed: true, logId };
+}
+
+/**
+ * _unconfirmByIdCore — injectable core for unconfirmById (testable without a DB).
+ * Mirrors _confirmByIdCore's scheduled-prefix guard. An unconfirmed scheduled
+ * item with no real log row yet is already effectively "tertunda" — no-op.
+ */
+export async function _unconfirmByIdCore(
+  userId: string,
+  logId: string,
+  deps: UnconfirmByIdDeps,
+): Promise<{ confirmed: boolean; logId: string }> {
+  if (logId.startsWith(SCHEDULED_PREFIX)) {
+    const reminderId = logId.slice(SCHEDULED_PREFIX.length);
+    const existingLog = await deps.findByReminderAndUser(reminderId, userId);
+    if (existingLog) {
+      await deps.markUnconfirmedById(existingLog.id, userId);
+    }
+    return { confirmed: false, logId };
+  }
+
+  await deps.markUnconfirmedById(logId, userId);
+  return { confirmed: false, logId };
+}
+
 export async function confirmById(
   userId: string,
   logId: string,
 ): Promise<{ confirmed: boolean; logId: string }> {
-  // Directly update the specific log entry
-  await medicationLogRepository.markConfirmedById(logId, userId);
-  return { confirmed: true, logId };
+  return _confirmByIdCore(userId, logId, {
+    markConfirmedById: medicationLogRepository.markConfirmedById,
+    confirmByReminderId: confirm,
+  });
 }
 
 export async function unconfirmById(
   userId: string,
   logId: string,
 ): Promise<{ confirmed: boolean; logId: string }> {
-  // Directly update the specific log entry
-  await medicationLogRepository.markUnconfirmedById(logId, userId);
-  return { confirmed: false, logId };
+  return _unconfirmByIdCore(userId, logId, {
+    markUnconfirmedById: medicationLogRepository.markUnconfirmedById,
+    findByReminderAndUser: medicationLogRepository.findByReminderAndUser,
+  });
 }
 
 /**

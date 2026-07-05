@@ -53,10 +53,22 @@ export async function confirm(
   return { confirmed: true, logId: newLog.id };
 }
 
+const SCHEDULED_PREFIX = "scheduled-";
+
 export async function confirmById(
   userId: string,
   logId: string,
 ): Promise<{ confirmed: boolean; logId: string }> {
+  // getTodayLogs() emits pseudo-entries with id="scheduled-<reminderId>" for
+  // reminders that have no real log row yet. That literal string is never a
+  // valid uuid, so a direct markConfirmedById(logId, ...) throws Postgres's
+  // "invalid input syntax for type uuid" (500). Detect the prefix and delegate
+  // to the reminder-based confirm() path, which creates-or-updates the real row.
+  if (logId.startsWith(SCHEDULED_PREFIX)) {
+    const reminderId = logId.slice(SCHEDULED_PREFIX.length);
+    return confirm(userId, reminderId);
+  }
+
   await dialysisLogRepository.markConfirmedById(logId, userId);
   return { confirmed: true, logId: logId };
 }
@@ -65,6 +77,20 @@ export async function unconfirmById(
   userId: string,
   logId: string,
 ): Promise<{ confirmed: boolean; logId: string }> {
+  // Mirror of confirmById's scheduled-prefix guard. An unconfirmed scheduled
+  // item with no real log row yet is already effectively "tertunda" — no-op.
+  if (logId.startsWith(SCHEDULED_PREFIX)) {
+    const reminderId = logId.slice(SCHEDULED_PREFIX.length);
+    const existingLog = await dialysisLogRepository.findByReminderAndUser(
+      reminderId,
+      userId,
+    );
+    if (existingLog) {
+      await dialysisLogRepository.markUnconfirmedById(existingLog.id, userId);
+    }
+    return { confirmed: false, logId: logId };
+  }
+
   await dialysisLogRepository.markUnconfirmedById(logId, userId);
   return { confirmed: false, logId: logId };
 }
