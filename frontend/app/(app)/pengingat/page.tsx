@@ -7,6 +7,7 @@ import { authFetch } from "@/lib/api";
 import ReminderList from "@/components/pengingat/ReminderList";
 import AddReminderSheet from "@/components/pengingat/AddReminderSheet";
 import { toast } from "sonner";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
 
 export default function PengingatPage() {
   const router = useRouter();
@@ -45,10 +46,46 @@ export default function PengingatPage() {
     return () => clearInterval(interval);
   }, [accessToken]);
 
+  // Cross-page sync (quick-260705-9n4 task 5): a medication/dialysis
+  // confirm on /beranda or /catatan doesn't change reminder schedules, but
+  // this page must still stay consistent with the canonical event set —
+  // and any future per-reminder "confirmed today" indicator here would
+  // depend on it, so refresh alongside the other two surfaces rather than
+  // silently omitting /pengingat from the sync contract.
+  useEffect(() => {
+    const refresh = () => setReminderRefreshKey((k) => k + 1);
+    window.addEventListener(SYNC_EVENTS.OBAT_CONFIRMED, refresh);
+    window.addEventListener(SYNC_EVENTS.CUCIDARAH_CONFIRMED, refresh);
+    return () => {
+      window.removeEventListener(SYNC_EVENTS.OBAT_CONFIRMED, refresh);
+      window.removeEventListener(SYNC_EVENTS.CUCIDARAH_CONFIRMED, refresh);
+    };
+  }, []);
+
+  // Refetch on tab focus (quick-260705-9n4 task 5) — returning to this page
+  // (or tab regaining focus) always shows current reminder schedules.
+  useEffect(() => {
+    const onFocus = () => setReminderRefreshKey((k) => k + 1);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") setReminderRefreshKey((k) => k + 1);
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+
   const handleReminderAdded = () => {
     setReminderRefreshKey((k) => k + 1);
     setHasReminders(true);
     toast.success("Pengingat berhasil ditambahkan");
+    // Creating a reminder must also notify /beranda's ObatCard, CuciDarahCard,
+    // and PengingatBerikutnyaCard, plus /catatan's log lists (quick-260705-9n4
+    // task 5) — previously only edit/delete (in ReminderList.tsx) dispatched
+    // this event; creation via AddReminderSheet never did.
+    dispatchSyncEvent(SYNC_EVENTS.REMINDER_UPDATED);
   };
 
   if (isLoading) {

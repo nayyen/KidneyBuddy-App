@@ -12,6 +12,7 @@ import { Bell } from "lucide-react";
 import { Pill, Droplets } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import ReminderItem, { type Reminder } from "./ReminderItem";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
 
 interface ReminderListProps {
   accessToken: string;
@@ -55,14 +56,14 @@ export default function ReminderList({
 
     const handleDeleted = (id: string) => {
       setReminders((prev) => prev.filter((r) => r.id !== id));
-      window.dispatchEvent(new CustomEvent("reminder:updated"));
+      dispatchSyncEvent(SYNC_EVENTS.REMINDER_UPDATED);
   };
 
   const handleUpdated = (updated: Reminder) => {
     setReminders((prev) =>
       prev.map((r) => (r.id === updated.id ? updated : r)),
     );
-      window.dispatchEvent(new CustomEvent("reminder:updated"));
+      dispatchSyncEvent(SYNC_EVENTS.REMINDER_UPDATED);
   };
 
     if (isLoading) {

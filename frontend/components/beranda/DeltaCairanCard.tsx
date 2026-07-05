@@ -62,6 +62,23 @@ export default function DeltaCairanCard({
     fetchBalance();
   }, [fetchBalance, refreshKey]);
 
+  // Refetch on tab focus (quick-260705-9n4 task 5) — also covers B2's
+  // daily-reset requirement: returning to /beranda after local midnight
+  // re-derives "today" from the backend's now-user-timezone-correct bounds
+  // instead of letting yesterday's totals persist with no new fetch.
+  useEffect(() => {
+    const onFocus = () => fetchBalance();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchBalance();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [fetchBalance]);
+
   const hasData = balance !== null && (balance.masuk > 0 || balance.keluar > 0);
   const delta = balance?.delta ?? 0;
   const masuk = balance?.masuk ?? 0;

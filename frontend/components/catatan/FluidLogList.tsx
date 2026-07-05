@@ -15,6 +15,7 @@ import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import FluidLogItem from "./FluidLogItem";
 import { Droplets } from "lucide-react";
+import { SYNC_EVENTS } from "@/lib/syncEvents";
 
 interface FluidEntry {
   id: string;
@@ -110,8 +111,22 @@ export default function FluidLogList({
     const handleSaved = () => {
       fetchEntries();
     };
-    window.addEventListener("fluid:saved", handleSaved);
-    return () => window.removeEventListener("fluid:saved", handleSaved);
+    window.addEventListener(SYNC_EVENTS.FLUID_SAVED, handleSaved);
+    return () => window.removeEventListener(SYNC_EVENTS.FLUID_SAVED, handleSaved);
+  }, [fetchEntries]);
+
+  // Refetch on tab focus (quick-260705-9n4 task 5)
+  useEffect(() => {
+    const onFocus = () => fetchEntries();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchEntries();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [fetchEntries]);
 
   if (isLoading) {

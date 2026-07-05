@@ -16,6 +16,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { Check, Pill } from "lucide-react";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
 
 interface MedicationEntry {
   id: string;
@@ -71,11 +72,26 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
   // Refresh when obat confirmed from another page or reminders updated
   useEffect(() => {
     const refresh = () => fetchEntries();
-    window.addEventListener("obat:confirmed", refresh);
-    window.addEventListener("reminder:updated", refresh);
+    window.addEventListener(SYNC_EVENTS.OBAT_CONFIRMED, refresh);
+    window.addEventListener(SYNC_EVENTS.REMINDER_UPDATED, refresh);
     return () => {
-      window.removeEventListener("obat:confirmed", refresh);
-      window.removeEventListener("reminder:updated", refresh);
+      window.removeEventListener(SYNC_EVENTS.OBAT_CONFIRMED, refresh);
+      window.removeEventListener(SYNC_EVENTS.REMINDER_UPDATED, refresh);
+    };
+  }, [fetchEntries]);
+
+  // Refetch when the tab/window regains focus so navigating back always
+  // shows current data (quick-260705-9n4 task 5).
+  useEffect(() => {
+    const onFocus = () => fetchEntries();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchEntries();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [fetchEntries]);
 
@@ -90,7 +106,7 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
       await authFetch(`/api/medication-log/${logId}/confirm`, accessToken, {
         method: "POST",
       });
-      window.dispatchEvent(new CustomEvent("obat:confirmed"));
+      dispatchSyncEvent(SYNC_EVENTS.OBAT_CONFIRMED);
     } catch {
       setEntries(originalEntries);
     } finally {
@@ -109,7 +125,7 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
       await authFetch(`/api/medication-log/${logId}/unconfirm`, accessToken, {
         method: "POST",
       });
-      window.dispatchEvent(new CustomEvent("obat:confirmed"));
+      dispatchSyncEvent(SYNC_EVENTS.OBAT_CONFIRMED);
     } catch {
       setEntries(originalEntries);
     } finally {

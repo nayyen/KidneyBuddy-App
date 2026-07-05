@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Trash2, Droplets } from "lucide-react";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
 
 interface FluidEntry {
   id: string;
@@ -80,7 +81,7 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
     try {
       await authFetch(`/api/fluid/${entry.id}`, accessToken, { method: "DELETE" });
       toast.success("Catatan cairan dihapus");
-      window.dispatchEvent(new CustomEvent("fluid:saved"));
+      dispatchSyncEvent(SYNC_EVENTS.FLUID_SAVED);
       onEdited?.();
     } catch {
       toast.error("Gagal menghapus catatan");
@@ -215,7 +216,13 @@ export default function FluidLogItem({ entry, accessToken, metodeTerapi, onEdite
             entry={entry}
             accessToken={accessToken}
             metodeTerapi={metodeTerapi ?? ""}
-            onSaved={onEdited}
+            onSaved={() => {
+              // Editing must also notify other pages (e.g. beranda's
+              // DeltaCairanCard) via the global sync event, not just this
+              // list's local onEdited refetch (quick-260705-9n4 task 5).
+              dispatchSyncEvent(SYNC_EVENTS.FLUID_SAVED);
+              onEdited?.();
+            }}
           />
         )}
          {/* Delete button */}

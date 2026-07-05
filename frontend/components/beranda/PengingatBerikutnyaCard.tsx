@@ -14,6 +14,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { Bell, Droplets, Pill } from "lucide-react";
+import { SYNC_EVENTS } from "@/lib/syncEvents";
 
 interface NextReminder {
   id: string;
@@ -80,13 +81,27 @@ export default function PengingatBerikutnyaCard({
     // Refresh when medication, cuci darah, or reminder data changes
     useEffect(() => {
       const refresh = () => fetchNext();
-      window.addEventListener("obat:confirmed", refresh);
-      window.addEventListener("cucidarah:confirmed", refresh);
-      window.addEventListener("reminder:updated", refresh);
+      window.addEventListener(SYNC_EVENTS.OBAT_CONFIRMED, refresh);
+      window.addEventListener(SYNC_EVENTS.CUCIDARAH_CONFIRMED, refresh);
+      window.addEventListener(SYNC_EVENTS.REMINDER_UPDATED, refresh);
       return () => {
-        window.removeEventListener("obat:confirmed", refresh);
-        window.removeEventListener("cucidarah:confirmed", refresh);
-        window.removeEventListener("reminder:updated", refresh);
+        window.removeEventListener(SYNC_EVENTS.OBAT_CONFIRMED, refresh);
+        window.removeEventListener(SYNC_EVENTS.CUCIDARAH_CONFIRMED, refresh);
+        window.removeEventListener(SYNC_EVENTS.REMINDER_UPDATED, refresh);
+      };
+    }, [fetchNext]);
+
+    // Refetch on tab focus (quick-260705-9n4 task 5)
+    useEffect(() => {
+      const onFocus = () => fetchNext();
+      const onVisibility = () => {
+        if (document.visibilityState === "visible") fetchNext();
+      };
+      window.addEventListener("focus", onFocus);
+      document.addEventListener("visibilitychange", onVisibility);
+      return () => {
+        window.removeEventListener("focus", onFocus);
+        document.removeEventListener("visibilitychange", onVisibility);
       };
     }, [fetchNext]);
 
