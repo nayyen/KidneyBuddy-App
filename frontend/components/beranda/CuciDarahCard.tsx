@@ -238,6 +238,11 @@ export default function CuciDarahCard({
                   <p className="font-sans" style={{ fontSize: 14, color: "#3d6b66" }}>
                     {formatTime(entry.waktuPengingat)} · {JENIS_LABELS[entry.jenis] ?? entry.jenis}
                   </p>
+                  {entry.jenis === "capd" && entry.konsentrasiCapd && (
+                    <p className="font-sans" style={{ fontSize: 13, color: "#7a8c8a" }}>
+                      Konsentrasi: {entry.konsentrasiCapd}
+                    </p>
+                  )}
                   {isLate && (
                     <p
                       className="font-sans font-medium"
