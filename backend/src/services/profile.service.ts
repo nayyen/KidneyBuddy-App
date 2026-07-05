@@ -126,3 +126,39 @@ export async function getTherapyHistory(userId: string) {
   const history = await therapyHistoryRepository.findByUser(userId);
   return history;
 }
+
+// ─── Update Timezone (quick-260705-9n4 task 2) ─────────────────────────
+
+export const updateTimezoneSchema = z.object({
+  timezone: z.string().min(1, "Timezone wajib diisi"),
+});
+
+/**
+ * isValidIanaTimezone — reject malformed client input before it reaches the
+ * DB. `Intl.DateTimeFormat` throws a RangeError for any string that is not a
+ * recognized IANA timezone name.
+ */
+function isValidIanaTimezone(timezone: string): boolean {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function updateTimezone(userId: string, timezone: string) {
+  const parsed = updateTimezoneSchema.parse({ timezone });
+
+  if (!isValidIanaTimezone(parsed.timezone)) {
+    throw new AppError(
+      400,
+      "INVALID_TIMEZONE",
+      "Zona waktu tidak valid",
+    );
+  }
+
+  await userRepository.updateTimezone(userId, parsed.timezone);
+
+  return { updated: true, timezone: parsed.timezone };
+}

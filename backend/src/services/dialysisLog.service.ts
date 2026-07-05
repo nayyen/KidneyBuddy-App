@@ -7,8 +7,21 @@
 import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import * as dialysisLogRepository from "../repositories/dialysisLog.repository.js";
 import type { DialysisLog } from "../repositories/dialysisLog.repository.js";
+import * as userRepository from "../repositories/user.repository.js";
 import { AppError } from "../middleware/errorHandler.js";
-import { wibDateFromHHmm, wibDayNameLower } from "../utils/wib.js";
+import { localDateFromHHmm, localDayNameLower, localDayBounds } from "../utils/wib.js";
+
+const DEFAULT_TIMEZONE = "Asia/Jakarta";
+
+/**
+ * Look up the requesting user's stored IANA timezone (quick-260705-9n4 task
+ * 2), falling back to Asia/Jakarta (the pre-existing WIB assumption) if the
+ * user row is missing a value for any reason.
+ */
+async function getUserTimezone(userId: string): Promise<string> {
+  const user = await userRepository.findById(userId);
+  return user?.timezone || DEFAULT_TIMEZONE;
+}
 
 /**
  * confirm — validate reminder ownership and log the dialysis session confirmation.
@@ -37,6 +50,7 @@ export async function confirm(
     return { confirmed: true, logId: existingLog.id };
   }
 
+  const timezone = await getUserTimezone(userId);
   const newLog = await dialysisLogRepository.insert({
     userId: userId as any,
     reminderId: reminderId as any,
@@ -45,7 +59,7 @@ export async function confirm(
     konsentrasiCapd: reminder.konsentrasiCapd ?? null,
     status: "dikonfirmasi",
     waktuPengingat: reminder.jamPengingat
-      ? wibDateFromHHmm(reminder.jamPengingat)
+      ? localDateFromHHmm(timezone, reminder.jamPengingat)
       : new Date(),
     waktuKonfirmasi: new Date(),
   } as any);
@@ -100,8 +114,12 @@ export async function unconfirmById(
  * Merges scheduled cuci darah reminders with existing logs, dedup by reminderId.
  */
 export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
-  const logs = await dialysisLogRepository.findTodayByUser(userId);
-  const todayDayLower = wibDayNameLower();
+  const timezone = await getUserTimezone(userId);
+  const logs = await dialysisLogRepository.findTodayByUser(
+    userId,
+    localDayBounds(timezone),
+  );
+  const todayDayLower = localDayNameLower(timezone);
 
   const allActive = await reminderScheduleRepository.findActiveCuciDarahByUser(
     userId,
@@ -121,7 +139,7 @@ export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
       nama: r.nama,
       konsentrasiCapd: r.konsentrasiCapd ?? null,
       status: "tertunda" as const,
-      waktuPengingat: wibDateFromHHmm(r.jamPengingat),
+      waktuPengingat: localDateFromHHmm(timezone, r.jamPengingat),
       waktuKonfirmasi: null,
       createdAt: new Date(),
     } as DialysisLog);

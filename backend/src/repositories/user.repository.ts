@@ -69,3 +69,31 @@ export async function updateTherapyMethod(
     .set({ metodeTerapiAktif, tanggalMulaiTerapi, riwayatTerapi, updatedAt: new Date() })
     .where(eq(users.userId, userId as any));
 }
+
+/**
+ * Persist the client-reported IANA timezone (quick-260705-9n4 task 2).
+ * Called once per session when the browser's Intl-resolved timezone differs
+ * from what's already stored.
+ */
+export async function updateTimezone(
+  userId: string,
+  timezone: string,
+): Promise<void> {
+  await db
+    .update(users)
+    .set({ timezone, updatedAt: new Date() })
+    .where(eq(users.userId, userId as any));
+}
+
+/**
+ * Distinct IANA timezones currently in use among non-soft-deleted users.
+ * Used by reminderDispatch.job.ts to iterate one due-check pass per distinct
+ * timezone (quick-260705-9n4 task 2) instead of one global WIB pass.
+ */
+export async function findDistinctActiveTimezones(): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ timezone: users.timezone })
+    .from(users)
+    .where(isNull(users.deletedAt));
+  return rows.map((r) => r.timezone).filter((tz): tz is string => Boolean(tz));
+}

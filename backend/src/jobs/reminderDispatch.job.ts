@@ -14,11 +14,20 @@ import { insert as insertMedLog } from "../repositories/medicationLog.repository
 import { insert as insertDialysisLog } from "../repositories/dialysisLog.repository.js";
 import {
   findDueReminders,
+  findDueRemindersForTimezone,
   markDispatched,
   type ReminderSchedule,
 } from "../repositories/reminderSchedule.repository.js";
+import { findDistinctActiveTimezones } from "../repositories/user.repository.js";
 import { sendToAllDevices, type NotificationPayload } from "../services/notification.service.js";
-import { wibDateFromHHmm, wibDayNameLower, wibHHmm } from "../utils/wib.js";
+import {
+  wibDateFromHHmm,
+  wibDayNameLower,
+  wibHHmm,
+  localDateFromHHmm,
+  localDayNameLower,
+  localHHmm,
+} from "../utils/wib.js";
 
 const logger = pino({ name: "reminderDispatch.job" });
 
@@ -28,6 +37,13 @@ export type DispatchDeps = {
   insertDialysisLog: (data: Parameters<typeof insertDialysisLog>[0]) => Promise<unknown>;
   sendToAll: (userId: string, payload: NotificationPayload) => Promise<void>;
   markDispatched: (id: string) => Promise<void>;
+  /**
+   * IANA timezone used to compute waktuPengingat for newly inserted log rows.
+   * Omitted (undefined) preserves the original WIB-hardcoded behavior for
+   * existing callers/tests; dispatchDueReminders() always supplies the
+   * per-timezone-group zone it is currently processing (task 2).
+   */
+  timezone?: string;
 };
 
 export async function _dispatchCore(
@@ -57,7 +73,9 @@ export async function _dispatchCore(
           reminderId: reminder.id,
           nama: reminder.nama,
           status: "tertunda" as const,
-          waktuPengingat: wibDateFromHHmm(reminder.jamPengingat),
+          waktuPengingat: deps.timezone
+            ? localDateFromHHmm(deps.timezone, reminder.jamPengingat)
+            : wibDateFromHHmm(reminder.jamPengingat),
         };
 
         if (reminder.jenis === 'obat') {
@@ -111,13 +129,38 @@ export async function _dispatchCore(
   }
 }
 
+/**
+ * dispatchDueReminders — runs one _dispatchCore pass PER DISTINCT USER
+ * TIMEZONE currently in use (quick-260705-9n4 task 2), rather than a single
+ * global WIB pass. Chosen over the alternative (join+compare inline per
+ * reminder row in one query) because it keeps _dispatchCore's simple
+ * (time, day) findDue contract intact — lower risk, no change to the
+ * existing reminderDispatch.test.ts DispatchDeps shape. Each pass computes
+ * "now" in that zone and only matches reminders owned by users on that zone.
+ */
 export async function dispatchDueReminders(): Promise<void> {
-  // FIX: Use lowercase day name to match what's stored in `hariAktif`
-  return _dispatchCore(wibHHmm(), wibDayNameLower(), {
-    findDue: findDueReminders,
-    insertMedLog,
-    insertDialysisLog,
-    sendToAll: sendToAllDevices,
-    markDispatched,
-  });
+  const timezones = await findDistinctActiveTimezones();
+
+  // Fallback: no users yet (or all rows somehow null) — preserve original
+  // WIB-only behavior rather than silently dispatching nothing.
+  if (timezones.length === 0) {
+    return _dispatchCore(wibHHmm(), wibDayNameLower(), {
+      findDue: findDueReminders,
+      insertMedLog,
+      insertDialysisLog,
+      sendToAll: sendToAllDevices,
+      markDispatched,
+    });
+  }
+
+  for (const timezone of timezones) {
+    await _dispatchCore(localHHmm(timezone), localDayNameLower(timezone), {
+      findDue: (time, day) => findDueRemindersForTimezone(time, day, timezone),
+      insertMedLog,
+      insertDialysisLog,
+      sendToAll: sendToAllDevices,
+      markDispatched,
+      timezone,
+    });
+  }
 }

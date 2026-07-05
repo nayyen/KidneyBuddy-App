@@ -12,7 +12,7 @@ import { AppError } from "../middleware/errorHandler.js";
 import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import type { NewReminderSchedule, NextUpcomingGrouped } from "../repositories/reminderSchedule.repository.js";
 import * as medicationLogRepository from "../repositories/medicationLog.repository.js";
-import { wibDateFromHHmm, wibDayNameLower, wibHHmm } from "../utils/wib.js";
+import { wibDateFromHHmm, wibDayNameLower, wibHHmm, localDateFromHHmm } from "../utils/wib.js";
 
 // ─── Shared base validation ────────────────────────────────────────────────
 
@@ -128,6 +128,11 @@ export async function _confirmCore(
   findLogByReminderUser: FindLogByReminderUserFn,
   markConfirmedFn: MarkConfirmedFn,
   insertLogFn: InsertLogFn,
+  // Optional 7th param (quick-260705-9n4 task 2): the calling user's IANA
+  // timezone. Omitted preserves the original WIB-hardcoded fallback so the
+  // existing reminders.service.test.ts calls (6 positional args) keep passing
+  // unchanged.
+  userTimezone?: string,
 ): Promise<{ confirmed: boolean; logId: string }> {
   // T-02-05-02: validate reminder belongs to this user
   const reminder = await findReminderById(reminderId);
@@ -160,7 +165,9 @@ export async function _confirmCore(
       // so the displayed time matches the reminder's jamPengingat and doesn't
       // drift with the system clock. Falls back to WIB now if no schedule.
       waktuPengingat: reminder.jamPengingat
-        ? wibDateFromHHmm(reminder.jamPengingat)
+        ? userTimezone
+          ? localDateFromHHmm(userTimezone, reminder.jamPengingat)
+          : wibDateFromHHmm(reminder.jamPengingat)
         : new Date(),
       waktuKonfirmasi: new Date(),
   });

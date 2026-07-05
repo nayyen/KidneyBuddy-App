@@ -30,3 +30,19 @@ export async function getTherapyHistory(
     next(err);
   }
 }
+
+export async function updateTimezone(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const result = await profileService.updateTimezone(
+      req.user!.id,
+      req.body.timezone,
+    );
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}

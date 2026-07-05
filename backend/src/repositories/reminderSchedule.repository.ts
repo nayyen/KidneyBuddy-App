@@ -1,6 +1,7 @@
 import { eq, and, lte, sql, isNull, or, lt, gte, isNotNull } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { reminderSchedule } from "../db/schema/reminderSchedule.schema.js";
+import { users } from "../db/schema/users.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { wibHHmm, wibDayNameLower, wibTomorrowDayNameLower } from "../utils/wib.js";
 import { medicationLog } from "../db/schema/medicationLog.schema.js";
@@ -282,6 +283,37 @@ export async function findDueReminders(
         ),
       ),
     );
+}
+
+/**
+ * Find all active reminders due at the given HH:mm/day-name whose OWNER's
+ * stored timezone equals `timezone` (quick-260705-9n4 task 2). Same dedup
+ * guard as findDueReminders(); joins users to scope by per-user timezone
+ * instead of assuming every user is on WIB.
+ */
+export async function findDueRemindersForTimezone(
+  currentTime: string, // "HH:mm"
+  dayName: string, // Indonesian day name, lowercase e.g. "senin"
+  timezone: string,
+): Promise<ReminderSchedule[]> {
+  const cutoff = new Date(Date.now() - 90 * 1000);
+  const rows = await db
+    .select({ reminderSchedule })
+    .from(reminderSchedule)
+    .innerJoin(users, eq(reminderSchedule.userId, users.userId))
+    .where(
+      and(
+        eq(reminderSchedule.aktif, true),
+        eq(reminderSchedule.jamPengingat, currentTime),
+        eq(users.timezone, timezone),
+        sql`${reminderSchedule.hariAktif}::jsonb @> ${JSON.stringify([dayName])}::jsonb`,
+        or(
+          isNull(reminderSchedule.lastNotificationSentAt),
+          lt(reminderSchedule.lastNotificationSentAt, cutoff),
+        ),
+      ),
+    );
+  return rows.map((r) => r.reminderSchedule);
 }
 
 /**

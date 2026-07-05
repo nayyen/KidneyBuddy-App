@@ -9,5 +9,6 @@ router.use(authenticate);
 
 router.post("/therapy", profileController.changeTherapy);
 router.get("/therapy-history", profileController.getTherapyHistory);
+router.patch("/timezone", profileController.updateTimezone);
 
 export default router;

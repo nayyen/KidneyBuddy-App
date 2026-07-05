@@ -17,10 +17,15 @@ export async function insert(data: NewDialysisLog): Promise<DialysisLog> {
 // ─── Query ────────────────────────────────────────────────────────────
 
 /**
- * Find today's dialysis log entries for a user (WIB-correct day bounds).
+ * Find today's dialysis log entries for a user (WIB-correct day bounds by
+ * default). `bounds` lets a caller supply the requesting user's own local-
+ * timezone day bounds (quick-260705-9n4 task 2, via wib.ts#localDayBounds).
  */
-export async function findTodayByUser(userId: string): Promise<DialysisLog[]> {
-  const { start, end } = wibDayBounds();
+export async function findTodayByUser(
+  userId: string,
+  bounds?: { start: Date; end: Date },
+): Promise<DialysisLog[]> {
+  const { start, end } = bounds ?? wibDayBounds();
   return db
     .select()
     .from(dialysisLog)

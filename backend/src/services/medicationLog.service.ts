@@ -7,8 +7,25 @@
 import * as reminderScheduleRepository from "../repositories/reminderSchedule.repository.js";
 import * as medicationLogRepository from "../repositories/medicationLog.repository.js";
 import type { MedicationLog } from "../repositories/medicationLog.repository.js";
+import * as userRepository from "../repositories/user.repository.js";
 import { _confirmCore } from "./reminders.service.js";
-import { wibDateFromHHmm, wibDayNameLower } from "../utils/wib.js";
+import {
+  localDateFromHHmm,
+  localDayNameLower,
+  localDayBounds,
+} from "../utils/wib.js";
+
+const DEFAULT_TIMEZONE = "Asia/Jakarta";
+
+/**
+ * Look up the requesting user's stored IANA timezone (quick-260705-9n4 task
+ * 2), falling back to Asia/Jakarta (the pre-existing WIB assumption) if the
+ * user row is missing a value for any reason.
+ */
+async function getUserTimezone(userId: string): Promise<string> {
+  const user = await userRepository.findById(userId);
+  return user?.timezone || DEFAULT_TIMEZONE;
+}
 
 /**
  * confirm — validate reminder ownership and log the confirmation.
@@ -18,6 +35,7 @@ export async function confirm(
   userId: string,
   reminderId: string,
 ): Promise<{ confirmed: boolean; logId: string }> {
+  const timezone = await getUserTimezone(userId);
   return _confirmCore(
     userId,
     reminderId,
@@ -25,6 +43,7 @@ export async function confirm(
     medicationLogRepository.findByReminderAndUser,
     medicationLogRepository.markConfirmed,
     medicationLogRepository.insert,
+    timezone,
   );
 }
 
@@ -117,7 +136,11 @@ export async function unconfirmById(
  * Used by the D-04 Obat card on the dashboard.
  */
 export async function getTodayUnconfirmed(userId: string): Promise<MedicationLog[]> {
-  const logs = await medicationLogRepository.findTodayByUser(userId);
+  const timezone = await getUserTimezone(userId);
+  const logs = await medicationLogRepository.findTodayByUser(
+    userId,
+    localDayBounds(timezone),
+  );
   return logs.filter((l) => l.status !== "dikonfirmasi");
 }
 
@@ -126,11 +149,18 @@ export async function getTodayUnconfirmed(userId: string): Promise<MedicationLog
  * Used by GET /api/medication-log/today.
  */
 export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
-  // 1. Get real DB log rows for today (WIB-correct bounds)
-  const logs = await medicationLogRepository.findTodayByUser(userId);
+  // 0. Resolve the requesting user's own device timezone (task 2) so "today"
+  //    bounds and day-name matching are correct for THAT user, not just WIB.
+  const timezone = await getUserTimezone(userId);
 
-  // 2. Get today's WIB day name (lowercase for hariAktif matching)
-  const todayDayLower = wibDayNameLower();
+  // 1. Get real DB log rows for today (user-timezone-correct bounds)
+  const logs = await medicationLogRepository.findTodayByUser(
+    userId,
+    localDayBounds(timezone),
+  );
+
+  // 2. Get today's local day name (lowercase for hariAktif matching)
+  const todayDayLower = localDayNameLower(timezone);
 
   // 3. Get active obat reminders scheduled for today (aktif=true, hariAktif includes today, non-empty)
   const allActive = await reminderScheduleRepository.findActiveObatByUser(userId);
@@ -150,7 +180,7 @@ export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
       dosis: r.dosis,
       jenisObat: r.jenisObat,
       status: "tertunda" as const,
-      waktuPengingat: wibDateFromHHmm(r.jamPengingat),
+      waktuPengingat: localDateFromHHmm(timezone, r.jamPengingat),
       waktuKonfirmasi: null,
       createdAt: new Date(),
     } as MedicationLog);

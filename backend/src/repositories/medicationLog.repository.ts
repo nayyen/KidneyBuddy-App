@@ -19,11 +19,19 @@ export async function insert(data: NewMedicationLog): Promise<MedicationLog> {
 /**
  * Find today's medication log entries for a user.
  * "Today" = from 00:00:00 to 23:59:59 of the current calendar date (server time).
+ *
+ * `bounds` lets a caller supply the requesting USER's own local-timezone day
+ * bounds (quick-260705-9n4 task 2, via wib.ts#localDayBounds) instead of the
+ * hardcoded WIB default — defaults to wibDayBounds() to preserve existing
+ * behavior for any caller that doesn't yet pass the user's timezone.
  */
-export async function findTodayByUser(userId: string): Promise<MedicationLog[]> {
+export async function findTodayByUser(
+  userId: string,
+  bounds?: { start: Date; end: Date },
+): Promise<MedicationLog[]> {
   // WIB-correct day bounds (UTC+7) — a 01:00 WIB entry stored as 18:00 UTC
   // on the previous UTC day still matches the patient's local "today".
-  const { start, end } = wibDayBounds();
+  const { start, end } = bounds ?? wibDayBounds();
 
   return db
     .select()

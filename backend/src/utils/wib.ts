@@ -121,3 +121,140 @@ export function wibIsoWeekKey(): string {
 }
 
 export { INDONESIAN_DAYS };
+
+// ─── Per-user device-timezone helpers (quick-260705-9n4 task 2) ──────────
+//
+// The wibXxx() helpers above hardcode a +7h (WIB/Asia-Jakarta) offset. They
+// are KEPT UNCHANGED and still used by the fixed-time batch jobs (anomaly
+// scan, daily summary, weekly insight) that are intentionally Jakarta-
+// anchored per prior product decisions — those are backend-scheduled batch
+// windows, not a per-user displayed time.
+//
+// The functions below instead take an explicit IANA timezone (e.g.
+// "Asia/Jakarta", "Asia/Makassar") — the value the client reports once per
+// session (see profile.service.ts#updateTimezone) — and use them to compute
+// reminder due-ness and "today" bounds for THAT user, so a patient outside
+// Jakarta sees correct local times instead of silently-wrong WIB times.
+// Implemented with Node's built-in Intl (no new dependency needed).
+
+const ENGLISH_DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
+
+/**
+ * Offset (ms) to ADD to a UTC instant to get that instant's wall-clock time
+ * in `timeZone`, e.g. Asia/Jakarta at any date is 7*3600*1000 (Indonesia has
+ * no DST, so this is a constant per-zone in practice, but computed live from
+ * Intl rather than hardcoded so any IANA zone works, not just WIB/WITA/WIT).
+ */
+function getTzOffsetMs(timeZone: string, date: Date): number {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const map: Record<string, string> = {};
+  for (const { type, value } of dtf.formatToParts(date)) {
+    map[type] = value;
+  }
+  const asUTC = Date.UTC(
+    Number(map.year),
+    Number(map.month) - 1,
+    Number(map.day),
+    Number(map.hour) % 24, // formatToParts can yield "24" for midnight
+    Number(map.minute),
+    Number(map.second),
+  );
+  return asUTC - date.getTime();
+}
+
+/** Current "HH:mm" wall-clock time in the given IANA timezone. */
+export function localHHmm(timeZone: string, date: Date = new Date()): string {
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const map: Record<string, string> = {};
+  for (const { type, value } of dtf.formatToParts(date)) {
+    map[type] = value;
+  }
+  const hour = String(Number(map.hour) % 24).padStart(2, "0");
+  return `${hour}:${map.minute}`;
+}
+
+/** Today's Indonesian day name (lowercase) in the given IANA timezone, e.g. "senin". */
+export function localDayNameLower(timeZone: string, date: Date = new Date()): string {
+  const englishDay = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "long",
+  }).format(date);
+  const idx = ENGLISH_DAYS.indexOf(englishDay as (typeof ENGLISH_DAYS)[number]);
+  const dayName = idx === -1 ? englishDay : INDONESIAN_DAYS[idx];
+  return dayName.toLowerCase();
+}
+
+/** Today's calendar date "YYYY-MM-DD" in the given IANA timezone. */
+export function localDateStr(timeZone: string, date: Date = new Date()): string {
+  // en-CA formats as YYYY-MM-DD, matching the wibDateStr() convention.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+/**
+ * UTC Date bounds for a calendar day local to `timeZone` (mirrors wibDayBounds()).
+ * Two-pass offset resolution to stay correct across a DST boundary, though
+ * Indonesian zones (the primary target) have none.
+ */
+export function localDayBounds(
+  timeZone: string,
+  dateStr?: string,
+): { start: Date; end: Date } {
+  const ds = dateStr ?? localDateStr(timeZone);
+  const [y, m, d] = ds.split("-").map(Number);
+  const guessUtc = Date.UTC(y, m - 1, d);
+  const offset1 = getTzOffsetMs(timeZone, new Date(guessUtc));
+  let startMs = guessUtc - offset1;
+  const offset2 = getTzOffsetMs(timeZone, new Date(startMs));
+  if (offset2 !== offset1) {
+    startMs = guessUtc - offset2;
+  }
+  return {
+    start: new Date(startMs),
+    end: new Date(startMs + 24 * 3600 * 1000 - 1),
+  };
+}
+
+/**
+ * Build a UTC Date representing "today at HH:mm local time" in `timeZone`
+ * (mirrors wibDateFromHHmm(), but timezone-parameterized).
+ */
+export function localDateFromHHmm(
+  timeZone: string,
+  hhmm: string,
+  dateStr?: string,
+): Date {
+  const [h, m] = hhmm.split(":").map(Number);
+  const ds = dateStr ?? localDateStr(timeZone);
+  const [y, mo, d] = ds.split("-").map(Number);
+  const guessMidnightUtc = Date.UTC(y, mo - 1, d);
+  const offset = getTzOffsetMs(timeZone, new Date(guessMidnightUtc));
+  const localMidnightUtc = guessMidnightUtc - offset;
+  return new Date(localMidnightUtc + h * 3600 * 1000 + m * 60 * 1000);
+}
