@@ -103,7 +103,7 @@ describe("email.service.sendPasswordResetEmail (unit, no live network calls)", (
     process.env.RESEND_API_KEY = "test-key-not-a-real-secret";
     process.env.RESEND_FROM_EMAIL = "KidneyBuddy <no-reply@test.dev>";
 
-    let captured: { from: string; to: string; subject: string; html: string; text: string } | null = null;
+    const calls: Array<{ from: string; to: string; subject: string; html: string; text: string }> = [];
     const fakeSender = async (params: {
       from: string;
       to: string;
@@ -111,16 +111,16 @@ describe("email.service.sendPasswordResetEmail (unit, no live network calls)", (
       html: string;
       text: string;
     }) => {
-      captured = params;
+      calls.push(params);
       return { id: "fake-message-id" };
     };
 
     await sendPasswordResetEmail("user@example.com", "raw-token-abc123", fakeSender);
 
-    assert.ok(captured, "sender should have been invoked");
-    assert.strictEqual(captured!.to, "user@example.com");
-    assert.strictEqual(captured!.subject, "Atur Ulang Password KidneyBuddy");
-    assert.ok(captured!.html.includes("raw-token-abc123"), "html body should contain the reset URL/token");
+    assert.strictEqual(calls.length, 1, "sender should have been invoked exactly once");
+    assert.strictEqual(calls[0].to, "user@example.com");
+    assert.strictEqual(calls[0].subject, "Atur Ulang Password KidneyBuddy");
+    assert.ok(calls[0].html.includes("raw-token-abc123"), "html body should contain the reset URL/token");
   });
 
   it("falls back to console logging and does NOT throw when RESEND_API_KEY is unset", async () => {

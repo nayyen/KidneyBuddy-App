@@ -222,7 +222,13 @@ export async function forgotPassword(params: { email: string }) {
     expiresAt,
   });
 
-  sendPasswordResetEmail(email, rawToken);
+  try {
+    await sendPasswordResetEmail(email, rawToken);
+  } catch (err) {
+    // Swallow — a send failure (e.g. Resend outage) must never leak via the
+    // response (no user enumeration) nor break the forgot-password flow.
+    console.error("[auth.service] sendPasswordResetEmail failed", err);
+  }
 
   return { message: "Jika email terdaftar, tautan reset sudah dikirim" };
 }
