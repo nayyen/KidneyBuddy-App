@@ -28,32 +28,9 @@ import {
   localDayNameLower,
   localHHmm,
 } from "../utils/wib.js";
+import { jenisEmoji, jenisLabel } from "../lib/reminderNotificationCopy.js";
 
 const logger = pino({ name: "reminderDispatch.job" });
-
-// ─── Jenis-aware notification copy (quick-260705-9n4 polish request) ──────────
-// Distinguishes HD (literally blood dialysis) from CAPD (fluid-exchange
-// dialysis) with different emoji, while sharing the same Indonesian label
-// ("Cuci Darah") since both are dialysis-therapy reminders from the
-// patient's perspective.
-const JENIS_EMOJI: Record<string, string> = {
-  obat: "💊",
-  capd: "💧",
-  hd: "🩸",
-};
-const JENIS_LABEL: Record<string, string> = {
-  obat: "Obat",
-  capd: "Cuci Darah",
-  hd: "Cuci Darah",
-};
-
-function jenisEmoji(jenis: string): string {
-  return JENIS_EMOJI[jenis] ?? "🔔";
-}
-
-function jenisLabel(jenis: string): string {
-  return JENIS_LABEL[jenis] ?? "Pengingat";
-}
 
 export type DispatchDeps = {
   findDue: (time: string, day: string) => Promise<ReminderSchedule[]>;

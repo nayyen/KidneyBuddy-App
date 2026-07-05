@@ -14,6 +14,11 @@ import {
   markFollowUpSent,
 } from "../repositories/reminderSchedule.repository.js";
 import { sendToAllDevices } from "../services/notification.service.js";
+import {
+  jenisEmoji,
+  jenisLabel,
+  jenisFollowUpNoun,
+} from "../lib/reminderNotificationCopy.js";
 
 const logger = pino({ name: "reminderFollowUp.job" });
 
@@ -32,8 +37,8 @@ export async function sendFollowUpReminders(): Promise<void> {
       if (reminder.followUpSent) continue;
 
       await sendToAllDevices(reminder.userId, {
-        title: `Pengingat Terlewat: ${reminder.nama}`,
-        body: "Kamu belum mengonfirmasi dosis ini — ketuk untuk konfirmasi sekarang.",
+        title: `${jenisEmoji(reminder.jenis)} Pengingat ${jenisLabel(reminder.jenis)} Terlewat: ${reminder.nama}`,
+        body: `Kamu belum mengonfirmasi ${jenisFollowUpNoun(reminder.jenis)} — ketuk untuk konfirmasi sekarang.`,
         reminderId: reminder.id,
         url: "/pengingat",
       });
