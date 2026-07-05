@@ -110,11 +110,13 @@ export async function unconfirmById(
   return { confirmed: false, logId: logId };
 }
 
+export type DialysisLogWithCatatan = DialysisLog & { catatanWaktu: string | null };
+
 /**
  * getTodayLogs — list all of today's dialysis log entries (all statuses).
  * Merges scheduled cuci darah reminders with existing logs, dedup by reminderId.
  */
-export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
+export async function getTodayLogs(userId: string): Promise<DialysisLogWithCatatan[]> {
   const user = await userRepository.findById(userId);
   const timezone = user?.timezone || DEFAULT_TIMEZONE;
   const metode = user?.metodeTerapiAktif ?? null;
@@ -136,6 +138,19 @@ export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
     const hariAktif = (r.hariAktif as string[]) ?? [];
     return hariAktif.length > 0 && hariAktif.includes(todayDayLower);
   });
+
+  // Task 1 (quick-260706-8zc): dialysis_log has no catatanWaktu column of its
+  // own (it lives on reminder_schedule) — build a lookup from ALL of the
+  // user's cuci-darah reminders (capd + hd), regardless of aktif, mirroring
+  // medicationLog.service.ts's fotoObat/catatanWaktu sourcing decision so a
+  // log whose reminder was later disabled still resolves its catatan.
+  const allCuciDarahReminders = (
+    await reminderScheduleRepository.listByUser(userId)
+  ).filter((r) => r.jenis === "capd" || r.jenis === "hd");
+  const catatanWaktuByReminderId = new Map<string, string | null>();
+  for (const r of allCuciDarahReminders) {
+    catatanWaktuByReminderId.set(r.id, r.catatanWaktu ?? null);
+  }
 
   const scheduledMap = new Map<string, DialysisLog>();
   for (const r of scheduled) {
@@ -166,13 +181,18 @@ export async function getTodayLogs(userId: string): Promise<DialysisLog[]> {
   // jamPengingat arrives; real DB rows (dispatched-tertunda, dikonfirmasi,
   // terlewat) always remain visible.
   const now = new Date();
-  const merged = Array.from(scheduledMap.values()).filter((log) => {
-    const isPendingPseudoEntry = log.id.startsWith(SCHEDULED_PREFIX);
-    if (isPendingPseudoEntry && log.waktuPengingat.getTime() > now.getTime()) {
-      return false;
-    }
-    return true;
-  });
+  const merged: DialysisLogWithCatatan[] = Array.from(scheduledMap.values())
+    .filter((log) => {
+      const isPendingPseudoEntry = log.id.startsWith(SCHEDULED_PREFIX);
+      if (isPendingPseudoEntry && log.waktuPengingat.getTime() > now.getTime()) {
+        return false;
+      }
+      return true;
+    })
+    .map((log) => ({
+      ...log,
+      catatanWaktu: log.reminderId ? catatanWaktuByReminderId.get(log.reminderId) ?? null : null,
+    }));
 
   merged.sort((a, b) => a.waktuPengingat.getTime() - b.waktuPengingat.getTime());
   return merged;

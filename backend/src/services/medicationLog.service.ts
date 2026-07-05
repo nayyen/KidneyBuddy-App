@@ -144,7 +144,10 @@ export async function getTodayUnconfirmed(userId: string): Promise<MedicationLog
   return logs.filter((l) => l.status !== "dikonfirmasi");
 }
 
-export type MedicationLogWithFoto = MedicationLog & { fotoObat: string | null };
+export type MedicationLogWithFoto = MedicationLog & {
+  fotoObat: string | null;
+  catatanWaktu: string | null;
+};
 
 /**
  * getTodayLogs — list all of today's medication logs (all statuses).
@@ -188,8 +191,10 @@ export async function getTodayLogs(userId: string): Promise<MedicationLogWithFot
     await reminderScheduleRepository.listByUser(userId)
   ).filter((r) => r.jenis === "obat");
   const fotoObatByReminderId = new Map<string, string | null>();
+  const catatanWaktuByReminderId = new Map<string, string | null>();
   for (const r of allObatReminders) {
     fotoObatByReminderId.set(r.id, r.fotoObat ?? null);
+    catatanWaktuByReminderId.set(r.id, r.catatanWaktu ?? null);
   }
 
   // 4. Create pseudo-entries for all scheduled reminders for today.
@@ -245,6 +250,7 @@ export async function getTodayLogs(userId: string): Promise<MedicationLogWithFot
     .map((log) => ({
       ...log,
       fotoObat: log.reminderId ? fotoObatByReminderId.get(log.reminderId) ?? null : null,
+      catatanWaktu: log.reminderId ? catatanWaktuByReminderId.get(log.reminderId) ?? null : null,
     }));
 
   merged.sort(
