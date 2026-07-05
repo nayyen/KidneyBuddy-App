@@ -12,8 +12,9 @@
 
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
+import Image from "next/image";
 import { authFetch } from "@/lib/api";
 import {
   createObatFormSchema,
@@ -39,6 +40,11 @@ export default function MedicationReminderForm({
 }: MedicationReminderFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isEditMode = !!initialData;
+  // quick-260706-573 task 3: tracks whether the user explicitly removed the
+  // already-uploaded photo in edit mode (mirrors UploadFileForm.tsx's
+  // preview/remove pattern). While false and no new File has been chosen,
+  // the existing photo (if any) is shown; once true, the file input reappears.
+  const [removedExistingFoto, setRemovedExistingFoto] = useState(false);
 
   const {
     register,
@@ -71,6 +77,14 @@ export default function MedicationReminderForm({
   const watchedJenisObat = watch("jenisObat");
   const watchedHariAktif = watch("hariAktif") ?? [];
   const watchedFotoObat = watch("fotoObat");
+
+  // Show the already-uploaded photo (edit mode only) as long as it hasn't
+  // been explicitly removed and no new replacement File has been chosen yet.
+  const hasExistingPhoto =
+    isEditMode &&
+    !!initialData?.fotoObat &&
+    !removedExistingFoto &&
+    !(watchedFotoObat instanceof File);
 
   const toggleHari = (day: string) => {
     const current = watchedHariAktif;
@@ -111,6 +125,10 @@ export default function MedicationReminderForm({
       fd.append("jamPengingat", data.jamPengingat);
       if (data.fotoObat instanceof File) {
         fd.append("foto_obat", data.fotoObat);
+      } else if (isEditMode && removedExistingFoto) {
+        // User explicitly removed the existing photo and did not pick a
+        // replacement — tell the backend to clear fotoObat.
+        fd.append("hapusFoto", "true");
       }
 
       const url = isEditMode
@@ -362,28 +380,79 @@ export default function MedicationReminderForm({
           Foto Obat{" "}
           <span style={{ color: "#3d6b66", fontWeight: 400 }}>(opsional)</span>
         </label>
-        <Controller
-          name="fotoObat"
-          control={control}
-          render={({ field: { onChange } }) => (
-            <input
-              ref={fileInputRef}
-              id="rem-foto"
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={(e) => {
-                const file = e.target.files?.[0] ?? null;
-                onChange(file);
+        {hasExistingPhoto ? (
+          // State (a): existing photo, edit mode, not removed, no new file chosen.
+          <div>
+            <div className="relative w-full h-48 rounded-lg overflow-hidden bg-[#f0faf9]">
+              <Image
+                src={`${API_BASE}${initialData!.fotoObat}`}
+                alt={`Foto obat untuk ${initialData!.nama}`}
+                fill
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setRemovedExistingFoto(true)}
+              className="mt-2 font-sans font-medium"
+              style={{
+                fontSize: 13,
+                color: "#d4183d",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
               }}
-              className="w-full font-sans text-sm"
-              style={{ color: "#1a2e2c", fontSize: 12 }}
+            >
+              Hapus Foto
+            </button>
+          </div>
+        ) : (
+          // State (b): removed / create mode / a new File has been chosen.
+          <>
+            <Controller
+              name="fotoObat"
+              control={control}
+              render={({ field: { onChange } }) => (
+                <input
+                  ref={fileInputRef}
+                  id="rem-foto"
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    onChange(file);
+                  }}
+                  className="w-full font-sans text-sm"
+                  style={{ color: "#1a2e2c", fontSize: 12 }}
+                />
+              )}
             />
-          )}
-        />
-        {watchedFotoObat instanceof File && (
-          <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#3d6b66" }}>
-            {watchedFotoObat.name} ({(watchedFotoObat.size / 1024).toFixed(0)} KB)
-          </p>
+            {watchedFotoObat instanceof File && (
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66" }}>
+                  {watchedFotoObat.name} ({(watchedFotoObat.size / 1024).toFixed(0)} KB)
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setValue("fotoObat", null, { shouldValidate: true });
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }}
+                  className="font-sans font-medium flex-shrink-0"
+                  style={{
+                    fontSize: 12,
+                    color: "#d4183d",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Hapus
+                </button>
+              </div>
+            )}
+          </>
         )}
         {errors.fotoObat && (
           <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>

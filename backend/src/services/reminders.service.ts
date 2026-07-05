@@ -267,7 +267,10 @@ export async function updateReminder(
     nama: string;
     dosis: string;
     jenisObat: string;
-    fotoObat: string;
+    // quick-260706-573 task 3: nullable so an explicit "remove photo" request
+    // (fotoObat: null) can pass through to reminderScheduleRepository.update's
+    // `.set({ ...data })`, clearing the column.
+    fotoObat: string | null;
     konsentrasiCapd: string;
     jamPengingat: string;
     hariAktif: string[];

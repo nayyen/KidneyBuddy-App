@@ -56,8 +56,19 @@ export async function updateReminder(
 ) {
   try {
     const id = String(req.params.id);
-    const fotoObat = req.file ? `/uploads/medication-photos/${req.file.filename}` : undefined;
-    const data = { ...req.body, ...(fotoObat !== undefined && { fotoObat }) };
+    // quick-260706-573 task 3: a new upload always wins; otherwise, an
+    // explicit hapusFoto="true" flag (sent by the edit form's "Hapus Foto"
+    // button when no replacement file was chosen) clears the existing photo.
+    let fotoObat: string | null | undefined;
+    if (req.file) {
+      fotoObat = `/uploads/medication-photos/${req.file.filename}`;
+    } else if (req.body.hapusFoto === "true") {
+      fotoObat = null;
+    }
+    // Strip hapusFoto before spreading req.body — it's a form-only signal,
+    // not a reminder_schedule column, and must not leak into the DB update.
+    const { hapusFoto: _hapusFoto, ...body } = req.body;
+    const data = { ...body, ...(fotoObat !== undefined && { fotoObat }) };
 
     const updated = await remindersService.updateReminder(req.user!.id, id, data);
 
