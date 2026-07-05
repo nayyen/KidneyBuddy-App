@@ -31,7 +31,15 @@ export type ResendSender = (params: ResendSendParams) => Promise<unknown>;
 async function realResendSender(params: ResendSendParams): Promise<unknown> {
   const { Resend } = await import("resend");
   const resend = new Resend(process.env.RESEND_API_KEY);
-  return resend.emails.send(params);
+  const { data, error } = await resend.emails.send(params);
+  // The Resend SDK resolves (never rejects) on API-level failures, returning
+  // { data: null, error } instead of throwing — without this check a failed
+  // send (e.g. sandbox domain restriction, invalid key) looked identical to
+  // a successful one, since the caller only awaited the promise settling.
+  if (error) {
+    throw new Error(`Resend send failed: ${error.name} — ${error.message}`);
+  }
+  return data;
 }
 
 export async function sendPasswordResetEmail(
