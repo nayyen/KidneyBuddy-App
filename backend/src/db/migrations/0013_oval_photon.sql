@@ -1,0 +1,1 @@
+ALTER TABLE "daily_activities" ADD COLUMN "follow_up_sent" boolean DEFAULT false NOT NULL;

@@ -11,6 +11,7 @@ import pino from "pino";
 import { dispatchDueReminders } from "./reminderDispatch.job.js";
 import { sendFollowUpReminders } from "./reminderFollowUp.job.js";
 import { dispatchActivityEndReminders } from "./activityEndReminder.job.js";
+import { sendActivityFollowUp } from "./activityFollowUp.job.js";
 import { runAnomalyDetectionBatch } from "./anomalyDetection.job.js";
 import { runDailySummaryBatch } from "./dailySummary.job.js";
 import { runWeeklyInsightBatch } from "./weeklyInsight.job.js";
@@ -25,6 +26,11 @@ export function startScheduler(): void {
   );
   dispatchActivityEndReminders().catch((err) =>
     logger.error({ err }, "boot catch-up activity end dispatch failed"),
+  );
+  // Boot catch-up for the second, gentler activity follow-up push
+  // (quick-260705-r8b bug 3 backend) — restart-safe via followUpSent dedupe.
+  sendActivityFollowUp().catch((err) =>
+    logger.error({ err }, "boot catch-up activity follow-up dispatch failed"),
   );
   // Boot catch-up for the 21:00 anomaly batch (ANOMALY-01): a different shape
   // than the reminder catch-up above (Pitfall 2) — this is safe to call
@@ -75,6 +81,15 @@ export function startScheduler(): void {
     );
   });
 
+  // Every minute: send the second, gentler follow-up push ~10min after
+  // estimasiSelesai for activities still berlangsung (quick-260705-r8b bug 3
+  // backend, restart-safe via followUpSent dedupe).
+  schedule("* * * * *", () => {
+    sendActivityFollowUp().catch((err) =>
+      logger.error({ err }, "activity follow-up dispatch failed"),
+    );
+  });
+
   // 21:00 WIB daily: anomaly detection batch (ANOMALY-01, D-17 sequential
   // with inter-user delay, fixed-time job using node-cron's native timezone
   // option rather than the per-minute wibHHmm() string-match pattern, since
@@ -113,6 +128,6 @@ export function startScheduler(): void {
   );
 
   logger.info(
-    "scheduler started — reminders, follow-ups, activity end reminders every minute, anomaly batch daily at 21:00 WIB, daily summary at 20:00 WIB, weekly insight Sunday 19:00 WIB",
+    "scheduler started — reminders, follow-ups, activity end reminders + activity follow-up every minute, anomaly batch daily at 21:00 WIB, daily summary at 20:00 WIB, weekly insight Sunday 19:00 WIB",
   );
 }

@@ -192,3 +192,39 @@ export async function markReminderSent(id: string): Promise<void> {
     .set({ reminderSent: true })
     .where(eq(dailyActivities.id, id as any));
 }
+
+/**
+ * Find berlangsung activities whose estimasiSelesai falls within the given
+ * window, whose first end-time push already fired (reminderSent = true),
+ * and whose follow-up push has not yet fired (followUpSent = false) — used
+ * by activityFollowUp.job.ts to send the gentler ~10-minutes-after push
+ * (quick-260705-r8b bug 3 backend).
+ */
+export async function findDueForFollowUp(
+  windowStart: Date,
+  windowEnd: Date,
+): Promise<DailyActivity[]> {
+  return db
+    .select()
+    .from(dailyActivities)
+    .where(
+      and(
+        eq(dailyActivities.status, "berlangsung"),
+        eq(dailyActivities.reminderSent, true),
+        eq(dailyActivities.followUpSent, false),
+        gte(dailyActivities.estimasiSelesai, windowStart),
+        lte(dailyActivities.estimasiSelesai, windowEnd),
+      ),
+    );
+}
+
+/**
+ * Mark an activity's followUpSent flag as true — prevents double-fire of
+ * the second, gentler follow-up push.
+ */
+export async function markFollowUpSent(id: string): Promise<void> {
+  await db
+    .update(dailyActivities)
+    .set({ followUpSent: true })
+    .where(eq(dailyActivities.id, id as any));
+}

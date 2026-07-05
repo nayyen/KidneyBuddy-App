@@ -52,6 +52,11 @@ export const dailyActivities = pgTable(
     // Deduplication flag for pre-end-time push (03-02 cron)
     reminderSent: boolean("reminder_sent").notNull().default(false),
 
+    // Deduplication flag for the SECOND, gentler follow-up push sent ~10min
+    // after estimasiSelesai if the activity is still berlangsung
+    // (quick-260705-r8b bug 3 backend, activityFollowUp.job.ts).
+    followUpSent: boolean("follow_up_sent").notNull().default(false),
+
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => ({

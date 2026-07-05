@@ -67,9 +67,12 @@ export async function _dispatchActivityEndCore(
       const pastMinutes = Math.max(1, Math.floor(pastMs / 60000));
       const durationStr = formatDuration(pastMinutes);
 
+      // quick-260705-r8b bug 3 (backend): copy calmed to explicitly invite
+      // the user to confirm/complete the activity, instead of only stating
+      // elapsed duration — matches the gentler second follow-up's tone.
       await deps.sendToAll(activity.userId, {
-        title: "Masih Aktif",
-        body: `${activity.namaKegiatan} · ${durationStr} lebih`,
+        title: "Kegiatan Hampir Selesai",
+        body: `${activity.namaKegiatan} sudah sampai estimasi waktunya (${durationStr} lebih). Tandai selesai kalau sudah, ya.`,
         url: "/aktivitas",
       });
 
