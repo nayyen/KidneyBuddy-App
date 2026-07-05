@@ -311,7 +311,9 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         {activity.status === "selesai" && !editingId ? (
                           <>
-                            {activity.perasaan && <span className="font-sans font-medium" style={{ fontSize: 13, color: PERASAAN_COLOR[activity.perasaan] ?? "#3d6b66", textAlign: "right" }}>{PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}</span>}
+                            {/* C4 (quick-260705-9n4 task 9): bumped from 13px to match the
+                                surrounding body text (~14px) — was rendering too small/hard to read. */}
+                            {activity.perasaan && <span className="font-sans font-medium" style={{ fontSize: 14, color: PERASAAN_COLOR[activity.perasaan] ?? "#3d6b66", textAlign: "right" }}>{PERASAAN_LABEL[activity.perasaan] ?? activity.perasaan}</span>}
                             {activity.catatanPerasaan && <span className="font-sans text-right" style={{ fontSize: 16, fontWeight: 500, color: "#1a2e2c", maxWidth: 140, lineHeight: 1.4 }}>{activity.catatanPerasaan}</span>}
                           </>
                         ) : activity.status !== "selesai" && editingId !== activity.id ? (

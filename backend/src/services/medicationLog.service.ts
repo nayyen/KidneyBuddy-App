@@ -144,11 +144,13 @@ export async function getTodayUnconfirmed(userId: string): Promise<MedicationLog
   return logs.filter((l) => l.status !== "dikonfirmasi");
 }
 
+export type MedicationLogWithFoto = MedicationLog & { fotoObat: string | null };
+
 /**
  * getTodayLogs — list all of today's medication logs (all statuses).
  * Used by GET /api/medication-log/today.
  */
-export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
+export async function getTodayLogs(userId: string): Promise<MedicationLogWithFoto[]> {
   // 0. Resolve the requesting user's own device timezone (task 2) so "today"
   //    bounds and day-name matching are correct for THAT user, not just WIB.
   const timezone = await getUserTimezone(userId);
@@ -168,6 +170,17 @@ export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
     const hariAktif = (r.hariAktif as string[]) ?? [];
     return hariAktif.length > 0 && hariAktif.includes(todayDayLower);
   });
+
+  // C1 (quick-260705-9n4 task 9): medication_log has NO fotoObat column at
+  // all (the uploaded photo lives only on reminder_schedule.foto_obat) — a
+  // real DB log row therefore never carries a photo path, and the pseudo
+  // "scheduled-<id>" entries below previously didn't copy it over either.
+  // Build a reminderId → fotoObat lookup from ALL of this user's active obat
+  // reminders (not just today's hariAktif subset) so both cases resolve.
+  const fotoObatByReminderId = new Map<string, string | null>();
+  for (const r of allActive) {
+    fotoObatByReminderId.set(r.id, r.fotoObat ?? null);
+  }
 
   // 4. Create pseudo-entries for all scheduled reminders for today.
   const scheduledMap = new Map<string, MedicationLog>();
@@ -209,13 +222,20 @@ export async function getTodayLogs(userId: string): Promise<MedicationLog[]> {
   //    since it represents actual persisted activity, not just an upcoming
   //    schedule slot.
   const now = new Date();
-  const merged = Array.from(scheduledMap.values()).filter((log) => {
-    const isPendingPseudoEntry = log.id.startsWith(SCHEDULED_PREFIX);
-    if (isPendingPseudoEntry && log.waktuPengingat.getTime() > now.getTime()) {
-      return false; // not due yet — hide until jamPengingat arrives
-    }
-    return true;
-  });
+  const merged: MedicationLogWithFoto[] = Array.from(scheduledMap.values())
+    .filter((log) => {
+      const isPendingPseudoEntry = log.id.startsWith(SCHEDULED_PREFIX);
+      if (isPendingPseudoEntry && log.waktuPengingat.getTime() > now.getTime()) {
+        return false; // not due yet — hide until jamPengingat arrives
+      }
+      return true;
+    })
+    // C1: attach fotoObat from the owning reminder (real DB rows never have
+    // one of their own; pseudo entries didn't previously carry it either).
+    .map((log) => ({
+      ...log,
+      fotoObat: log.reminderId ? fotoObatByReminderId.get(log.reminderId) ?? null : null,
+    }));
 
   merged.sort(
     (a, b) => a.waktuPengingat.getTime() - b.waktuPengingat.getTime(),

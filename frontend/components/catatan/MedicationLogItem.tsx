@@ -36,6 +36,10 @@ interface MedicationLogItemProps {
 
 export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: MedicationLogItemProps) {
   const [showDetail, setShowDetail] = useState(false);
+  // Graceful fallback (quick-260705-9n4 task 9, C1) — if the stored
+  // fotoObat path 404s or otherwise fails to load, hide the broken image
+  // instead of showing a broken-image icon.
+  const [photoFailed, setPhotoFailed] = useState(false);
   const isConfirmed = log.status === "dikonfirmasi";
   const isLate =
     !isConfirmed &&
@@ -148,15 +152,16 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
               )}
               <DetailRow label="Dosis" value={log.dosis} />
               <DetailRow label="Jenis Obat" value={log.jenisObat} />
-              {log.fotoObat && (
+              {log.fotoObat && !photoFailed && (
                  <div className="py-2">
                     <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider">Foto Obat</p>
-                    <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden">
+                    <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden bg-[#f0faf9]">
                       <Image
                         src={`${API_BASE}${log.fotoObat}`}
                         alt={`Foto obat untuk ${log.namaObat}`}
-                        layout="fill"
-                        objectFit="cover"
+                        fill
+                        style={{ objectFit: "cover" }}
+                        onError={() => setPhotoFailed(true)}
                       />
                     </div>
                  </div>

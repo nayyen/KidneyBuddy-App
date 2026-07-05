@@ -54,7 +54,14 @@ export async function findByUser(
 }
 
 /**
- * Find distinct parameter names that a user has logged.
+ * Find distinct parameter names that a user has logged — for the trend-chart
+ * parameter dropdown. Restricted to sumber='manual' rows ONLY (quick-260705-9n4
+ * task 9, C3 bugfix): uploaded-file rows (sumber='upload') store the
+ * uploaded document's filename/display-name in namaParameter as a
+ * placeholder (see labResult.service.ts#createUploadEntry — nilai is
+ * literally the string "(file)", not a real trend-plottable value), so
+ * without this filter every uploaded PDF/photo's filename was polluting the
+ * parameter dropdown as if it were a selectable lab parameter.
  */
 export async function findDistinctParameters(userId: string): Promise<string[]> {
   const rows = await db
@@ -64,6 +71,7 @@ export async function findDistinctParameters(userId: string): Promise<string[]> 
       and(
         eq(labResults.userId, userId as any),
         eq(labResults.diarsipkan, false),
+        eq(labResults.sumber, "manual"),
       ),
     )
     .groupBy(labResults.namaParameter)
