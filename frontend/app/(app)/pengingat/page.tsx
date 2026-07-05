@@ -80,7 +80,14 @@ export default function PengingatPage() {
   const handleReminderAdded = () => {
     setReminderRefreshKey((k) => k + 1);
     setHasReminders(true);
-    toast.success("Pengingat berhasil ditambahkan");
+    // P2 bugfix (quick-260705-9n4 task 10): do NOT show a toast here.
+    // MedicationReminderForm/CAPDReminderForm/HDReminderForm already show
+    // their own precisely-worded success toast ("Pengingat berhasil
+    // disimpan"/"diperbarui") right before calling onSuccess (which bubbles
+    // up to this handler via AddReminderSheet) — showing a second, generic
+    // toast here stacked two overlapping/misaligned toasts for a single
+    // action, which is exactly the visual bug reported.
+    //
     // Creating a reminder must also notify /beranda's ObatCard, CuciDarahCard,
     // and PengingatBerikutnyaCard, plus /catatan's log lists (quick-260705-9n4
     // task 5) — previously only edit/delete (in ReminderList.tsx) dispatched

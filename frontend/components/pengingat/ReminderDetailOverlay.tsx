@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { X } from "lucide-react";
 import type { Reminder } from "./ReminderItem";
 import Image from "next/image";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 interface Props {
   reminder: Reminder;
@@ -18,6 +21,11 @@ const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) 
   ) : null;
 
 export default function ReminderDetailOverlay({ reminder, onClose }: Props) {
+  // Graceful fallback (quick-260705-9n4 task 10, P1) — mirrors
+  // MedicationLogItem.tsx's approach so both surfaces agree: hide a broken
+  // image instead of showing a broken-image icon.
+  const [photoFailed, setPhotoFailed] = useState(false);
+
   return (
     <div
       className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center"
@@ -47,17 +55,18 @@ export default function ReminderDetailOverlay({ reminder, onClose }: Props) {
             <>
               <DetailRow label="Dosis" value={reminder.dosis} />
               <DetailRow label="Jenis Obat" value={reminder.jenisObat} />
-              {reminder.fotoObat && (
+              {reminder.fotoObat && !photoFailed && (
                 <div className="py-2">
                   <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider">
                     Foto Obat
                   </p>
-                  <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden">
+                  <div className="mt-2 relative w-full h-48 rounded-lg overflow-hidden bg-[#f0faf9]">
                     <Image
-                      src={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}${reminder.fotoObat}`}
+                      src={`${API_BASE}${reminder.fotoObat}`}
                       alt={`Foto obat untuk ${reminder.nama}`}
-                      layout="fill"
-                      objectFit="cover"
+                      fill
+                      style={{ objectFit: "cover" }}
+                      onError={() => setPhotoFailed(true)}
                     />
                   </div>
                 </div>
