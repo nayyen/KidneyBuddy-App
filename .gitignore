@@ -4,5 +4,12 @@ dist/
 .env
 *.log
 
+# Local (non-Docker) upload storage — runtime-generated, never committed.
+# quick-260706-573: backend/src/lib/upload.ts's default UPLOAD_DIR now resolves
+# to backend/uploads/ when running outside Docker (previously an unreachable
+# absolute /app path). Inside Docker this directory lives in a named volume
+# instead, so it never appears in the repo there either.
+backend/uploads/
+
 # Mengabaikan berkas dokumentasi AI Agent
 claude.md

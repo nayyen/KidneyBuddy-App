@@ -2,14 +2,33 @@
  * upload.ts — multer diskStorage configuration for medication photo uploads.
  *
  * T-02-05-01: limits to 10MB and only image/jpeg or image/png.
- * Storage path: /app/uploads/medication-photos/ (Docker volume mounted via docker-compose.yml).
- * In local dev the path resolves to the backend container's filesystem.
+ * Storage path: <project-root>/uploads/medication-photos/.
+ *
+ * quick-260706-573 task 2: the default UPLOAD_DIR used to be hardcoded to the
+ * absolute Docker path `/app/uploads/medication-photos`, which only resolves
+ * correctly when running inside the Docker container (where the app's cwd IS
+ * `/app`). app.ts's static file server, however, derives its serve directory
+ * relative to __dirname (`path.join(__dirname, "../uploads")`), which resolves
+ * to <project-root>/uploads whether running via `npm run dev` locally (tsx
+ * from src/) or inside Docker (tsx from /app/src/ — see Dockerfile CMD). The
+ * two only agreed by coincidence inside Docker; running the backend locally
+ * without Docker (`npm run dev`) made multer write to a nonexistent host path
+ * while the static server looked in the project's own uploads/ dir, so photos
+ * silently never rendered. Deriving UPLOAD_DIR the same way app.ts derives its
+ * static-serve path keeps both in agreement in every environment.
  */
 import multer from "multer";
 import path from "node:path";
 import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? "/app/uploads/medication-photos";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// src/lib -> ../.. -> project root -> uploads/medication-photos
+// (mirrors app.ts's `path.join(__dirname, "../uploads")` from src/)
+const DEFAULT_UPLOAD_DIR = path.join(__dirname, "../../uploads/medication-photos");
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR ?? DEFAULT_UPLOAD_DIR;
 
 // Ensure the upload directory exists (won't exist in dev without Docker volume)
 try {

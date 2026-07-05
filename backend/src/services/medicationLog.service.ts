@@ -175,10 +175,20 @@ export async function getTodayLogs(userId: string): Promise<MedicationLogWithFot
   // all (the uploaded photo lives only on reminder_schedule.foto_obat) — a
   // real DB log row therefore never carries a photo path, and the pseudo
   // "scheduled-<id>" entries below previously didn't copy it over either.
-  // Build a reminderId → fotoObat lookup from ALL of this user's active obat
-  // reminders (not just today's hariAktif subset) so both cases resolve.
+  // Build a reminderId → fotoObat lookup.
+  //
+  // quick-260706-573 task 2: this used to be sourced from `allActive`
+  // (findActiveObatByUser, which filters aktif=true) — so a log whose owning
+  // reminder was later disabled (aktif=false) silently lost its photo even
+  // though the historical log entry itself still exists and is still shown.
+  // Source the map from ALL of the user's obat reminders regardless of the
+  // aktif toggle so a log's photo resolves independent of the reminder's
+  // current enable/disable state.
+  const allObatReminders = (
+    await reminderScheduleRepository.listByUser(userId)
+  ).filter((r) => r.jenis === "obat");
   const fotoObatByReminderId = new Map<string, string | null>();
-  for (const r of allActive) {
+  for (const r of allObatReminders) {
     fotoObatByReminderId.set(r.id, r.fotoObat ?? null);
   }
 
