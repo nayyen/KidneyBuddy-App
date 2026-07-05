@@ -28,6 +28,7 @@ import {
   CAPD_KONSENTRASI_LABELS,
   KONDISI_KELUAR_LABELS,
   ABNORMAL_KONDISI,
+  getSumberOptions,
 } from "@/lib/validators/fluid.schema";
 import {
   enqueue,
@@ -185,31 +186,39 @@ export default function CatatCairanForm({
         )}
       </div>
 
-      {/* ── Fluid source (sumber) ── */}
+      {/* ── Fluid source (sumber) ──
+          F1/F2 (quick-260705-9n4 task 11): Sumber is a REQUIRED field (no
+          more misleading "(opsional)" label) whose option list depends on
+          BOTH tipe (masuk vs keluar) and isCAPD — Urine only ever appears
+          for Cairan Keluar; Makanan/Minuman only ever appear for Cairan
+          Masuk; Exchange CAPD only appears for CAPD patients. */}
       <div>
         <label
           htmlFor="sumber"
           className="block text-sm font-medium font-sans text-foreground mb-1"
         >
-          Sumber{" "}
-          <span className="text-muted-foreground font-normal">(opsional)</span>
+          Sumber
         </label>
         <select
           {...register("sumber")}
           id="sumber"
+          defaultValue=""
           className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="">Pilih sumber</option>
-          {Object.entries(SUMBER_LABELS).map(([value, label]) => {
-            // Hide CAPD option for non-CAPD patients
-            if (value === "capd" && !isCAPD) return null;
-            return (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            );
-          })}
+          <option value="" disabled>
+            Pilih sumber
+          </option>
+          {getSumberOptions(watchedTipe, isCAPD).map((value) => (
+            <option key={value} value={value}>
+              {SUMBER_LABELS[value]}
+            </option>
+          ))}
         </select>
+        {errors.sumber && (
+          <p className="mt-1 text-xs text-destructive font-sans">
+            {errors.sumber.message}
+          </p>
+        )}
       </div>
 
       {/* ── CAPD-specific fields — only when isCAPD AND keluar ── */}

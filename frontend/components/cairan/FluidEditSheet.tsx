@@ -22,7 +22,14 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Pencil, AlertTriangle } from "lucide-react";
-import { SUMBER_LABELS, CAPD_KONSENTRASI_LABELS, KONDISI_KELUAR_LABELS, ABNORMAL_KONDISI } from "@/lib/validators/fluid.schema";
+import {
+  SUMBER_LABELS,
+  CAPD_KONSENTRASI_LABELS,
+  KONDISI_KELUAR_LABELS,
+  ABNORMAL_KONDISI,
+  FLUID_SUMBER,
+  getSumberOptions,
+} from "@/lib/validators/fluid.schema";
 
 interface FluidEntry {
   id: string;
@@ -43,8 +50,13 @@ interface FluidEditSheetProps {
   onSaved?: () => void;
 }
 
+// F1 (quick-260705-9n4 task 11): sumber is REQUIRED here too, matching
+// CatatCairanForm's create schema — an edit must not be able to clear/leave
+// this field blank when the create flow now enforces it.
 const editSchema = z.object({
-  sumber: z.string().optional().nullable(),
+  sumber: z.enum(FLUID_SUMBER, {
+    errorMap: () => ({ message: "Pilih sumber cairan" }),
+  }),
   konsentrasiCapd: z.string().optional().nullable(),
   volume: z.number({ required_error: "Volume wajib diisi", invalid_type_error: "Volume harus angka" }).positive("Volume harus > 0"),
   kondisiKeluar: z.string().optional().nullable(),
@@ -68,7 +80,11 @@ export default function FluidEditSheet({
     resolver: zodResolver(editSchema) as any,
     defaultValues: {
       volume: entry.volume,
-      sumber: entry.sumber ?? null,
+      // entry.sumber is typed string|null (legacy rows created before this
+      // field was required may still be null) — cast so a pre-existing null
+      // renders as the unselected placeholder rather than a type error; the
+      // resolver still enforces a valid selection before the form submits.
+      sumber: (entry.sumber as EditFormData["sumber"]) ?? undefined,
       konsentrasiCapd: entry.konsentrasiCapd ?? null,
       kondisiKeluar: entry.kondisiKeluar ?? null,
       catatan: entry.catatan ?? null,
@@ -78,7 +94,11 @@ export default function FluidEditSheet({
   useEffect(() => {
     reset({
       volume: entry.volume,
-      sumber: entry.sumber ?? null,
+      // entry.sumber is typed string|null (legacy rows created before this
+      // field was required may still be null) — cast so a pre-existing null
+      // renders as the unselected placeholder rather than a type error; the
+      // resolver still enforces a valid selection before the form submits.
+      sumber: (entry.sumber as EditFormData["sumber"]) ?? undefined,
       konsentrasiCapd: entry.konsentrasiCapd ?? null,
       kondisiKeluar: entry.kondisiKeluar ?? null,
       catatan: entry.catatan ?? null,
@@ -141,18 +161,20 @@ export default function FluidEditSheet({
               {errors.volume && <p className="mt-1 text-xs text-destructive">{errors.volume.message}</p>}
             </div>
 
-            {/* Sumber */}
+            {/* Sumber — F1/F2 (quick-260705-9n4 task 11): required, options
+                depend on this entry's tipe + isCAPD (never Urine for masuk,
+                never Makanan/Minuman for keluar). */}
             <div>
-              <label htmlFor="edit-sumber" className="block text-sm font-medium font-sans text-foreground mb-1">Sumber <span className="text-muted-foreground font-normal">(opsional)</span></label>
+              <label htmlFor="edit-sumber" className="block text-sm font-medium font-sans text-foreground mb-1">Sumber</label>
               <Controller name="sumber" control={control} render={({ field }) => (
                 <select {...field} value={field.value ?? ""} id="edit-sumber" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="">Pilih sumber</option>
-                  {Object.entries(SUMBER_LABELS).map(([v, lbl]) => {
-                    if (v === "capd" && !isCAPD) return null;
-                    return <option key={v} value={v}>{lbl}</option>;
-                  })}
+                  <option value="" disabled>Pilih sumber</option>
+                  {getSumberOptions(entry.tipe, isCAPD).map((v) => (
+                    <option key={v} value={v}>{SUMBER_LABELS[v]}</option>
+                  ))}
                 </select>
               )} />
+              {errors.sumber && <p className="mt-1 text-xs text-destructive">{errors.sumber.message}</p>}
             </div>
 
             {/* CAPD fields */}

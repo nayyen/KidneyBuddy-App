@@ -39,43 +39,88 @@ export function computeHasAbnormalCondition(
 
 // ─── Zod validation schema (FLUID-01, T-02-04-03) ────────────────────────────
 
-export const createFluidSchema = z.object({
-  tipe: z.enum(["masuk", "keluar"], {
-    errorMap: () => ({ message: "Tipe harus 'masuk' atau 'keluar'" }),
-  }),
-  sumber: z
-     .enum(["urine", "capd", "lainnya"], {
-      errorMap: () => ({ message: "Sumber tidak valid" }),
-    })
-    .optional()
-    .nullable(),
-  konsentrasiCapd: z
-    .enum(["1.5%", "2.5%", "4.25%", "icodextrin_7.5%", "lainnya"], {
-      errorMap: () => ({ message: "Konsentrasi CAPD tidak valid" }),
-    })
-    .optional()
-    .nullable(),
-  volume: z
-    .number({
-      required_error: "Volume wajib diisi",
-      invalid_type_error: "Volume harus berupa angka",
-    })
-    .positive("Volume harus lebih dari 0 ml"),
-  satuan: z.enum(["ml", "kg"]).default("ml"),
-  kondisiKeluar: z
-    .enum(["jernih", "keruh", "keruh_gumpalan", "berdarah"], {
-      errorMap: () => ({ message: "Kondisi keluar tidak valid" }),
-    })
-    .optional()
-    .nullable(),
-  catatan: z.string().max(2000).optional().nullable(),
-  tanggal: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD")
-    .optional(),
-  waktu: z.string().optional(),
-  isLateEntry: z.boolean().default(false),
-});
+// F2 (quick-260705-9n4 task 11): "makanan"/"minuman" added so the Sumber
+// dropdown can offer Makanan/Minuman for Cairan Masuk (fluid IN) instead of
+// wrongly reusing "urine" (which is a Cairan Keluar/fluid OUT-only source).
+// "urine"/"capd"/"lainnya" are kept — urine remains valid for keluar.
+const FLUID_SUMBER = ["urine", "capd", "lainnya", "makanan", "minuman"] as const;
+const SUMBER_MASUK_ONLY = new Set(["makanan", "minuman"]);
+const SUMBER_KELUAR_ONLY = new Set(["urine"]);
+
+export const createFluidSchema = z
+  .object({
+    tipe: z.enum(["masuk", "keluar"], {
+      errorMap: () => ({ message: "Tipe harus 'masuk' atau 'keluar'" }),
+    }),
+    // F1 (quick-260705-9n4 task 11): Sumber is now a REQUIRED field for every
+    // fluid entry (masuk or keluar) — every entry must say what kind of
+    // fluid it is. Previously optional, which is why the frontend's
+    // "(opsional)" label was misleadingly cosmetic rather than reflecting
+    // real validation.
+    sumber: z.enum(FLUID_SUMBER, {
+      errorMap: (issue) => ({
+        message:
+          issue.code === "invalid_type"
+            ? "Sumber wajib diisi"
+            : "Sumber tidak valid",
+      }),
+    }),
+    konsentrasiCapd: z
+      .enum(["1.5%", "2.5%", "4.25%", "icodextrin_7.5%", "lainnya"], {
+        errorMap: () => ({ message: "Konsentrasi CAPD tidak valid" }),
+      })
+      .optional()
+      .nullable(),
+    volume: z
+      .number({
+        required_error: "Volume wajib diisi",
+        invalid_type_error: "Volume harus berupa angka",
+      })
+      .positive("Volume harus lebih dari 0 ml"),
+    satuan: z.enum(["ml", "kg"]).default("ml"),
+    kondisiKeluar: z
+      .enum(["jernih", "keruh", "keruh_gumpalan", "berdarah"], {
+        errorMap: () => ({ message: "Kondisi keluar tidak valid" }),
+      })
+      .optional()
+      .nullable(),
+    catatan: z.string().max(2000).optional().nullable(),
+    tanggal: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD")
+      .optional(),
+    waktu: z.string().optional(),
+    isLateEntry: z.boolean().default(false),
+  })
+  .superRefine((data, ctx) => {
+    // F2: reject nonsensical tipe/sumber combos server-side too (defense in
+    // depth — the frontend dropdown already restricts the option list per
+    // tipe, but the API must not silently accept a bypassed/direct request).
+    if (data.tipe === "masuk" && SUMBER_KELUAR_ONLY.has(data.sumber)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["sumber"],
+        message: "Urine hanya berlaku untuk Cairan Keluar",
+      });
+    }
+    if (data.tipe === "keluar" && SUMBER_MASUK_ONLY.has(data.sumber)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["sumber"],
+        message: "Makanan/Minuman hanya berlaku untuk Cairan Masuk",
+      });
+    }
+    // Konsentrasi CAPD is required precisely when sumber is the CAPD
+    // exchange source — mirrors the frontend's conditional "(opsional)"
+    // label logic, but now actually enforced.
+    if (data.sumber === "capd" && !data.konsentrasiCapd) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["konsentrasiCapd"],
+        message: "Konsentrasi CAPD wajib diisi untuk sumber Exchange CAPD",
+      });
+    }
+  });
 
 export type CreateFluidPayload = z.infer<typeof createFluidSchema>;
 
@@ -286,12 +331,29 @@ export async function getRecentEntries(
    * Update an existing fluid log entry.
    * Only allows updating volume, sumber, konsentrasiCapd, kondisiKeluar, and catatan.
    * Returns the updated entry or undefined if not found.
+   *
+   * BUGFIX (quick-260705-9n4 task 11 audit): this partial-update path had NO
+   * validation whatsoever — any string could be written to `sumber`,
+   * bypassing createFluidSchema's enum entirely. Added a minimal enum check
+   * on `sumber` (when provided) using the same FLUID_SUMBER set as create,
+   * so an edit can't silently corrupt the field with a value that would
+   * never render correctly in the frontend's Sumber dropdown. Full
+   * tipe-aware cross-field validation (masuk/keluar-only sources) is not
+   * applied here since `tipe` itself is intentionally NOT editable via this
+   * path (not in EDITABLE_FIELDS) — out of scope for this fix.
    */
   export async function updateEntry(
     userId: string,
     id: string,
     data: Record<string, unknown>,
   ) {
+    if (data.sumber !== undefined && data.sumber !== null) {
+      const sumberResult = z.enum(FLUID_SUMBER).safeParse(data.sumber);
+      if (!sumberResult.success) {
+        throw new AppError(400, "INVALID_SUMBER", "Sumber tidak valid");
+      }
+    }
+
     const allowed: Record<string, unknown> = {};
     const EDITABLE_FIELDS = ["volume", "sumber", "konsentrasiCapd", "kondisiKeluar", "catatan"];
     for (const key of EDITABLE_FIELDS) {

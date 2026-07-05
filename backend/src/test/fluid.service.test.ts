@@ -91,7 +91,7 @@ const USER_ID = "00000000-0000-0000-0000-000000000001";
 
 describe("fluidLog schema validation", () => {
   it("volume <= 0 is rejected with a clear message about volume being positive", () => {
-    const result = createFluidSchema.safeParse({ tipe: "masuk", volume: 0, satuan: "ml" });
+    const result = createFluidSchema.safeParse({ tipe: "masuk", sumber: "lainnya", volume: 0, satuan: "ml" });
     assert.strictEqual(result.success, false);
     const msg = result.error?.issues[0]?.message?.toLowerCase() ?? "";
     assert.ok(
@@ -101,18 +101,19 @@ describe("fluidLog schema validation", () => {
   });
 
   it("negative volume is rejected", () => {
-    const result = createFluidSchema.safeParse({ tipe: "masuk", volume: -100, satuan: "ml" });
+    const result = createFluidSchema.safeParse({ tipe: "masuk", sumber: "lainnya", volume: -100, satuan: "ml" });
     assert.strictEqual(result.success, false);
   });
 
   it("invalid tipe enum is rejected", () => {
-    const result = createFluidSchema.safeParse({ tipe: "naik", volume: 100, satuan: "ml" });
+    const result = createFluidSchema.safeParse({ tipe: "naik", sumber: "lainnya", volume: 100, satuan: "ml" });
     assert.strictEqual(result.success, false);
   });
 
   it("invalid kondisiKeluar enum is rejected", () => {
     const result = createFluidSchema.safeParse({
       tipe: "keluar",
+      sumber: "lainnya",
       volume: 500,
       satuan: "ml",
       kondisiKeluar: "merah_darah",
@@ -120,18 +121,54 @@ describe("fluidLog schema validation", () => {
     assert.strictEqual(result.success, false);
   });
 
-  it("valid masuk entry passes schema", () => {
+  // F1 (quick-260705-9n4 task 11): sumber is now REQUIRED — a payload
+  // missing it entirely must be rejected.
+  it("missing sumber is rejected", () => {
     const result = createFluidSchema.safeParse({ tipe: "masuk", volume: 250, satuan: "ml" });
+    assert.strictEqual(result.success, false);
+  });
+
+  it("valid masuk entry passes schema", () => {
+    const result = createFluidSchema.safeParse({ tipe: "masuk", sumber: "makanan", volume: 250, satuan: "ml" });
     assert.strictEqual(result.success, true);
   });
 
   it("valid keluar entry with CAPD condition passes schema", () => {
     const result = createFluidSchema.safeParse({
       tipe: "keluar",
+      sumber: "capd",
       volume: 800,
       satuan: "ml",
       kondisiKeluar: "keruh",
       konsentrasiCapd: "2.5%",
+    });
+    assert.strictEqual(result.success, true);
+  });
+
+  // F2 (quick-260705-9n4 task 11): cross-field validation — Urine only
+  // valid for Cairan Keluar; Makanan/Minuman only valid for Cairan Masuk.
+  it("sumber=urine on tipe=masuk is rejected (Urine is keluar-only)", () => {
+    const result = createFluidSchema.safeParse({ tipe: "masuk", sumber: "urine", volume: 250, satuan: "ml" });
+    assert.strictEqual(result.success, false);
+  });
+
+  it("sumber=makanan on tipe=keluar is rejected (Makanan is masuk-only)", () => {
+    const result = createFluidSchema.safeParse({ tipe: "keluar", sumber: "makanan", volume: 250, satuan: "ml" });
+    assert.strictEqual(result.success, false);
+  });
+
+  it("sumber=capd without konsentrasiCapd is rejected", () => {
+    const result = createFluidSchema.safeParse({ tipe: "masuk", sumber: "capd", volume: 250, satuan: "ml" });
+    assert.strictEqual(result.success, false);
+  });
+
+  it("sumber=capd WITH konsentrasiCapd passes schema", () => {
+    const result = createFluidSchema.safeParse({
+      tipe: "masuk",
+      sumber: "capd",
+      konsentrasiCapd: "1.5%",
+      volume: 250,
+      satuan: "ml",
     });
     assert.strictEqual(result.success, true);
   });
@@ -188,7 +225,7 @@ describe("fluidLog _createEntryCore", () => {
     const store = createInMemoryFluidStore();
     const result = await _createEntryCore(
       USER_ID,
-      { tipe: "keluar", volume: 800, satuan: "ml", kondisiKeluar: "jernih" },
+      { tipe: "keluar", sumber: "urine", volume: 800, satuan: "ml", kondisiKeluar: "jernih" },
       store.insertEntry,
       encrypt,
       decrypt
@@ -201,7 +238,7 @@ describe("fluidLog _createEntryCore", () => {
     const store = createInMemoryFluidStore();
     const result = await _createEntryCore(
       USER_ID,
-      { tipe: "keluar", volume: 800, satuan: "ml", kondisiKeluar: "keruh" },
+      { tipe: "keluar", sumber: "urine", volume: 800, satuan: "ml", kondisiKeluar: "keruh" },
       store.insertEntry,
       encrypt,
       decrypt
@@ -213,7 +250,7 @@ describe("fluidLog _createEntryCore", () => {
     const store = createInMemoryFluidStore();
     const result = await _createEntryCore(
       USER_ID,
-      { tipe: "keluar", volume: 700, satuan: "ml", waktu: "2026-06-25T06:00", isLateEntry: true },
+      { tipe: "keluar", sumber: "lainnya", volume: 700, satuan: "ml", waktu: "2026-06-25T06:00", isLateEntry: true },
       store.insertEntry,
       encrypt,
       decrypt
@@ -227,7 +264,7 @@ describe("fluidLog _createEntryCore", () => {
     const store = createInMemoryFluidStore();
     await _createEntryCore(
       USER_ID,
-      { tipe: "keluar", volume: 500, satuan: "ml", catatan: "Cairan sedikit keruh" },
+      { tipe: "keluar", sumber: "lainnya", volume: 500, satuan: "ml", catatan: "Cairan sedikit keruh" },
       store.insertEntry,
       encrypt,
       decrypt
@@ -244,7 +281,7 @@ describe("fluidLog _createEntryCore", () => {
     const store = createInMemoryFluidStore();
     const result = await _createEntryCore(
       USER_ID,
-      { tipe: "keluar", volume: 500, satuan: "ml", catatan: "Cairan sedikit keruh" },
+      { tipe: "keluar", sumber: "lainnya", volume: 500, satuan: "ml", catatan: "Cairan sedikit keruh" },
       store.insertEntry,
       encrypt,
       decrypt
@@ -257,7 +294,7 @@ describe("fluidLog _createEntryCore", () => {
     const store = createInMemoryFluidStore();
     const result = await _createEntryCore(
       USER_ID,
-      { tipe: "masuk", volume: 250, satuan: "ml" },
+      { tipe: "masuk", sumber: "lainnya", volume: 250, satuan: "ml" },
       store.insertEntry,
       encrypt,
       decrypt
@@ -271,7 +308,7 @@ describe("fluidLog _createEntryCore", () => {
     await assert.rejects(
       () => _createEntryCore(
         USER_ID,
-        { tipe: "masuk", volume: 0, satuan: "ml" },
+        { tipe: "masuk", sumber: "lainnya", volume: 0, satuan: "ml" },
         store.insertEntry,
         encrypt,
         decrypt
