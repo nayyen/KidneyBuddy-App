@@ -6,7 +6,7 @@
  * Three states:
  * 1. No active activity: shows "Mulai Kegiatan" prompt (quiet teal card)
  * 2. Active within estimasiSelesai: shows elapsed "· Xm" duration in teal
- * 3. Active past estimasiSelesai: amber card, red "Terlewat X Menit" indicator
+ * 3. Active past estimasiSelesai: amber card, red "Terlambat X Menit" indicator
  *
  * Timer shows actual elapsed/overdue duration since waktuMulai/estimasiSelesai,
  * ticking live via the `now` state (updated every 60s).
@@ -155,14 +155,14 @@ export default function KegiatanModuleInline({
   const pastEnd = isPastEstimasi(activeActivity.estimasiSelesai, now);
   // quick-260705-r8b bug 3 (frontend): while active and within estimate, show
   // elapsed time since waktuMulai ("· 13m"); once past estimasiSelesai, switch
-  // to "Terlewat X Menit" in the existing red #d4183d overdue color — both
+  // to "Terlambat X Menit" in the existing red #d4183d overdue color — both
   // tick live via the `now` state.
   const durationMinutes = computeDurationMinutes(activeActivity.waktuMulai, now);
   const hours = Math.floor(durationMinutes / 60);
   const mins = durationMinutes % 60;
   const durationText = hours > 0 ? `${hours}j ${mins}m` : `${mins}m`;
   const overdueMinutes = computeOverdueMinutes(activeActivity.estimasiSelesai, now);
-  const indicatorText = pastEnd ? `Terlewat ${overdueMinutes} Menit` : `· ${durationText}`;
+  const indicatorText = pastEnd ? `Terlambat ${overdueMinutes} Menit` : `· ${durationText}`;
 
   return (
     <div

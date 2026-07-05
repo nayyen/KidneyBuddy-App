@@ -286,6 +286,14 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                               <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: overdue ? "#d4183d" : "#2a9d8f", display: "inline-block" }} />
                                 {durText}{overdue ? " · Lebih Dari Waktu Estimasi" : ""}
                             </span>
+                            {overdue && (
+                              <span
+                                className="font-sans font-semibold"
+                                style={{ fontSize: 11, color: "#d4183d", backgroundColor: "#fdecee", borderRadius: 10, padding: "2px 8px" }}
+                              >
+                                Terlambat
+                              </span>
+                            )}
                           </div>
                         )}
 
