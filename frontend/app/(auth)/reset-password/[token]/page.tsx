@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordFormData } from "@/lib/validators/auth.schema";
 import { apiFetch, ApiError } from "@/lib/api";
 
@@ -16,6 +17,8 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -105,14 +108,28 @@ export default function ResetPasswordPage() {
             <label htmlFor="newPassword" className="block text-sm font-medium font-sans text-foreground mb-1">
               Password Baru
             </label>
-            <input
-              {...register("newPassword")}
-              id="newPassword"
-              type="password"
-              autoComplete="new-password"
-              className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Minimal 8 karakter"
-            />
+            <div className="relative">
+              <input
+                {...register("newPassword")}
+                id="newPassword"
+                type={showNewPassword ? "text" : "password"}
+                autoComplete="new-password"
+                className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 pr-11 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Minimal 8 karakter"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((prev) => !prev)}
+                aria-label={showNewPassword ? "Sembunyikan password" : "Tampilkan password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3d6b66] hover:text-primary"
+              >
+                {showNewPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             {errors.newPassword && (
               <p className="mt-1 text-xs text-destructive font-sans">{errors.newPassword.message}</p>
             )}
@@ -123,14 +140,28 @@ export default function ResetPasswordPage() {
             <label htmlFor="konfirmasiPassword" className="block text-sm font-medium font-sans text-foreground mb-1">
               Konfirmasi Password Baru
             </label>
-            <input
-              {...register("konfirmasiPassword")}
-              id="konfirmasiPassword"
-              type="password"
-              autoComplete="new-password"
-              className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Ulangi password"
-            />
+            <div className="relative">
+              <input
+                {...register("konfirmasiPassword")}
+                id="konfirmasiPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 pr-11 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Ulangi password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3d6b66] hover:text-primary"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             {errors.konfirmasiPassword && (
               <p className="mt-1 text-xs text-destructive font-sans">{errors.konfirmasiPassword.message}</p>
             )}
