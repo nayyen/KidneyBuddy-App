@@ -61,6 +61,13 @@ interface HumanFluidChartProps {
 //   Leg:       y=142–237, straight uniform column (width 18 each)
 //   Foot:      y=237–246, semi-circle radius 9
 //   Crotch:    small center gap x=56–64
+// B1 fix (quick-260705-9n4 task 6): the two foot-sole arcs' sweep-flag was
+// `1`, which (per the SVG arc spec — verified by hand-computing the arc
+// center/sweep) draws the semicircle bulging UPWARD into the leg (concave,
+// like a notch cut into the foot) instead of downward away from it (convex,
+// a normal rounded foot bottom). Flipped both sole arcs' sweep-flag to `0`
+// so they bulge outward/downward instead. ONLY these two arc commands
+// changed — head, torso, arms, and the rest of the legs are untouched.
 const BODY_PATH = `
 M 45 40
 C 35 42 28 48 24 58
@@ -71,12 +78,12 @@ C 40 68 41 62 42 58
 L 42 120
 C 42 128 40 136 38 142
 L 38 237
-A 9 9 0 0 1 56 237
+A 9 9 0 0 0 56 237
 L 56 142
 C 56 138 57 134 60 134
 C 63 134 64 138 64 142
 L 64 237
-A 9 9 0 0 1 82 237
+A 9 9 0 0 0 82 237
 L 82 142
 C 80 136 78 128 78 120
 L 78 58

@@ -44,7 +44,15 @@ export default function DeltaCairanCard({
     setIsLoading(true);
     setError(null);
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      // BUGFIX (B2, quick-260705-9n4 task 6): `toISOString()` converts to
+      // UTC, NOT the browser's local timezone. For any device ahead of UTC
+      // (e.g. WIB/UTC+7), the first several hours after LOCAL midnight are
+      // still the PREVIOUS day in UTC — `toISOString().slice(0,10)` would
+      // request YESTERDAY's balance, which still has real data, making the
+      // silhouette/numbers look like they never reset to 0 at local
+      // midnight. Build the date string from local Date components instead.
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
       const data = await authFetch<DailyBalance>(
         `/api/fluid/daily-balance?date=${today}`,
         accessToken,
@@ -63,9 +71,9 @@ export default function DeltaCairanCard({
   }, [fetchBalance, refreshKey]);
 
   // Refetch on tab focus (quick-260705-9n4 task 5) — also covers B2's
-  // daily-reset requirement: returning to /beranda after local midnight
-  // re-derives "today" from the backend's now-user-timezone-correct bounds
-  // instead of letting yesterday's totals persist with no new fetch.
+  // daily-reset requirement: returning to /beranda re-derives "today" (now
+  // local-timezone-correct, see fetchBalance above) instead of letting a
+  // stale date's totals persist with no new fetch across local midnight.
   useEffect(() => {
     const onFocus = () => fetchBalance();
     const onVisibility = () => {
