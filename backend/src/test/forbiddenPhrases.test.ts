@@ -11,6 +11,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   containsForbiddenPhrase,
+  containsFalseContactClaim,
   STATIC_FALLBACK_TEMPLATES,
 } from "../lib/forbiddenPhrases.js";
 
@@ -33,6 +34,42 @@ describe("containsForbiddenPhrase (D-20)", () => {
     assert.strictEqual(
       containsForbiddenPhrase(
         "Sistem mendeteksi penurunan volume cairan keluar yang signifikan. Segera hubungi dokter Anda.",
+      ),
+      false,
+    );
+  });
+});
+
+describe("containsFalseContactClaim (quick-260705-p9y)", () => {
+  it("detects a system-initiated contact claim mid-sentence", () => {
+    assert.strictEqual(
+      containsFalseContactClaim(
+        "Langkah berikutnya adalah kami akan segera menghubungi dokter Anda",
+      ),
+      true,
+    );
+  });
+
+  it("detects another false-contact phrase about the care team", () => {
+    assert.strictEqual(
+      containsFalseContactClaim("kita akan segera menghubungi tim perawatan"),
+      true,
+    );
+  });
+
+  it("detects a passive system-initiated examination claim", () => {
+    assert.strictEqual(
+      containsFalseContactClaim(
+        "Anda akan segera diperiksa lebih lanjut oleh dokter",
+      ),
+      true,
+    );
+  });
+
+  it("returns false for a safe user-initiated instruction", () => {
+    assert.strictEqual(
+      containsFalseContactClaim(
+        "Segera hubungi dokter atau faskes Anda untuk pemeriksaan lebih lanjut.",
       ),
       false,
     );

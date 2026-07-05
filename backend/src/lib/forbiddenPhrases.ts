@@ -41,6 +41,38 @@ export function containsForbiddenPhrase(text: string): boolean {
   return FORBIDDEN_PHRASES.some((phrase) => lower.includes(phrase));
 }
 
+// False-contact-claim phrasing (quick-260705-p9y): the app has NO integration
+// that actually contacts/notifies/coordinates with a doctor, nurse, or
+// hospital on the patient's behalf. Any LLM output implying the system/"we"
+// will do this on the user's behalf is a factually false, patient-safety-
+// adjacent claim and must never surface — checked across ALL severities,
+// unlike FORBIDDEN_PHRASES which is only enforced for severity "tinggi".
+export const FALSE_CONTACT_PHRASES: readonly string[] = [
+  "kami akan menghubungi",
+  "kami akan segera menghubungi",
+  "kita akan menghubungi",
+  "kita akan segera menghubungi",
+  "sistem akan menghubungi",
+  "aplikasi akan menghubungi",
+  "kami hubungi",
+  "menghubungi dokter anda untuk anda",
+  "menghubungi tim perawatan",
+  "menghubungi tim medis",
+  "akan diperiksa oleh dokter",
+  "akan segera diperiksa",
+  "kami akan memberi tahu dokter",
+  "kami akan menginformasikan dokter",
+  "akan meneruskan ke dokter",
+];
+
+/**
+ * Case-insensitive substring check against FALSE_CONTACT_PHRASES.
+ */
+export function containsFalseContactClaim(text: string): boolean {
+  const lower = text.toLowerCase();
+  return FALSE_CONTACT_PHRASES.some((phrase) => lower.includes(phrase));
+}
+
 // Pre-written calm-but-serious Bahasa Indonesia fallback templates, one per
 // tipeAnomali, each including a concrete next step (per D-20). Used only when
 // containsForbiddenPhrase() rejects the LLM's own explanation.
