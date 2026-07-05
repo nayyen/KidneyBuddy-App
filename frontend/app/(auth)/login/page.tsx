@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { loginSchema, type LoginFormData } from "@/lib/validators/auth.schema";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { ApiError } from "@/lib/api";
@@ -13,6 +14,7 @@ import LockoutCountdown from "./_components/LockoutCountdown";
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoginLoading, loginError, lockedUntil, setLockoutFromResponse } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -104,15 +106,30 @@ export default function LoginPage() {
             >
               Password
             </label>
-            <input
-              {...register("password")}
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              disabled={!!lockedUntil && lockedUntil.getTime() > Date.now()}
-              className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="Masukkan password"
-            />
+            <div className="relative">
+              <input
+                {...register("password")}
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                disabled={!!lockedUntil && lockedUntil.getTime() > Date.now()}
+                className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 pr-11 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="Masukkan password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                disabled={!!lockedUntil && lockedUntil.getTime() > Date.now()}
+                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3d6b66] hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
             {errors.password && (
               <p className="mt-1 text-xs text-destructive font-sans">
                 {errors.password.message}
