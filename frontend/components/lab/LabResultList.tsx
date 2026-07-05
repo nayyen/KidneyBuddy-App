@@ -15,6 +15,7 @@ import { authFetch } from "@/lib/api";
 import { Archive, FlaskConical, ChevronRight } from "lucide-react";
 import LabEditSheet from "./LabEditSheet";
 import { toast } from "sonner";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -78,6 +79,7 @@ export default function LabResultList({
       });
       setResults((prev) => prev.filter((r) => r.id !== id));
       toast.success("Item diarsipkan");
+      dispatchSyncEvent(SYNC_EVENTS.LAB_SAVED);
     } catch {
       toast.error("Gagal mengarsipkan");
     } finally {

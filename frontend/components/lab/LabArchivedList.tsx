@@ -11,6 +11,7 @@ import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { Archive, RotateCcw, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
+import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
 
 interface ArchivedLabResult {
   id: string;
@@ -64,6 +65,7 @@ export default function LabArchivedList({
       });
       toast.success("Item dipulihkan");
       setResults((prev) => prev.filter((r) => r.id !== id));
+      dispatchSyncEvent(SYNC_EVENTS.LAB_SAVED);
       onRestored?.();
     } catch {
       toast.error("Gagal memulihkan item");
