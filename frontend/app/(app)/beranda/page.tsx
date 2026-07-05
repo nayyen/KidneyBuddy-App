@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/hooks/useAuth";
 import { authFetch } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import DeltaCairanCard from "@/components/beranda/DeltaCairanCard";
 import NoReminderBanner from "@/components/beranda/NoReminderBanner";
@@ -12,6 +12,7 @@ import ObatCard from "@/components/beranda/ObatCard";
 import CuciDarahCard from "@/components/beranda/CuciDarahCard";
 import PengingatBerikutnyaCard from "@/components/beranda/PengingatBerikutnyaCard";
 import KegiatanModuleInline from "@/components/aktivitas/KegiatanModuleInline";
+import { SYNC_EVENTS } from "@/lib/syncEvents";
 
 interface OnboardingProgress {
   onboardingComplete: boolean;
@@ -29,6 +30,11 @@ export default function DashboardPage() {
     useState<OnboardingProgress | null>(null);
   const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
+  // Real reminder count (Item 8): the no-reminder banner must reflect actual
+  // reminder_schedule rows, not the onboarding.reminderConfigured flag (which
+  // only tracks whether the onboarding wizard step was completed, not whether
+  // the reminder still exists/hasn't been deleted since).
+  const [reminderCount, setReminderCount] = useState<number | null>(null);
 
   // Auth guard + onboarding check
   useEffect(() => {
@@ -52,6 +58,26 @@ export default function DashboardPage() {
         // Silently fail — reminder banner just won't show
       });
   }, [isLoading, isAuthenticated, accessToken, router]);
+
+  // Fetch actual reminder count (Item 8)
+  const fetchReminderCount = useCallback(() => {
+    if (!accessToken) return;
+    authFetch<unknown[]>("/api/reminders", accessToken)
+      .then((res) => setReminderCount(Array.isArray(res) ? res.length : 0))
+      .catch(() => {
+        // Silently fail — banner just won't show while count is unknown
+      });
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (!accessToken) return;
+    fetchReminderCount();
+  }, [accessToken, fetchReminderCount]);
+
+  useEffect(() => {
+    window.addEventListener(SYNC_EVENTS.REMINDER_UPDATED, fetchReminderCount);
+    return () => window.removeEventListener(SYNC_EVENTS.REMINDER_UPDATED, fetchReminderCount);
+  }, [fetchReminderCount]);
 
   // Listen for fluid:saved events to refresh DeltaCairanCard
   useEffect(() => {
@@ -106,8 +132,11 @@ export default function DashboardPage() {
         <AnomalyAlertSection accessToken={accessToken} />
       </div>
 
-      {/* Banners (full width) */}
-      {onboardingProgress && !onboardingProgress.reminderConfigured && (
+      {/* Banners (full width) — gated on the ACTUAL reminder count (not the
+          onboarding.reminderConfigured flag) so it only shows when the user
+          truly has zero reminders; suppressed entirely while the count is
+          still loading (null) to avoid a flash. */}
+      {reminderCount === 0 && (
         <div className="md:col-span-3">
           <NoReminderBanner />
         </div>
