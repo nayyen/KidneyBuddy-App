@@ -13,6 +13,18 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 COPY . .
+
+# NEXT_PUBLIC_* vars are inlined into the client bundle (and into the
+# esbuild-compiled service worker via app/serwist/[path]/route.ts's
+# esbuildOptions.define) at `next build` time — they must be declared as
+# build ARGs and re-exported as ENV so `npm run build` below can see them.
+# Passing them only via docker-compose's `environment:` (runtime) is NOT
+# sufficient (quick-260705-9n4 task 4 audit).
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+
 RUN npm run build
 
 FROM node:20-alpine AS runner

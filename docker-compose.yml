@@ -48,12 +48,22 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # NEXT_PUBLIC_* vars are inlined into the client bundle at `next build`
+      # time, NOT read from the running container's environment — the
+      # `environment:` block below only affects the already-built runtime
+      # container, so these MUST also be passed as build args (quick-260705-9n4
+      # task 4 audit: NEXT_PUBLIC_VAPID_PUBLIC_KEY was silently never reaching
+      # the client bundle, which made subscribeAndRegister() no-op).
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
     container_name: kidneybuddy-frontend
     restart: unless-stopped
     depends_on:
       - backend
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
     ports:
       - "3000:3000"
     networks:
