@@ -118,11 +118,6 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
                 : "Tertunda"}
           </div>
         </div>
-        {isLate && (
-          <p className="font-sans text-xs text-amber-600 mt-1.5 pl-10">
-            Segera minum obat
-          </p>
-        )}
       </button>
 
       {showDetail && (
