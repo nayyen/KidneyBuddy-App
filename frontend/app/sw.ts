@@ -142,7 +142,12 @@ swSelf.addEventListener("push", (event) => {
       // through to notificationclick, which needs it to open/focus the app.
       data: { reminderId: data.reminderId, url: data.url },
       actions: [
-        { action: "confirm", title: "Sudah diminum" },
+        // "Sudah" is intentionally type-agnostic (previously a medication-only
+        // phrase) — this same push handler serves obat, CAPD, and HD reminders,
+        // and clicking it always just opens/focuses the app for the user to
+        // confirm in-app (see notificationclick below), so the label must read
+        // correctly for every reminder jenis, not just medication.
+        { action: "confirm", title: "Sudah" },
         { action: "dismiss", title: "Tutup" },
       ],
     })
