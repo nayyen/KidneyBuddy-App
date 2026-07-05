@@ -62,6 +62,37 @@ export default function AppShell({ children }: AppShellProps) {
     };
   }, [accessToken]);
 
+  // Report the browser's own IANA timezone to the backend once per session
+  // (quick-260705-9n4 task 3) so reminder due-time and "today" bounds are
+  // computed for the user's actual device timezone instead of a hardcoded
+  // WIB assumption. Guarded by localStorage so repeated AppShell mounts
+  // within the same browser don't re-PATCH on every navigation — only fires
+  // when the resolved zone differs from the last value this browser sent.
+  useEffect(() => {
+    if (!accessToken) return;
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (!timezone) return;
+      const lastSent = window.localStorage.getItem("kb_timezone_reported");
+      if (lastSent === timezone) return;
+
+      authFetch("/api/profile/timezone", accessToken, {
+        method: "PATCH",
+        body: JSON.stringify({ timezone }),
+      })
+        .then(() => {
+          window.localStorage.setItem("kb_timezone_reported", timezone);
+        })
+        .catch(() => {
+          // Fail silently — worst case, reminders keep using the last-known
+          // (or default Asia/Jakarta) timezone until a future session succeeds.
+        });
+    } catch {
+      // Intl.DateTimeFormat should always be available in modern browsers,
+      // but never let a timezone-resolution failure block the rest of the app.
+    }
+  }, [accessToken]);
+
   const handleCatatCairan = useCallback(() => {
     setCatatCairanOpen(true);
   }, []);

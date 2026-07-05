@@ -330,7 +330,7 @@ export default function MedicationReminderForm({
           className="block font-sans font-medium mb-1"
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
-          Jam Pengingat <span className="text-[#7a8c8a]">(WIB)</span>
+          Jam Pengingat
         </label>
         <input
           {...register("jamPengingat")}
@@ -345,9 +345,6 @@ export default function MedicationReminderForm({
               : "0.5px solid #cfe8e4",
           }}
         />
-        <p className="mt-0.5 font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
-          Waktu WIB (Waktu Indonesia Barat)
-        </p>
         {errors.jamPengingat && (
           <p className="mt-1 font-sans" style={{ fontSize: 13, color: "#d4183d" }}>
             {errors.jamPengingat.message}

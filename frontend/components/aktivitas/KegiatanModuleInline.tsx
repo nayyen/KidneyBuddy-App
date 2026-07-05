@@ -35,9 +35,12 @@ interface KegiatanModuleInlineProps {
   onCompleteActivity?: (id: string, nama: string) => void;
 }
 
-function formatWIB(isoStr: string): string {
+// Device-timezone formatter (quick-260705-9n4 task 3): omitting `timeZone`
+// lets Intl use the browser's own local timezone instead of a hardcoded
+// Jakarta assumption.
+function formatLocalTime(isoStr: string): string {
   const d = new Date(isoStr);
-  return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
+  return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 }
 
 /**
@@ -168,7 +171,7 @@ export default function KegiatanModuleInline({
             </span>
           </p>
           <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
-            Estimasi selesai: {formatWIB(activeActivity.estimasiSelesai)}
+            Estimasi selesai: {formatLocalTime(activeActivity.estimasiSelesai)}
             {pastEnd && <span className="font-bold text-[#d4183d]"> (Lebih Dari Waktu Estimasi)</span>}
           </p>
         </div>

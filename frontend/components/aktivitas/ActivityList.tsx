@@ -42,32 +42,35 @@ const PERASAAN_COLOR: Record<string, string> = {
   berat: "#d4183d",
 };
 
-function formatWIB(isoStr: string): string {
+// Device-timezone formatters (quick-260705-9n4 task 3): omitting `timeZone`
+// lets Intl use the browser's own local timezone instead of a hardcoded
+// Jakarta assumption, so times display correctly for patients outside Indonesia's western zone.
+function formatLocalTime(isoStr: string): string {
   const d = new Date(isoStr);
-  return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
+  return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatDateWIB(isoStr: string): string {
+function formatLocalDate(isoStr: string): string {
   const d = new Date(isoStr);
-  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
+  return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 }
 
 function getDateKey(isoStr: string): string {
   const d = new Date(isoStr);
-  return d.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" });
+  return d.toLocaleDateString("id-ID");
 }
 
 function isToday(isoStr: string): boolean {
   const d = new Date(isoStr);
   const today = new Date();
-  return d.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }) === today.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" });
+  return d.toLocaleDateString("id-ID") === today.toLocaleDateString("id-ID");
 }
 
 function isYesterday(isoStr: string): boolean {
   const d = new Date(isoStr);
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  return d.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" }) === yesterday.toLocaleDateString("id-ID", { timeZone: "Asia/Jakarta" });
+  return d.toLocaleDateString("id-ID") === yesterday.toLocaleDateString("id-ID");
 }
 
 function computeDurationMinutes(waktuMulai: string, waktuSelesai?: string | null): number {
@@ -172,7 +175,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
     const iso = activitiesInGroup[0].waktuMulai;
     if (isToday(iso)) return "Hari Ini";
     if (isYesterday(iso)) return "Kemarin";
-    return formatDateWIB(iso);
+    return formatLocalDate(iso);
   }
 
   if (isLoading) {
@@ -299,8 +302,8 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                         )}
 
                         <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66", marginTop: 1 }}>
-                          {formatDateWIB(activity.waktuMulai)} · {formatWIB(activity.waktuMulai)}
-                          {activity.waktuSelesai ? ` — ${formatWIB(activity.waktuSelesai)}` : ` — estimasi ${formatWIB(activity.estimasiSelesai)}`}
+                          {formatLocalDate(activity.waktuMulai)} · {formatLocalTime(activity.waktuMulai)}
+                          {activity.waktuSelesai ? ` — ${formatLocalTime(activity.waktuSelesai)}` : ` — estimasi ${formatLocalTime(activity.estimasiSelesai)}`}
                         </p>
                       </div>
 

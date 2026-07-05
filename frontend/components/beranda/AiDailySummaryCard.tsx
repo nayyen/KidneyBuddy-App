@@ -32,12 +32,12 @@ interface DailySummaryResponse {
 
 type CardState = "loading" | "empty" | "generating" | "generated" | "error";
 
-/** WIB display for an ISO timestamp, e.g. "14:05" — mirrors backend wib.ts's UTC+7 shift convention. */
-function formatWibTime(iso: string): string {
-  const wib = new Date(new Date(iso).getTime() + 7 * 3600 * 1000);
-  const hh = String(wib.getUTCHours()).padStart(2, "0");
-  const mm = String(wib.getUTCMinutes()).padStart(2, "0");
-  return `${hh}:${mm}`;
+/**
+ * Device-local time display for an ISO timestamp, e.g. "14:05" (quick-260705-9n4
+ * task 3) — uses the browser's own local timezone instead of a hardcoded +7h shift.
+ */
+function formatLocalTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 }
 
 interface AiDailySummaryCardProps {
@@ -218,7 +218,7 @@ export default function AiDailySummaryCard({ accessToken }: AiDailySummaryCardPr
             </p>
             {createdAt && (
               <p className="font-sans mt-1.5" style={{ fontSize: 11, color: "#7a8c8a" }}>
-                Dibuat pukul {formatWibTime(createdAt)}
+                Dibuat pukul {formatLocalTime(createdAt)}
               </p>
             )}
             <button

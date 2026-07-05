@@ -6,7 +6,7 @@
  * Renders on the Lab tab (/catatan), above <LabTrendChart>. Reads GET
  * /api/ai/weekly-insight (cache-only), with a manual "Buat Wawasan" /
  * "Buat Ulang Wawasan" trigger via POST /api/ai/weekly-insight/regenerate
- * (code review WR-01, 2026-07-04) — the automatic Sunday 19:00 WIB cron
+ * (code review WR-01, 2026-07-04) — the automatic Sunday 19:00 Jakarta-time cron
  * remains the primary trigger, but a missed/failed batch no longer leaves
  * the user stuck for a full week with no way to generate one.
  *
