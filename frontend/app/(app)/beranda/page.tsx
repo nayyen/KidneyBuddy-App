@@ -119,7 +119,6 @@ export default function DashboardPage() {
           accessToken={accessToken}
           refreshKey={activityRefreshKey}
           onMulaiKegiatan={() => { /* logic to open activity sheet */ }}
-          onCompleteActivity={(id, nama) => { /* logic to open completion form */ }}
         />
         <ObatCard accessToken={accessToken} />
         {!isTransplant && (
