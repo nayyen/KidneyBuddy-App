@@ -171,6 +171,16 @@ export default function LifestyleSuggestionCard({
                 {disclaimer}
               </p>
             )}
+            {/* quick-260707-1la item 6: static caption describing the data
+                basis — the suggestion is now grounded in the full lab
+                picture + activity + fluid data, not just one lab value. */}
+            <p
+              className="font-sans mt-2"
+              style={{ fontSize: 12, color: "#3d6b66" }}
+            >
+              Berdasarkan: hasil lab terbaru, aktivitas, dan catatan cairan
+              Anda.
+            </p>
           </>
         )}
       </div>

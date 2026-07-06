@@ -33,6 +33,7 @@ import { groq, GROQ_MODEL } from "../lib/groqClient.js";
 import { appendDisclaimer } from "../lib/aiDisclaimer.js";
 import { encrypt, decrypt } from "../lib/encryption.js";
 import { AppError } from "../middleware/errorHandler.js";
+import { wibDaysAgoStr } from "../utils/wib.js";
 import * as aiLabAnalysisRepo from "../repositories/aiLabAnalysis.repository.js";
 import * as labResultRepo from "../repositories/labResult.repository.js";
 
@@ -87,7 +88,11 @@ function buildLabPrompt(data: LabValueData, history: LabValueData[]): string {
     "spesifik. WAJIB urutan berikut: (1) mulai dengan penjelasan mengenai nilai TERBARU — " +
     "apakah berada dalam rentang normal atau di luar rentang rujukan, (2) jika ada riwayat " +
     "sebelumnya, lanjutkan dengan konteks tren (meningkat/menurun/stabil) dibanding nilai-" +
-    "nilai sebelumnya. Nilai terbaru selalu menjadi fokus utama; riwayat hanya pelengkap konteks."
+    "nilai sebelumnya, (3) TUTUP dengan 1-2 saran konkret dan non-diagnostik mengenai " +
+    "konsumsi makanan/minuman dan aktivitas yang dapat membantu pasien gagal ginjal kronis " +
+    "sehubungan dengan nilai ini (misalnya pilihan makanan rendah kalium, panduan cairan, " +
+    "atau aktivitas ringan yang sesuai) — bukan sekadar membaca nilai. Nilai terbaru selalu " +
+    "menjadi fokus utama; riwayat hanya pelengkap konteks."
   );
 }
 
@@ -126,10 +131,23 @@ export async function getLabAnalysis(
   };
 }
 
-// Dedup guard so concurrent polls for the same labResultId (the GET
+// Dedup guard so concurrent polls for the same labResultId+range (the GET
 // endpoint below is hit every ~3s while the frontend polls) don't each
 // fire an independent Groq call while generation is already in flight.
+// Keyed by labResultId+days so a ranged request and the default (all-data)
+// request never share an in-flight slot.
 const generationInFlight = new Set<string>();
+
+// Item 5(a): a `days`-scoped analysis is NOT persisted to the DB cache
+// (ai_lab_analyses is keyed only by lab_result_id — writing there would
+// clobber the default/all-data cached row). Instead, completed ranged
+// results are held briefly in this in-memory map so the frontend's next
+// poll (after the fire-and-forget generation finishes) can retrieve them.
+const rangedResultCache = new Map<string, LabAnalysisResult>();
+
+function inFlightKey(labResultId: string, days?: number): string {
+  return `${labResultId}:${days ?? "default"}`;
+}
 
 /**
  * Cache-read that ALSO kicks off generation (fire-and-forget, deduped via
@@ -140,25 +158,42 @@ const generationInFlight = new Set<string>();
  * entries created going forward. Still returns `{ ready: false }`-shaped
  * `null` immediately; the frontend's existing poll loop picks up the
  * result once generation finishes and the next poll hits the cache.
+ *
+ * `opts.days` (item 5a): when provided, the analysis follows the trend
+ * chart's currently-selected range rather than the default all-history
+ * view — bypasses the persisted DB cache entirely (see rangedResultCache
+ * above) so changing the range always produces a fresh, non-stale narrative.
  */
 export async function getOrTriggerLabAnalysis(
   userId: string,
   labResultId: string,
+  opts?: { days?: number },
 ): Promise<LabAnalysisResult | null> {
-  const cached = await getLabAnalysis(userId, labResultId);
-  if (cached) return cached;
+  const days = opts?.days;
 
-  if (!generationInFlight.has(labResultId)) {
-    generationInFlight.add(labResultId);
-    generateAndCacheLabAnalysis(userId, labResultId)
+  if (!days) {
+    const cached = await getLabAnalysis(userId, labResultId);
+    if (cached) return cached;
+  } else {
+    const rangedCached = rangedResultCache.get(inFlightKey(labResultId, days));
+    if (rangedCached) return rangedCached;
+  }
+
+  const key = inFlightKey(labResultId, days);
+  if (!generationInFlight.has(key)) {
+    generationInFlight.add(key);
+    generateAndCacheLabAnalysis(userId, labResultId, { days })
+      .then((result) => {
+        if (days) rangedResultCache.set(key, result);
+      })
       .catch((err) => {
         logger.error(
-          { userId, labResultId, err },
+          { userId, labResultId, days, err },
           "on-demand lab analysis generation failed (GET-triggered)",
         );
       })
       .finally(() => {
-        generationInFlight.delete(labResultId);
+        generationInFlight.delete(key);
       });
   }
   return null;
@@ -179,22 +214,38 @@ const MAX_HISTORY_ENTRIES = 10;
  * user, excluding this entry) as trend context — the LATEST value (this
  * entry) is always the primary subject; history is supplementary (see
  * buildLabPrompt).
+ *
+ * `opts.days` (item 5a): when provided, constrains the same-parameter
+ * history fed to the prompt to that lookback window (mirroring the trend
+ * chart's currently-selected range) and skips the persisted DB cache
+ * entirely — always calls Groq fresh so the narrative reflects exactly
+ * what the user currently sees in the trend chart, never a stale
+ * all-history cached row.
  */
 export async function generateAndCacheLabAnalysis(
   userId: string,
   labResultId: string,
+  opts?: { days?: number },
 ): Promise<LabAnalysisResult> {
-  const cached = await getLabAnalysis(userId, labResultId);
-  if (cached) return cached;
+  const days = opts?.days;
+
+  if (!days) {
+    const cached = await getLabAnalysis(userId, labResultId);
+    if (cached) return cached;
+  }
 
   const labResult = await labResultRepo.findById(userId, labResultId);
   if (!labResult) {
     throw new AppError(404, "NOT_FOUND", "Hasil lab tidak ditemukan");
   }
 
-  const sameParameter = await labResultRepo.findByUser(userId, {
+  let sameParameter = await labResultRepo.findByUser(userId, {
     parameter: labResult.namaParameter,
   });
+  if (days) {
+    const cutoff = wibDaysAgoStr(days);
+    sameParameter = sameParameter.filter((r) => r.tanggalPemeriksaan >= cutoff);
+  }
   const history: LabValueData[] = sameParameter
     .filter((r) => r.id !== labResultId)
     .slice(0, MAX_HISTORY_ENTRIES)
@@ -242,8 +293,14 @@ export async function generateAndCacheLabAnalysis(
   }
 
   const withDisclaimer = appendDisclaimer(narrative); // AI-05/D-19, unconditional
-  const encrypted = encrypt(withDisclaimer);
-  await aiLabAnalysisRepo.upsertAnalysis(labResultId, encrypted, false);
+
+  if (!days) {
+    // Default (all-data) case only — persist to the DB cache, unchanged
+    // from prior behavior. Ranged requests are never persisted here (see
+    // rangedResultCache in getOrTriggerLabAnalysis).
+    const encrypted = encrypt(withDisclaimer);
+    await aiLabAnalysisRepo.upsertAnalysis(labResultId, encrypted, false);
+  }
 
   return { labResultId, analisisText: withDisclaimer, isFallback: false, fromCache: false };
 }

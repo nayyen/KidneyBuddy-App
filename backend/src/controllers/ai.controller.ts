@@ -130,7 +130,17 @@ export async function getLabAnalysis(
 ): Promise<void> {
   try {
     const labResultId = req.params.labResultId as string;
-    const result = await aiLabAnalysisService.getOrTriggerLabAnalysis(req.user!.id, labResultId);
+    // Item 5(a): optional ?days= constrains the analysis to the same
+    // lookback window as the currently-displayed trend chart range.
+    const days =
+      typeof req.query.days === "string" && req.query.days !== ""
+        ? parseInt(req.query.days, 10) || undefined
+        : undefined;
+    const result = await aiLabAnalysisService.getOrTriggerLabAnalysis(
+      req.user!.id,
+      labResultId,
+      { days },
+    );
     if (!result) {
       res.json({ ready: false });
       return;

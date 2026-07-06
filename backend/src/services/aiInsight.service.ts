@@ -19,10 +19,11 @@ import { groq, GROQ_MODEL } from "../lib/groqClient.js";
 import { appendDisclaimer } from "../lib/aiDisclaimer.js";
 import { encrypt, decrypt } from "../lib/encryption.js";
 import { AppError } from "../middleware/errorHandler.js";
-import { wibDateStr, wibDaysAgoStr, wibIsoWeekKey } from "../utils/wib.js";
+import { wibDateStr, wibDaysAgoStr, wibIsoWeekKey, wibDayBounds } from "../utils/wib.js";
 import * as aiWeeklyInsightRepo from "../repositories/aiWeeklyInsight.repository.js";
 import * as reportRepo from "../repositories/report.repository.js";
 import * as labResultRepo from "../repositories/labResult.repository.js";
+import * as dailyActivityRepo from "../repositories/dailyActivity.repository.js";
 import type { CAPDConditionCounts } from "../repositories/report.repository.js";
 
 const logger = pino({ name: "aiInsight.service" });
@@ -51,19 +52,30 @@ type WeeklyGatherResult = {
   dialysisConfirmed: number;
   dialysisTotal: number;
   labSummary: string[];
+  activityCount: number;
+  activityCompleted: number;
 };
 
 async function gatherWeeklyData(userId: string): Promise<WeeklyGatherResult> {
   const end = wibDateStr();
   const start = wibDaysAgoStr(LOOKBACK_DAYS);
 
-  const [fluidRows, capd, medAdherence, dialysisAdherence, labRows] = await Promise.all([
-    reportRepo.getFluidSummaryByRange(userId, start, end),
-    reportRepo.getCAPDConditionsByRange(userId, start, end),
-    reportRepo.getMedicationAdherenceByRange(userId, start, end),
-    reportRepo.getDialysisAdherenceByRange(userId, start, end),
-    labResultRepo.findByUser(userId, { includeArchived: false }),
-  ]);
+  const [fluidRows, capd, medAdherence, dialysisAdherence, labRows, activityRows] =
+    await Promise.all([
+      reportRepo.getFluidSummaryByRange(userId, start, end),
+      reportRepo.getCAPDConditionsByRange(userId, start, end),
+      reportRepo.getMedicationAdherenceByRange(userId, start, end),
+      reportRepo.getDialysisAdherenceByRange(userId, start, end),
+      labResultRepo.findByUser(userId, { includeArchived: false }),
+      // Item 4: activity data was the missing dimension of the 5 gathered
+      // for Wawasan Tren Mingguan — reuse the same date-range query the
+      // /catatan aktivitas tab uses (WIB day bounds spanning the lookback).
+      dailyActivityRepo.findByDate(
+        userId,
+        wibDayBounds(start).start,
+        wibDayBounds(end).end,
+      ),
+    ]);
 
   const recentLabRows = labRows.filter(
     (r) => r.sumber === "manual" && r.tanggalPemeriksaan >= start && r.tanggalPemeriksaan <= end,
@@ -86,6 +98,8 @@ async function gatherWeeklyData(userId: string): Promise<WeeklyGatherResult> {
     labSummary: recentLabRows.map(
       (r) => `${r.namaParameter}: ${r.nilai}${r.satuan ?? ""} (${r.tanggalPemeriksaan})`,
     ),
+    activityCount: activityRows.length,
+    activityCompleted: activityRows.filter((a) => a.status === "selesai").length,
   };
 }
 
@@ -100,7 +114,8 @@ function buildWeeklyPrompt(data: WeeklyGatherResult): string {
     `- Kepatuhan jadwal cuci darah/pertukaran CAPD: ${data.dialysisConfirmed} dari ${data.dialysisTotal} dikonfirmasi\n` +
     `- Hasil lab terbaru: ${
       data.labSummary.length ? data.labSummary.join("; ") : "tidak ada data lab baru"
-    }\n\n` +
+    }\n` +
+    `- Aktivitas: ${data.activityCount} kegiatan tercatat, ${data.activityCompleted} selesai\n\n` +
     "Tulis wawasan tren singkat (4-6 kalimat) dalam Bahasa Indonesia yang tenang, " +
     "sertakan 1-2 saran konkret dan dapat ditindaklanjuti berdasarkan data di atas, " +
     "tanpa memberi diagnosis."

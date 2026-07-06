@@ -25,9 +25,11 @@ router.get("/weekly-insight", authenticate, aiController.getWeeklyInsight);
 // Sunday 19:00 WIB batch without waiting a full week
 router.post("/weekly-insight/regenerate", authenticate, aiController.regenerateWeeklyInsight);
 
-// GET /api/ai/lab-analysis/:labResultId — cache read of a lab result's AI
-// analysis (AI-03, D-14 async), ALSO triggering on-demand fire-and-forget
-// generation on a cache miss so pre-existing results get analyzed too
+// GET /api/ai/lab-analysis/:labResultId?days=N — cache read of a lab
+// result's AI analysis (AI-03, D-14 async), ALSO triggering on-demand
+// fire-and-forget generation on a cache miss so pre-existing results get
+// analyzed too. Optional ?days= (item 5a) scopes the analysis to the same
+// range as the currently-displayed trend chart.
 router.get("/lab-analysis/:labResultId", authenticate, aiController.getLabAnalysis);
 
 // GET /api/ai/lifestyle — gate-checked lazy-generate-or-cache lifestyle

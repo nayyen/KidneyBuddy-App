@@ -43,6 +43,9 @@ interface LabAnalysisCardProps {
   namaParameter: string;
   nilai: string;
   nilaiRujukan: string | null;
+  // Item 5(a): optional trend-range (days) so the analysis follows the
+  // same window currently shown in LabTrendChart; undefined/0 = all data.
+  days?: number;
 }
 
 /** Parses a reference-range string like "0.6-1.2", "<5", ">10" into bounds. */
@@ -99,6 +102,7 @@ export default function LabAnalysisCard({
   namaParameter,
   nilai,
   nilaiRujukan,
+  days,
 }: LabAnalysisCardProps) {
   const [state, setState] = useState<CardState>("polling");
   const [narrative, setNarrative] = useState("");
@@ -113,8 +117,9 @@ export default function LabAnalysisCard({
 
     const poll = async () => {
       try {
+        const query = days ? `?days=${days}` : "";
         const data = await authFetch<LabAnalysisResponse>(
-          `/api/ai/lab-analysis/${labResultId}`,
+          `/api/ai/lab-analysis/${labResultId}${query}`,
           accessToken,
         );
         if (cancelled) return;
@@ -143,7 +148,7 @@ export default function LabAnalysisCard({
       cancelled = true;
       if (timer) clearTimeout(timer);
     };
-  }, [accessToken, labResultId]);
+  }, [accessToken, labResultId, days]);
 
   const outOfRange = isOutOfRange(nilai, nilaiRujukan);
 

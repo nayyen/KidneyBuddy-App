@@ -34,10 +34,11 @@ import { groq, GROQ_MODEL } from "../lib/groqClient.js";
 import { appendDisclaimer } from "../lib/aiDisclaimer.js";
 import { encrypt, decrypt } from "../lib/encryption.js";
 import { AppError } from "../middleware/errorHandler.js";
-import { wibDateStr, wibDaysAgoStr } from "../utils/wib.js";
+import { wibDateStr, wibDaysAgoStr, wibDayBounds } from "../utils/wib.js";
 import * as aiLifestyleRepo from "../repositories/aiLifestyleSuggestion.repository.js";
 import * as labResultRepo from "../repositories/labResult.repository.js";
 import * as userRepo from "../repositories/user.repository.js";
+import * as dailyActivityRepo from "../repositories/dailyActivity.repository.js";
 
 const logger = pino({ name: "aiLifestyle.service" });
 
@@ -56,7 +57,12 @@ const SYSTEM_PROMPT =
 type LifestyleGatherResult = {
   trackingDays: number;
   therapyMethod: string;
-  latestLab: { namaParameter: string; nilai: string; satuan: string | null; tanggal: string } | null;
+  // Item 6: instead of only the single latest manual lab, surface the most
+  // recent value per distinct parameter within the lookback window — a
+  // fuller lab picture, not just one number.
+  recentLabs: { namaParameter: string; nilai: string; satuan: string | null; tanggal: string }[];
+  activityCount: number;
+  activityCompleted: number;
 };
 
 // trackingDays is threaded through purely for the prompt narrative — it's
@@ -65,40 +71,64 @@ async function gatherLifestyleData(
   userId: string,
   trackingDays: number,
 ): Promise<LifestyleGatherResult> {
-  const [user, labRows] = await Promise.all([
+  const lookbackStart = wibDaysAgoStr(TRACKING_LOOKBACK_DAYS);
+  const lookbackEnd = wibDateStr();
+
+  const [user, labRows, activityRows] = await Promise.all([
     userRepo.findById(userId),
     labResultRepo.findByUser(userId, { includeArchived: false }),
+    // Item 6: same activities range-query pattern reused for AI-02 (item 4)
+    // — grounds the suggestion in what the patient actually did, not just labs.
+    dailyActivityRepo.findByDate(
+      userId,
+      wibDayBounds(lookbackStart).start,
+      wibDayBounds(lookbackEnd).end,
+    ),
   ]);
 
-  const latestManualLab = labRows.find((r) => r.sumber === "manual") ?? null;
+  // Most recent value per distinct manual parameter within the lookback
+  // window (labRows is already ordered newest-first by the repository).
+  const manualLabs = labRows.filter(
+    (r) => r.sumber === "manual" && r.tanggalPemeriksaan >= lookbackStart,
+  );
+  const seenParams = new Set<string>();
+  const recentLabs: LifestyleGatherResult["recentLabs"] = [];
+  for (const r of manualLabs) {
+    if (seenParams.has(r.namaParameter)) continue;
+    seenParams.add(r.namaParameter);
+    recentLabs.push({
+      namaParameter: r.namaParameter,
+      nilai: r.nilai,
+      satuan: r.satuan,
+      tanggal: r.tanggalPemeriksaan,
+    });
+  }
 
   return {
     trackingDays,
     therapyMethod: user?.metodeTerapiAktif ?? "tidak diketahui",
-    latestLab: latestManualLab
-      ? {
-          namaParameter: latestManualLab.namaParameter,
-          nilai: latestManualLab.nilai,
-          satuan: latestManualLab.satuan,
-          tanggal: latestManualLab.tanggalPemeriksaan,
-        }
-      : null,
+    recentLabs,
+    activityCount: activityRows.length,
+    activityCompleted: activityRows.filter((a) => a.status === "selesai").length,
   };
 }
 
 function buildLifestylePrompt(data: LifestyleGatherResult): string {
+  const labLines = data.recentLabs.length
+    ? data.recentLabs
+        .map((l) => `  - ${l.namaParameter}: ${l.nilai}${l.satuan ?? ""} (${l.tanggal})`)
+        .join("\n")
+    : "  belum ada data lab";
+
   return (
     `Data pasien:\n` +
     `- Metode terapi aktif: ${data.therapyMethod}\n` +
     `- Jumlah hari tercatat aktivitas cairan dalam ${TRACKING_LOOKBACK_DAYS} hari terakhir: ${data.trackingDays}\n` +
-    `- Hasil lab terbaru: ${
-      data.latestLab
-        ? `${data.latestLab.namaParameter}: ${data.latestLab.nilai}${data.latestLab.satuan ?? ""} (${data.latestLab.tanggal})`
-        : "belum ada data lab"
-    }\n\n` +
+    `- Aktivitas dalam ${TRACKING_LOOKBACK_DAYS} hari terakhir: ${data.activityCount} kegiatan tercatat, ${data.activityCompleted} selesai\n` +
+    `- Hasil lab terbaru (per parameter):\n${labLines}\n\n` +
     "Tulis saran makanan dan gaya hidup singkat (3-5 kalimat) dalam Bahasa Indonesia yang " +
-    "tenang, konkret dan dapat ditindaklanjuti, disesuaikan dengan metode terapi dan hasil " +
-    "lab di atas, tanpa memberi diagnosis."
+    "tenang, konkret dan dapat ditindaklanjuti, berdasarkan seluruh gambaran lab, aktivitas, " +
+    "dan data cairan di atas, disesuaikan dengan metode terapi, tanpa memberi diagnosis."
   );
 }
 
