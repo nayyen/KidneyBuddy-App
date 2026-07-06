@@ -66,6 +66,16 @@ export default function ReminderList({
       dispatchSyncEvent(SYNC_EVENTS.REMINDER_UPDATED);
   };
 
+  // 3(a) fix (quick-260706-8zc): after a successful EDIT, force a genuine
+  // server refetch instead of merging the stale pre-edit `reminder` prop
+  // ReminderItem's handleEditSuccess used to pass via onUpdated(reminder).
+  // That stale object still held the OLD fotoObat, so a deleted photo kept
+  // showing in the UI even though the backend correctly nulled the column.
+  const handleEdited = async () => {
+    await fetchReminders();
+    dispatchSyncEvent(SYNC_EVENTS.REMINDER_UPDATED);
+  };
+
     if (isLoading) {
       return (
         <div className="space-y-2">
@@ -131,6 +141,7 @@ export default function ReminderList({
                       accessToken={accessToken}
                       onDeleted={handleDeleted}
                       onUpdated={handleUpdated}
+                      onEdited={handleEdited}
                     />
                   ))}
                 </div>
@@ -155,6 +166,7 @@ export default function ReminderList({
                       accessToken={accessToken}
                       onDeleted={handleDeleted}
                       onUpdated={handleUpdated}
+                      onEdited={handleEdited}
                     />
                   ))}
                 </div>

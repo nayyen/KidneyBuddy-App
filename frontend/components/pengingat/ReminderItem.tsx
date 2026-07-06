@@ -41,6 +41,14 @@ interface ReminderItemProps {
   accessToken: string;
   onDeleted?: (id: string) => void;
   onUpdated?: (updated: Reminder) => void;
+  /**
+   * Called after a successful EDIT (not the aktif-toggle path). Should
+   * trigger a genuine server refetch in the parent — quick-260706-8zc
+   * item 3(a): the stale pre-edit `reminder` prop must never be re-merged
+   * into list state after an edit, since it still holds e.g. the OLD
+   * fotoObat even after the backend has nulled it.
+   */
+  onEdited?: () => void;
 }
 
 const HARI_SHORT: Record<string, string> = {
@@ -71,6 +79,7 @@ export default function ReminderItem({
   accessToken,
   onDeleted,
   onUpdated,
+  onEdited,
 }: ReminderItemProps) {
   const [aktif, setAktif] = useState(reminder.aktif);
   const [isToggling, setIsToggling] = useState(false);
@@ -117,7 +126,13 @@ export default function ReminderItem({
 
   const handleEditSuccess = () => {
     setShowEdit(false);
-    onUpdated?.(reminder); // Trigger a refetch in the parent
+    // quick-260706-8zc item 3(a): DO NOT call onUpdated?.(reminder) here —
+    // `reminder` is the STALE pre-edit prop (still holding e.g. the OLD
+    // fotoObat). Force a genuine server refetch instead so the parent's
+    // list state reflects what was actually persisted (e.g. a deleted
+    // photo staying gone). onUpdated(updated) is still used by the
+    // aktif-toggle path above, which passes the REAL PATCH response.
+    onEdited?.();
   }
 
   const { bg, text } = TYPE_BADGE_STYLE[reminder.jenis] ?? TYPE_BADGE_STYLE.obat;
