@@ -72,11 +72,21 @@ export async function updateReminder(
 
     const updated = await remindersService.updateReminder(req.user!.id, id, data);
 
-    // CAREGIVER-02: fire-and-forget push to all devices
-    sendToAllDevices(req.user!.id, {
-      title: "Pengingat Diperbarui",
-      body: "Jadwal pengingat telah diperbarui dari perangkat lain.",
-    }).catch(() => {});
+    // quick-260707-98x: the originating device identifies itself via this
+    // header so it can be excluded from the "updated from another device"
+    // fan-out below — that notice is meant for OTHER devices only.
+    const excludeEndpoint =
+      typeof req.get === "function" ? req.get("X-Push-Endpoint") : undefined;
+
+    // CAREGIVER-02: fire-and-forget push to all devices (except the sender)
+    sendToAllDevices(
+      req.user!.id,
+      {
+        title: "Pengingat Diperbarui",
+        body: "Jadwal pengingat telah diperbarui dari perangkat lain.",
+      },
+      excludeEndpoint || undefined,
+    ).catch(() => {});
 
     res.json(updated);
   } catch (err) {

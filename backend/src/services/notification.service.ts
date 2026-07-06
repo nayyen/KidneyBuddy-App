@@ -78,22 +78,48 @@ export async function fanOut(
 }
 
 /**
+ * Pure helper — returns `subs` unchanged when `excludeEndpoint` is falsy,
+ * otherwise filters out the subscription whose `endpoint` matches it.
+ *
+ * quick-260707-98x: lets the originating device's PATCH request exclude
+ * itself from the "updated from another device" fan-out, since that
+ * notification is meant for OTHER devices only, never the one that made
+ * the change.
+ */
+export function excludeOriginator(
+  subs: PushSubscription[],
+  excludeEndpoint?: string,
+): PushSubscription[] {
+  if (!excludeEndpoint) return subs;
+  return subs.filter((s) => s.endpoint !== excludeEndpoint);
+}
+
+/**
  * Send a notification to ALL active devices for a user.
  * Uses the production web-push client and repository.
+ *
+ * @param excludeEndpoint - Optional push endpoint of the originating device
+ *   (quick-260707-98x). When provided, that device is excluded from the
+ *   fan-out so it doesn't receive a notification about its own action.
  */
 export async function sendToAllDevices(
   userId: string,
   payload: NotificationPayload,
+  excludeEndpoint?: string,
 ): Promise<void> {
   const subs = await findActiveByUser(userId);
+  const targets = excludeOriginator(subs, excludeEndpoint);
 
-  if (subs.length === 0) {
-    logger.info({ userId }, "no active push subscriptions — skipping fan-out");
+  if (targets.length === 0) {
+    logger.info(
+      { userId },
+      "no target devices after excluding originator — skipping fan-out",
+    );
     return;
   }
 
   await fanOut(
-    subs,
+    targets,
     (sub) =>
       webpush.sendNotification(
         sub.subscriptionObject as Parameters<typeof webpush.sendNotification>[0],

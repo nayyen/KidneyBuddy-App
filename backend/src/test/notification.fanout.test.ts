@@ -17,7 +17,7 @@ import assert from "node:assert";
 // Set ENCRYPTION_KEY for transitive imports that load encryption.ts
 process.env.ENCRYPTION_KEY = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
 
-const { fanOut } = await import("../services/notification.service.js");
+const { fanOut, excludeOriginator } = await import("../services/notification.service.js");
 import type { PushSubscription } from "../repositories/pushSubscription.repository.js";
 
 // Helper: create a minimal PushSubscription mock row
@@ -133,5 +133,34 @@ describe("notification fan-out", () => {
     assert.strictEqual(deactivatedIds.length, 2, "both gone-1 and gone-2 must be deactivated");
     assert.ok(deactivatedIds.includes("gone-1"), "gone-1 deactivated");
     assert.ok(deactivatedIds.includes("gone-2"), "gone-2 deactivated");
+  });
+});
+
+describe("exclude originating device", () => {
+  it("with a matching endpoint, returns subs minus the matching row", () => {
+    const subs = [makeSub("a"), makeSub("b"), makeSub("c")];
+    const result = excludeOriginator(subs, "https://push.example.com/b");
+    assert.strictEqual(result.length, 2, "length drops by exactly 1");
+    assert.ok(!result.some((s) => s.id === "b"), "matching row is excluded");
+  });
+
+  it("with undefined excludeEndpoint, returns all subs unchanged", () => {
+    const subs = [makeSub("a"), makeSub("b")];
+    const result = excludeOriginator(subs, undefined);
+    assert.strictEqual(result.length, 2, "no exclusion when no endpoint given");
+    assert.deepStrictEqual(result, subs);
+  });
+
+  it("with a non-matching endpoint, returns all subs unchanged", () => {
+    const subs = [makeSub("a"), makeSub("b")];
+    const result = excludeOriginator(subs, "no-match");
+    assert.strictEqual(result.length, 2, "no-match endpoint excludes nothing");
+    assert.deepStrictEqual(result, subs);
+  });
+
+  it("when the user's ONLY device is the originator, post-exclusion list is empty", () => {
+    const subs = [makeSub("only-device")];
+    const result = excludeOriginator(subs, "https://push.example.com/only-device");
+    assert.strictEqual(result.length, 0, "fan-out target list is empty");
   });
 });
