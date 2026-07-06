@@ -51,9 +51,13 @@ export default function KepatuhanCuciDarah({ dialysisAdherence }: Props) {
             </p>
           </div>
 
-          {/* Summary text */}
+          {/* Summary text — item 8: explicit that this counts scheduled
+              REMINDER sessions (dialysis_log), a different data source
+              than "Kondisi CAPD" below (which counts effluent conditions
+              logged on cairan keluar entries) — the two numbers are
+              expected to differ. */}
           <p className="text-xs font-medium text-[#7a8c8a] text-center">
-            {taken} dari {scheduled} sesi terjadwal dikonfirmasi
+            {taken} dari {scheduled} sesi pengingat cuci darah terjadwal dikonfirmasi
           </p>
 
           {/* Progress bar */}

@@ -2,15 +2,33 @@
  * uploadLab.ts — multer diskStorage configuration for lab file uploads (PDF/JPG/PNG).
  *
  * LAB-05: supports PDF, JPEG, and PNG uploads with 10MB limit.
- * Storage path: /app/uploads/lab-files/ (Docker volume mounted via docker-compose.yml).
+ * Storage path: <project-root>/uploads/lab-files/ (Docker volume mounted via
+ * docker-compose.yml when running in a container).
  * Files are renamed to <uuid>.<ext> for collision-free serving via GET /api/lab/file/:id.
+ *
+ * quick-260707-1la item 11: this file previously hardcoded UPLOAD_DIR to the
+ * Docker-only absolute path `/app/uploads/lab-files`, the same bug already
+ * found and fixed for medication photos in `upload.ts` (quick-260706-573) —
+ * that fix's own file header flagged this exact file as dormant-until-tested.
+ * Deriving the path relative to __dirname (mirrors app.ts's static-serve path
+ * `path.join(__dirname, "../uploads")`) keeps multer's write location and the
+ * static server's read location in agreement whether running inside Docker
+ * or locally via `npm run dev`.
  */
 import multer from "multer";
 import path from "node:path";
 import fs from "node:fs";
 import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR_LAB ?? "/app/uploads/lab-files";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// src/lib -> ../.. -> project root -> uploads/lab-files
+const DEFAULT_UPLOAD_DIR = path.join(__dirname, "../../uploads/lab-files");
+
+// Exported so labResult.controller.ts (serveFile, uploadDelete) reads from
+// the SAME directory this module writes to — never redefine independently.
+export const UPLOAD_DIR = process.env.UPLOAD_DIR_LAB ?? DEFAULT_UPLOAD_DIR;
 
 // Ensure the upload directory exists
 try {

@@ -12,10 +12,14 @@ import DialysisLogList from "@/components/catatan/DialysisLogList";
 import ActivityList from "@/components/aktivitas/ActivityList";
 import LabResultList from "@/components/lab/LabResultList";
 import LabTrendChart from "@/components/lab/LabTrendChart";
-import LabArchivedList from "@/components/lab/LabArchivedList";
 import WeeklyInsightCard from "@/components/lab/WeeklyInsightCard";
 import LabAnalysisCard from "@/components/lab/LabAnalysisCard";
 import type { CreatedLabEntry } from "@/components/lab/InputManualForm";
+import {
+  RANGE_OPTIONS,
+  rangeDaysFor,
+  type RangeLabel,
+} from "@/components/shared/RangeFilterSelect";
 
 type TabId = "cairan" | "obat" | "cucidarah" | "aktivitas" | "lab";
 
@@ -40,7 +44,11 @@ export default function CatatanPage() {
   const [fluidRefreshKey, setFluidRefreshKey] = useState(0);
   const [activityRefreshKey, setActivityRefreshKey] = useState(0);
   const [labRefreshKey, setLabRefreshKey] = useState(0);
-  const [showArchivedLab, setShowArchivedLab] = useState(false);
+  // Item 10: range state lifted here so the results-list range and the
+  // trend-chart range can be interlinked, and so the effective trend range
+  // can be passed into LabAnalysisCard (item 5a).
+  const [labListRange, setLabListRange] = useState<RangeLabel>("Semua data");
+  const [labTrendRange, setLabTrendRange] = useState<RangeLabel>("Semua data");
   // Parameter currently selected in LabTrendChart's dropdown — kept in sync
   // so LabAnalysisCard always analyzes the same parameter the user is
   // viewing the trend for.
@@ -83,6 +91,26 @@ export default function CatatanPage() {
     window.addEventListener("lab:saved", handleLabSaved);
     return () => window.removeEventListener("lab:saved", handleLabSaved);
   }, []);
+
+  // Item 10 interlink rule: when the results-list range is bounded, the
+  // trend range dropdown is constrained to ranges <= that bound (and
+  // "Semua data" is disallowed, since it would imply an unbounded trend
+  // wider than the list actually shows). If the currently-selected trend
+  // range becomes disallowed, clamp it down to the list range itself.
+  const labListDays = rangeDaysFor(labListRange);
+  const disabledTrendLabels =
+    labListDays > 0
+      ? RANGE_OPTIONS.filter((o) => o.days === 0 || o.days > labListDays).map((o) => o.label)
+      : [];
+
+  useEffect(() => {
+    if (disabledTrendLabels.includes(labTrendRange)) {
+      setLabTrendRange(labListRange);
+    }
+    // Only re-run when the LIST range changes (labTrendRange is read, not
+    // depended on, to avoid re-triggering after the corrective set above).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [labListRange]);
 
   // Fetch the most recent lab result FOR THE SELECTED PARAMETER (not just
   // this session's save) so LabAnalysisCard always shows on Lab tab load,
@@ -231,6 +259,7 @@ export default function CatatanPage() {
                 namaParameter={lastSavedLab.namaParameter}
                 nilai={lastSavedLab.nilai}
                 nilaiRujukan={lastSavedLab.nilaiRujukan}
+                days={rangeDaysFor(labTrendRange) || undefined}
               />
             )}
 
@@ -253,44 +282,27 @@ export default function CatatanPage() {
               + Catat Hasil Lab
             </button>
 
-            {/* Trend chart — drives which parameter LabAnalysisCard analyzes */}
+            {/* Trend chart — drives which parameter LabAnalysisCard
+                analyzes. Item 10: range is controlled from here and
+                constrained by the results-list range below. */}
             <LabTrendChart
               accessToken={accessToken}
               refreshKey={labRefreshKey}
               onParameterChange={setSelectedLabParameter}
+              range={labTrendRange}
+              onRangeChange={setLabTrendRange}
+              disabledRangeLabels={disabledTrendLabels}
             />
 
-            {/* Lab results list */}
+            {/* Lab results list — item 7: no more archive UI, delete-with-
+                confirm lives inside the list itself. Item 10: range
+                dropdown, default "Semua data". */}
             <LabResultList
               accessToken={accessToken}
               refreshKey={labRefreshKey}
+              range={labListRange}
+              onRangeChange={setLabListRange}
             />
-
-            {/* Archive link */}
-            <button
-              onClick={() => setShowArchivedLab(!showArchivedLab)}
-              className="w-full font-sans text-sm text-center transition-opacity hover:opacity-80"
-              style={{
-                color: "#3d6b66",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "8px 0",
-              }}
-            >
-              {showArchivedLab ? "Sembunyikan Arsip" : "Lihat Arsip"}
-            </button>
-
-            {/* Archived lab results */}
-            {showArchivedLab && (
-              <LabArchivedList
-                accessToken={accessToken}
-                refreshKey={labRefreshKey}
-                onRestored={() => {
-                  setLabRefreshKey((k) => k + 1);
-                }}
-              />
-            )}
           </div>
         )}
       </div>

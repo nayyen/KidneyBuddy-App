@@ -133,6 +133,12 @@ export async function list(
  * GET /api/fluid/recent?days=N
  * Returns fluid log entries from the last N days (default 7), including
  * the tanggal field so the frontend can group by date sections.
+ *
+ * Item 13: the old `Math.min(..., 30)` cap silently truncated the shared
+ * range-filter presets (90/180/365 hari) down to 30 — raised to a generous
+ * upper bound (3650 days ~= 10 years) that still guards against absurd
+ * values but allows every preset in the shared range-filter design
+ * (Semua data/30/90/180/365 hari) to work.
  */
 export async function listRecent(
   req: Request,
@@ -142,7 +148,7 @@ export async function listRecent(
   try {
     const days =
       typeof req.query.days === "string"
-        ? Math.min(parseInt(req.query.days, 10) || 7, 30)
+        ? Math.min(parseInt(req.query.days, 10) || 7, 3650)
         : 7;
     const entries = await fluidService.getRecentEntries(req.user!.id, days);
     res.json({ entries });

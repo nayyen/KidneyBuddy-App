@@ -16,6 +16,17 @@ import { authFetch } from "@/lib/api";
 import FluidLogItem from "./FluidLogItem";
 import { Droplets } from "lucide-react";
 import { SYNC_EVENTS } from "@/lib/syncEvents";
+import RangeFilterSelect, {
+  type RangeLabel,
+  rangeDaysFor,
+} from "@/components/shared/RangeFilterSelect";
+
+// Item 13: /api/fluid/recent has no native "all data" concept (it always
+// takes a numeric `days`) — map the shared "Semua data" sentinel (0) to a
+// generous practical value instead of omitting the param (which would
+// default to 7). 3650 days (~10 years) comfortably covers any real usage
+// history for this app.
+const ALL_DATA_DAYS = 3650;
 
 interface FluidEntry {
   id: string;
@@ -83,15 +94,17 @@ export default function FluidLogList({
   const [entries, setEntries] = useState<FluidEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Item 13: range filter, default "Semua data".
+  const [range, setRange] = useState<RangeLabel>("Semua data");
 
   const fetchEntries = useCallback(async () => {
     if (!accessToken) return;
     setIsLoading(true);
     setError(null);
     try {
-      // Fetch recent entries (last 7 days) for date-grouped view
+      const days = rangeDaysFor(range) || ALL_DATA_DAYS;
       const data = await authFetch<{ entries: FluidEntry[] }>(
-        `/api/fluid/recent?days=7`,
+        `/api/fluid/recent?days=${days}`,
         accessToken,
       );
       setEntries(data.entries ?? []);
@@ -100,7 +113,7 @@ export default function FluidLogList({
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, range]);
 
   useEffect(() => {
     fetchEntries();
@@ -129,9 +142,19 @@ export default function FluidLogList({
     };
   }, [fetchEntries]);
 
+  // Item 13: range dropdown stays visible above every state.
+  const rangeDropdown = (
+    <RangeFilterSelect
+      value={range}
+      onChange={setRange}
+      aria-label="Filter rentang catatan cairan"
+    />
+  );
+
   if (isLoading) {
     return (
       <div className="space-y-2">
+        {rangeDropdown}
         {[1, 2, 3].map((i) => (
           <div
             key={i}
@@ -149,60 +172,66 @@ export default function FluidLogList({
 
   if (error) {
     return (
-      <div
-        style={{
-          background: "#fff5f5",
-          border: "0.5px solid #fce4e4",
-          borderRadius: 13,
-          padding: "12px 14px",
-          textAlign: "center",
-        }}
-      >
-        <p className="font-sans" style={{ fontSize: 14, color: "#d4183d" }}>
-          {error}
-        </p>
-        <button
-          onClick={fetchEntries}
-          className="font-sans mt-2"
-          style={{ fontSize: 14, color: "#0d4a44", textDecoration: "underline" }}
+      <div className="space-y-3">
+        {rangeDropdown}
+        <div
+          style={{
+            background: "#fff5f5",
+            border: "0.5px solid #fce4e4",
+            borderRadius: 13,
+            padding: "12px 14px",
+            textAlign: "center",
+          }}
         >
-          Coba lagi
-        </button>
+          <p className="font-sans" style={{ fontSize: 14, color: "#d4183d" }}>
+            {error}
+          </p>
+          <button
+            onClick={fetchEntries}
+            className="font-sans mt-2"
+            style={{ fontSize: 14, color: "#0d4a44", textDecoration: "underline" }}
+          >
+            Coba lagi
+          </button>
+        </div>
       </div>
     );
   }
 
   if (entries.length === 0) {
     return (
-      <div
-        className="flex flex-col items-center justify-center py-16 text-center gap-3"
-      >
+      <div className="space-y-3">
+        {rangeDropdown}
         <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: "50%",
-            background: "#f0faf9",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          className="flex flex-col items-center justify-center py-16 text-center gap-3"
         >
-          <Droplets size={22} style={{ color: "#0d4a44" }} />
-        </div>
-        <div>
-          <p
-            className="font-heading font-bold"
-            style={{ fontSize: 14, color: "#1a2e2c" }}
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              background: "#f0faf9",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            Belum ada catatan cairan
-          </p>
-          <p
-            className="font-sans mt-1 max-w-[200px] mx-auto"
-            style={{ fontSize: 14, color: "#3d6b66" }}
-          >
-            Ketuk tombol Catat di bawah untuk mulai mencatat.
-          </p>
+            <Droplets size={22} style={{ color: "#0d4a44" }} />
+          </div>
+          <div>
+            <p
+              className="font-heading font-bold"
+              style={{ fontSize: 14, color: "#1a2e2c" }}
+            >
+              Belum ada catatan cairan
+            </p>
+            <p
+              className="font-sans mt-1 max-w-[200px] mx-auto"
+              style={{ fontSize: 14, color: "#3d6b66" }}
+            >
+              Ketuk tombol Catat di bawah untuk mulai mencatat.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -210,6 +239,7 @@ export default function FluidLogList({
 
   return (
     <div className="space-y-4">
+      {rangeDropdown}
       {(() => {
         // Group entries by tanggal
         const groups: Record<string, FluidEntry[]> = {};

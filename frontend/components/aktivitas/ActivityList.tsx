@@ -12,6 +12,10 @@ import { authFetch } from "@/lib/api";
 import { Clock, CheckCircle2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
+import RangeFilterSelect, {
+  type RangeLabel,
+  rangeDaysFor,
+} from "@/components/shared/RangeFilterSelect";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -107,6 +111,10 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   const [editCatatan, setEditCatatan] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ActivityResult | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // Item 12: range filter, default "Semua data". Client-side filtering
+  // (plan explicitly allows this simplification) since /api/activities/all
+  // already returns every activity with no server-side date bound.
+  const [range, setRange] = useState<RangeLabel>("Semua data");
 
   const fetchActivities = useCallback(async () => {
     if (!accessToken) return;
@@ -174,8 +182,18 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
     } catch { toast.error("Gagal memperbarui"); }
   };
 
+  // Item 12: filter to the selected range window before grouping. "Semua
+  // data" (days=0) applies no filter.
+  const rangeDays = rangeDaysFor(range);
+  const filteredActivities = rangeDays
+    ? activities.filter((a) => {
+        const cutoff = Date.now() - rangeDays * 24 * 3600 * 1000;
+        return new Date(a.waktuMulai).getTime() >= cutoff;
+      })
+    : activities;
+
   // Group by date
-  const groups = activities.reduce<Record<string, ActivityResult[]>>((acc, a) => {
+  const groups = filteredActivities.reduce<Record<string, ActivityResult[]>>((acc, a) => {
     const key = getDateKey(a.waktuMulai);
     if (!acc[key]) acc[key] = [];
     acc[key].push(a);
@@ -199,6 +217,15 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
     return formatLocalDate(iso);
   }
 
+  // Item 12: range dropdown stays visible above every state.
+  const rangeDropdown = (
+    <RangeFilterSelect
+      value={range}
+      onChange={setRange}
+      aria-label="Filter rentang aktivitas"
+    />
+  );
+
   if (isLoading) {
     return <p className="font-sans text-sm" style={{ color: "#3d6b66" }}>Memuat...</p>;
   }
@@ -213,9 +240,21 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
       </div>
     );
   }
+  if (filteredActivities.length === 0) {
+    return (
+      <div className="space-y-4">
+        {rangeDropdown}
+        <div className="text-center py-8">
+          <p className="font-sans font-medium" style={{ fontSize: 14, color: "#3d6b66" }}>Tidak ada aktivitas pada rentang ini</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
+      {rangeDropdown}
+
       {/* Delete confirm — single instance at root, driven by deleteTarget
           (quick-260705-psi task 2), reusing the DeleteReminderConfirm.tsx pattern. */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>

@@ -30,6 +30,11 @@ const CONDITIONS = [
 
 export default function KondisiCAPD({ capdFrequency }: Props) {
   const hasData = Object.values(capdFrequency).some((v) => v > 0);
+  const total =
+    capdFrequency.jernih +
+    capdFrequency.keruh +
+    capdFrequency.keruh_gumpalan +
+    capdFrequency.berdarah;
 
   return (
     <div className="laporan-section-card">
@@ -59,6 +64,16 @@ export default function KondisiCAPD({ capdFrequency }: Props) {
               </div>
             );
           })}
+          {/* item 8: disambiguating subtitle — this section counts EFFLUENT
+              CONDITIONS logged on cairan keluar entries, a different data
+              source than "Kepatuhan Cuci Darah" above (which counts
+              scheduled/confirmed dialysis reminder sessions). Without this,
+              the two totals can look like a contradiction when they simply
+              measure different things. */}
+          <p className="text-xs font-medium text-[#7a8c8a] text-center pt-1">
+            Total {total}x dari catatan cairan keluar — angka ini terpisah
+            dari jumlah sesi terjadwal pada Kepatuhan Cuci Darah di atas.
+          </p>
         </div>
       )}
     </div>

@@ -24,6 +24,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { TrendingUp, FlaskConical } from "lucide-react";
+import RangeFilterSelect, {
+  type RangeLabel,
+  rangeDaysFor,
+} from "@/components/shared/RangeFilterSelect";
 
 interface TrendPoint {
   tanggalPemeriksaan: string;
@@ -44,12 +48,22 @@ interface LabTrendChartProps {
    * included) so a sibling component (e.g. LabAnalysisCard) can stay
    * synced to the same parameter the user is viewing. */
   onParameterChange?: (parameter: string) => void;
+  /** Item 10: range state lifted into catatan/page.tsx so it can be
+   * interlinked with the results-list range and passed to LabAnalysisCard. */
+  range: RangeLabel;
+  onRangeChange: (range: RangeLabel) => void;
+  /** Options to render disabled — set by the parent when the results-list
+   * range constrains which trend ranges are selectable. */
+  disabledRangeLabels?: RangeLabel[];
 }
 
 export default function LabTrendChart({
   accessToken,
   refreshKey = 0,
   onParameterChange,
+  range,
+  onRangeChange,
+  disabledRangeLabels,
 }: LabTrendChartProps) {
   const [parameters, setParameters] = useState<string[]>([]);
   const [selectedParam, setSelectedParam] = useState<string>("");
@@ -84,7 +98,10 @@ export default function LabTrendChart({
     fetchParameters();
   }, [fetchParameters, refreshKey]);
 
-  // Fetch trend data when parameter changes
+  // Fetch trend data when parameter or range changes. Item 10: default is
+  // now ALL data — `days` is only appended to the query when a bounded
+  // range is selected (rangeDaysFor("Semua data") === 0 → omitted, backend
+  // then applies no lower-bound cutoff).
   const fetchTrend = useCallback(async () => {
     if (!selectedParam) {
       setTrendData([]);
@@ -93,8 +110,10 @@ export default function LabTrendChart({
 
     try {
       setLoading(true);
+      const days = rangeDaysFor(range);
+      const daysQuery = days ? `&days=${days}` : "";
       const data = await authFetch<TrendResponse>(
-        `/api/lab/trend?parameter=${encodeURIComponent(selectedParam)}&days=90`,
+        `/api/lab/trend?parameter=${encodeURIComponent(selectedParam)}${daysQuery}`,
         accessToken,
       );
       // Filter to numeric values only for chart
@@ -109,7 +128,7 @@ export default function LabTrendChart({
     } finally {
       setLoading(false);
     }
-  }, [selectedParam, accessToken]);
+  }, [selectedParam, accessToken, range]);
 
   useEffect(() => {
     fetchTrend();
@@ -187,6 +206,16 @@ export default function LabTrendChart({
         ))}
       </select>
 
+      {/* Item 10: range dropdown — default "Semua data", interlinked with
+          the results-list range via disabledRangeLabels from the parent. */}
+      <RangeFilterSelect
+        value={range}
+        onChange={onRangeChange}
+        disabledLabels={disabledRangeLabels}
+        className="w-full rounded-[10px] border border-border bg-input px-3 py-2 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-3"
+        aria-label="Filter rentang tren lab"
+      />
+
       {/* Chart */}
       {loading ? (
         <div className="flex items-center justify-center py-8">
@@ -203,7 +232,7 @@ export default function LabTrendChart({
       ) : (
         <div>
           <div className="text-xs font-sans text-muted-foreground mb-2">
-            {selectedParam}{satuan ? ` (${satuan})` : ""} — 90 hari terakhir
+            {selectedParam}{satuan ? ` (${satuan})` : ""}
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>

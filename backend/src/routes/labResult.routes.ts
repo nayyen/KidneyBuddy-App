@@ -46,4 +46,16 @@ router.patch("/:id/restore", authenticate, labResultController.restore);
 // PUT /api/lab/:id — update a manual lab result entry
 router.put("/:id", authenticate, labResultController.update);
 
+// PUT /api/lab/:id/upload — update a file-upload entry: replace the
+// document + nama/tanggal (item 11); a file is REQUIRED on every submit
+router.put(
+  "/:id/upload",
+  authenticate,
+  labFileUpload.single("file"),
+  labResultController.updateUpload,
+);
+
+// DELETE /api/lab/:id — delete (soft-delete) a lab result (item 7)
+router.delete("/:id", authenticate, labResultController.remove);
+
 export default router;

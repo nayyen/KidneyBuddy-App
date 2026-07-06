@@ -18,9 +18,12 @@
  */
 import { z } from "zod";
 import pino from "pino";
+import fs from "node:fs";
+import path from "node:path";
 import { encrypt as realEncrypt, decrypt as realDecrypt } from "../lib/encryption.js";
 import * as labResultRepository from "../repositories/labResult.repository.js";
 import * as aiLabAnalysisService from "./aiLabAnalysis.service.js";
+import { UPLOAD_DIR as LAB_UPLOAD_DIR } from "../lib/uploadLab.js";
 import type { NewLabResult } from "../repositories/labResult.repository.js";
 
 const logger = pino({ name: "labResult.service" });
@@ -242,16 +245,33 @@ export async function createEntry(
 
 /**
  * List lab results with optional filters.
+ * Item 10: `days` scopes the list to a lookback window (0/undefined = all data).
  */
 export async function listResults(
   userId: string,
-  query?: { tanggal?: string; parameter?: string },
+  query?: { tanggal?: string; parameter?: string; days?: number },
 ): Promise<LabResultResult[]> {
   const rows = await labResultRepository.findByUser(userId, {
     tanggal: query?.tanggal,
     parameter: query?.parameter,
+    days: query?.days,
   });
   return rows.map((row) => formatLabRow(row, realDecrypt));
+}
+
+/**
+ * Item 7: delete a lab result. Implemented as a soft-delete (reuses the
+ * existing archiveById mechanism) — now that "Lihat Arsip" is removed from
+ * the UI, an archived row is simply invisible everywhere, making this a
+ * lower-risk equivalent of a hard delete without losing the audit trail.
+ */
+export async function deleteEntry(
+  userId: string,
+  id: string,
+): Promise<LabResultResult | null> {
+  const row = await labResultRepository.archiveById(userId, id);
+  if (!row) return null;
+  return formatLabRow(row, realDecrypt);
 }
 
 /**
@@ -357,11 +377,14 @@ export interface TrendPoint {
 /**
  * Get trend data for a specific parameter within a lookback window.
  * Returns data points ordered by date ascending.
+ *
+ * Item 10: `days` is optional now — omitted means ALL data (the trend
+ * chart's new default), matching findTrendData's updated contract.
  */
 export async function getTrendData(
   userId: string,
   parameter: string,
-  days: number = 30,
+  days?: number,
 ): Promise<TrendPoint[]> {
   const rows = await labResultRepository.findTrendData(userId, parameter, days);
 
@@ -370,4 +393,63 @@ export async function getTrendData(
     nilai: row.nilai,
     satuan: row.satuan,
   }));
+}
+
+// ─── Upload edit (LAB-05, item 11) ───────────────────────────────────────────
+
+export interface UpdateUploadResult {
+  id: string;
+  fileId: string;
+  tanggalPemeriksaan: string;
+  namaParameter: string;
+  sumber: "upload";
+}
+
+/**
+ * Update a file-upload lab entry: replace the document, and change its
+ * display name (namaParameter) / tanggalPemeriksaan. The caller (controller)
+ * has already verified a new file is present (multer req.file) before
+ * calling this — a file is REQUIRED on every edit submit for upload entries.
+ * Deletes the OLD file from disk after the DB row updates successfully so a
+ * failed update never orphans the new upload while also never leaving two
+ * files referenced.
+ */
+export async function updateUploadEntry(
+  userId: string,
+  id: string,
+  data: {
+    tanggalPemeriksaan: string;
+    namaFile: string;
+    newFileId: string;
+  },
+): Promise<UpdateUploadResult | null> {
+  const existing = await labResultRepository.findById(userId, id);
+  if (!existing || existing.sumber !== "upload") return null;
+
+  const updated = await labResultRepository.updateUploadEntry(userId, id, {
+    tanggalPemeriksaan: data.tanggalPemeriksaan,
+    namaParameter: data.namaFile,
+    fileId: data.newFileId,
+  });
+  if (!updated) return null;
+
+  // Best-effort cleanup of the OLD file — never blocks the response on a
+  // filesystem error (the DB is already the source of truth post-update).
+  if (existing.fileId) {
+    try {
+      const files = fs.readdirSync(LAB_UPLOAD_DIR);
+      const match = files.find((f) => f.startsWith(existing.fileId as string));
+      if (match) fs.unlinkSync(path.join(LAB_UPLOAD_DIR, match));
+    } catch (err) {
+      logger.error({ userId, id, err }, "failed to delete old lab file after upload edit");
+    }
+  }
+
+  return {
+    id: updated.id,
+    fileId: updated.fileId as string,
+    tanggalPemeriksaan: updated.tanggalPemeriksaan,
+    namaParameter: updated.namaParameter,
+    sumber: "upload",
+  };
 }

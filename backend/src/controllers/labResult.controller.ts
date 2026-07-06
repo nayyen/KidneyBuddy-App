@@ -9,8 +9,10 @@ import path from "node:path";
 import fs from "node:fs";
 import * as labResultService from "../services/labResult.service.js";
 import { verifyAccessToken, verifyRefreshToken } from "../utils/jwt.js";
-
-const LAB_UPLOAD_DIR = process.env.UPLOAD_DIR_LAB ?? "/app/uploads/lab-files";
+// quick-260707-1la item 11: reuse the SAME directory uploadLab.ts's multer
+// storage writes to — the old local hardcoded Docker-only path here was the
+// same class of bug already fixed in upload.ts (quick-260706-573).
+import { UPLOAD_DIR as LAB_UPLOAD_DIR } from "../lib/uploadLab.js";
 
 /**
  * POST /api/lab
@@ -31,7 +33,8 @@ export async function create(
 
 /**
  * GET /api/lab
- * List lab results. Supports ?tanggal=YYYY-MM-DD and ?parameter= query params.
+ * List lab results. Supports ?tanggal=YYYY-MM-DD, ?parameter=, and
+ * ?days=N (item 10 — results-list range filter, 0/omitted = all data).
  */
 export async function list(
   req: Request,
@@ -43,12 +46,42 @@ export async function list(
       typeof req.query.tanggal === "string" ? req.query.tanggal : undefined;
     const parameter =
       typeof req.query.parameter === "string" ? req.query.parameter : undefined;
+    const days =
+      typeof req.query.days === "string" && req.query.days !== ""
+        ? parseInt(req.query.days, 10) || undefined
+        : undefined;
 
     const results = await labResultService.listResults(req.user!.id, {
       tanggal,
       parameter,
+      days,
     });
     res.json({ results });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * DELETE /api/lab/:id
+ * Delete (soft-delete) a lab result — item 7 replaces the old
+ * "Arsipkan"/"Lihat Arsip" flow with a direct delete-with-confirm action.
+ */
+export async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const result = await labResultService.deleteEntry(
+      req.user!.id,
+      req.params.id as string,
+    );
+    if (!result) {
+      res.status(404).json({ code: "NOT_FOUND", message: "Hasil lab tidak ditemukan" });
+      return;
+    }
+    res.json({ deleted: true });
   } catch (err) {
     next(err);
   }
@@ -298,8 +331,10 @@ export async function serveFile(
 // ─── Trend (LAB-06) ───────────────────────────────────────────────────────────
 
 /**
- * GET /api/lab/trend?parameter=X&days=30
- * Returns trend data points for a given parameter within the lookback window.
+ * GET /api/lab/trend?parameter=X&days=N
+ * Returns trend data points for a given parameter within the lookback
+ * window. Item 10: `days` now defaults to ALL data (omitted/0 = no lower
+ * bound) instead of a hardcoded 30/90-day window.
  */
 export async function getTrend(
   req: Request,
@@ -310,7 +345,9 @@ export async function getTrend(
     const parameter =
       typeof req.query.parameter === "string" ? req.query.parameter : "";
     const days =
-      typeof req.query.days === "string" ? parseInt(req.query.days, 10) || 30 : 30;
+      typeof req.query.days === "string" && req.query.days !== ""
+        ? parseInt(req.query.days, 10) || undefined
+        : undefined;
 
     if (!parameter) {
       res.status(400).json({ code: "MISSING_PARAMETER", message: "Parameter namaParameter wajib diisi" });
@@ -318,7 +355,52 @@ export async function getTrend(
     }
 
     const data = await labResultService.getTrendData(req.user!.id, parameter, days);
-    res.json({ parameter, days, data });
+    res.json({ parameter, days: days ?? 0, data });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * PUT /api/lab/:id/upload
+ * Item 11: update a file-upload lab entry — replace the document and
+ * change its display name / tanggal. A file is REQUIRED on every submit
+ * (enforced here server-side, mirroring the client-side rule).
+ */
+export async function updateUpload(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.file) {
+      res.status(400).json({ code: "NO_FILE", message: "File pengganti wajib diunggah" });
+      return;
+    }
+
+    const tanggalPemeriksaan =
+      typeof req.body.tanggalPemeriksaan === "string"
+        ? req.body.tanggalPemeriksaan
+        : new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+    const namaFile =
+      typeof req.body.namaFile === "string" && req.body.namaFile.trim()
+        ? req.body.namaFile.trim()
+        : req.file.originalname;
+
+    const newFileId = path.parse(req.file.filename).name;
+
+    const result = await labResultService.updateUploadEntry(req.user!.id, req.params.id as string, {
+      tanggalPemeriksaan,
+      namaFile,
+      newFileId,
+    });
+
+    if (!result) {
+      res.status(404).json({ code: "NOT_FOUND", message: "Hasil lab tidak ditemukan" });
+      return;
+    }
+
+    res.json(result);
   } catch (err) {
     next(err);
   }

@@ -115,6 +115,13 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 !important;
   }
 
+  /* Item 9: tighten the wrapper's space-y-6 (1.5rem) gaps in print — the
+     screen-oriented spacing reads as unnecessary dead space on a printed
+     page, compounding the page-break gap this fix targets. */
+  .laporan-preview-content > * + * {
+    margin-top: 10pt !important;
+  }
+
   /* --- Section cards --- */
   .laporan-section-card {
     page-break-inside: avoid;
@@ -125,6 +132,25 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 16pt;
     background: #ffffff !important;
     box-shadow: none !important;
+  }
+
+  /* --- Item 9 fix: remove the large empty gap between the header block
+     and "Ringkasan Cairan" (the first section card) ---
+     Root cause: Ringkasan Cairan can be tall enough that
+     `page-break-inside: avoid` above can't fit the WHOLE card in the
+     remaining space on page 1 after the header, so the browser pushes the
+     entire card to page 2 — leaving a large blank area at the bottom of
+     page 1. Relax the no-break rule for the FIRST section card only (it
+     can safely split across the page boundary) while every later section
+     keeps the strict no-break rule; also keep the header block glued to
+     whatever follows it so it's never stranded alone at a page bottom. */
+  .laporan-preview-content > .laporan-section-card:first-of-type {
+    page-break-inside: auto;
+  }
+
+  .laporan-preview-content > div:first-child,
+  .laporan-preview-content > [data-slot="separator"] {
+    page-break-after: avoid;
   }
 
   /* --- Adherence metric number (20pt in print) --- */
