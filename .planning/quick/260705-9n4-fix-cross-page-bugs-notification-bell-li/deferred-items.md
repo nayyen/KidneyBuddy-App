@@ -4,17 +4,22 @@ Pre-existing issues discovered during execution that are OUT OF SCOPE for this
 quick task (not caused by any of its 11 tasks) per the executor's scope
 boundary rule. Logged here rather than fixed.
 
-## 1. `npm run build` (tsc) fails on pre-existing debug/one-off scripts
+## 1. ~~`npm run build` (tsc) fails on pre-existing debug/one-off scripts~~ — RESOLVED
 
 Files: `src/test/debug_obat.ts`, `src/test/debug_obat2.ts`, `src/test/debug_sql.ts`,
 `src/test/debug_trace.ts`, `src/test/debug_hari.ts`, `src/test/profile.e2e.ts`
 
-These are ad-hoc debug scripts (not `*.test.ts`, not run by `npm test`) that
-redeclare block-scoped variables across files (tsc treats all files under
-`src/` as part of one compilation unit) and have implicit-`any` errors.
+These were ad-hoc debug scripts (not `*.test.ts`, not run by `npm test`) that
+redeclared block-scoped variables across files (tsc treats all files under
+`src/` as part of one compilation unit) and had implicit-`any` errors.
 Confirmed present before this quick task's first commit (verified via
 `git stash` + `npm run build` against the pre-task HEAD). Not part of any of
 the 11 planned tasks' file lists.
+
+**RESOLVED** in quick task 260706-fak (2026-07-06): all 8 colliding
+no-import/no-export scratch files (including `debug_all.ts`, `debug_err.ts`
+which weren't listed above) were deleted outright, and the two dangling
+`.vscode/tasks.json` shortcuts pointing at them were removed.
 
 ## 2. `req.params` type error in medicationLog.controller.ts / dialysisLog.controller.ts
 

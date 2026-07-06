@@ -20,7 +20,7 @@ failures are in suites/files 05-03 never touched:
 
 Also pre-existing at the `tsc --noEmit` level (not test failures, compile-time only):
 - `src/controllers/dialysisLog.controller.ts` / `medicationLog.controller.ts` — `req.params.logId` typed `string | string[]` (Express typing gap, predates 05-03; the two files were edited by 05-03 only to append the anomaly fire-and-forget trigger, not to touch the pre-existing `logId` destructuring)
-- `src/test/debug_*.ts`, `src/test/profile.e2e.ts` — scratch/debug scripts with duplicate top-level declarations, unrelated to any phase
+- ~~`src/test/debug_*.ts`, `src/test/profile.e2e.ts` — scratch/debug scripts with duplicate top-level declarations, unrelated to any phase~~ — **RESOLVED** (quick task 260706-fak, 2026-07-06): the 8 colliding no-import/no-export scratch files were deleted outright (never part of the automated `*.test.ts` suite).
 
 **Verification these are pre-existing, not introduced by 05-03:** confirmed via `git status --porcelain` before any 05-03 edits — none of the above files appeared in the working tree diff prior to this plan's commits (05-03 only created/modified files listed in its own `files_modified` frontmatter).
 

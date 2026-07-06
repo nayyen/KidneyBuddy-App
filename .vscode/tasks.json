@@ -62,11 +62,6 @@
 			"command": "cd backend ; npm test 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
 		},
 		{
-			"label": "e2e-test",
-			"type": "shell",
-			"command": "docker cp backend/src/test/profile.e2e.ts kidneybuddy-backend:/app/src/test/profile.e2e.ts ; docker exec kidneybuddy-backend node --import tsx src/test/profile.e2e.ts 2>&1 ; Write-Host '' ; Write-Host 'E2E_EXIT:' $LASTEXITCODE"
-		},
-		{
 			"label": "check-frontend-tsc",
 			"type": "shell",
 			"command": "cd frontend ; npx tsc --noEmit 2>&1 ; Write-Host '' ; Write-Host 'TSC_EXIT:' $LASTEXITCODE"
@@ -307,24 +302,9 @@
 			"command": "docker exec kidneybuddy-backend node --import tsx -e \"(async()=>{const BASE='http://localhost:4000';const h={'Content-Type':'application/json'};const r=await fetch(BASE+'/api/auth/login',{method:'POST',headers:h,body:JSON.stringify({email:'mama@gmail.com',password:'Test1234!'})});const d=await r.json();console.log('Login OK, token:',d.accessToken?'yes':'no');const r2=await fetch(BASE+'/api/medication-log/today',{headers:{...h,Authorization:'Bearer '+d.accessToken}});const d2=await r2.json();console.log('Status:',r2.status);console.log('Count:',Array.isArray(d2)?d2.length:typeof d2);if(Array.isArray(d2)&&d2.length>0){console.log('First:',JSON.stringify(d2[0]))}else{console.log('Raw:',JSON.stringify(d2))}})()\" 2>&1 ; Write-Host '' ; Write-Host 'DEBUG_EXIT:' $LASTEXITCODE"
 		},
 		{
-			"label": "run-debug-obat",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_obat.ts kidneybuddy-backend:/app/src/test/debug_obat.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_obat.ts 2>&1 ; Write-Host '' ; Write-Host 'DEBUG_EXIT:' $LASTEXITCODE"
-		},
-		{
 			"label": "check-users",
 			"type": "shell",
 			"command": "echo 'SELECT email FROM users LIMIT 5;' | docker exec -i kidneybuddy-db psql -U kidneybuddy -d kidneybuddy 2>&1 ; Write-Host '' ; Write-Host 'DB_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "run-debug-obat2",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_obat2.ts kidneybuddy-backend:/app/src/test/debug_obat2.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_obat2.ts 2>&1 ; Write-Host '' ; Write-Host 'DEBUG_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "run-debug-sql",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_sql.ts kidneybuddy-backend:/app/src/test/debug_sql.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_sql.ts 2>&1 ; Write-Host '' ; Write-Host 'DEBUG_EXIT:' $LASTEXITCODE"
 		},
 		{
 			"label": "build-backend-obat2",
@@ -335,11 +315,6 @@
 			"label": "restart-backend-obat2",
 			"type": "shell",
 			"command": "docker-compose up -d backend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "verify-obat-fix",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_obat2.ts kidneybuddy-backend:/app/src/test/debug_obat2.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_obat2.ts 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
 		},
 		{
 			"label": "debug-sql-1",
@@ -367,11 +342,6 @@
 			"command": "docker-compose up -d backend 2>&1 ; Write-Host '' ; Write-Host 'UP_EXIT:' $LASTEXITCODE"
 		},
 		{
-			"label": "verify-obat-v3",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_obat2.ts kidneybuddy-backend:/app/src/test/debug_obat2.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_obat2.ts 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
-		},
-		{
 			"label": "check-logs",
 			"type": "shell",
 			"command": "docker-compose logs --tail=30 backend 2>&1 ; Write-Host '' ; Write-Host 'LOG_EXIT:' $LASTEXITCODE"
@@ -382,34 +352,9 @@
 			"command": "docker-compose build backend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
 		},
 		{
-			"label": "final-test-obat",
-			"type": "shell",
-			"command": "docker-compose up -d backend 2>&1 ; docker cp backend/src/test/debug_obat2.ts kidneybuddy-backend:/app/src/test/debug_obat2.ts ; Start-Sleep -Seconds 2 ; docker exec kidneybuddy-backend node --import tsx src/test/debug_obat2.ts 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "test-obat-after-wait",
-			"type": "shell",
-			"command": "Start-Sleep -Seconds 5 ; docker exec kidneybuddy-backend node --import tsx src/test/debug_obat2.ts 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "debug-hari-aktif",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_hari.ts kidneybuddy-backend:/app/src/test/debug_hari.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_hari.ts 2>&1 ; Write-Host '' ; Write-Host 'DEBUG_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "debug-all",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_all.ts kidneybuddy-backend:/app/src/test/debug_all.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_all.ts 2>&1 ; Write-Host '' ; Write-Host 'DEBUG_EXIT:' $LASTEXITCODE"
-		},
-		{
 			"label": "check-service-code",
 			"type": "shell",
 			"command": "docker exec kidneybuddy-backend grep -n 'findActiveObatByUser\\|hariAktif\\|scheduledAsLogs' /app/src/services/medicationLog.service.ts 2>&1 ; Write-Host '' ; Write-Host 'CHECK_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "debug-trace",
-			"type": "shell",
-			"command": "docker cp backend/src/test/debug_trace.ts kidneybuddy-backend:/app/src/test/debug_trace.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_trace.ts 2>&1 ; Write-Host '' ; Write-Host 'DEBUG_EXIT:' $LASTEXITCODE"
 		},
 		{
 			"label": "check-trace-db",
@@ -430,16 +375,6 @@
 			"label": "build-backend-final-v2",
 			"type": "shell",
 			"command": "docker-compose build backend 2>&1 ; Write-Host '' ; Write-Host 'BUILD_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "final-verify-obat",
-			"type": "shell",
-			"command": "docker-compose up -d backend 2>&1 ; Start-Sleep -Seconds 3 ; docker cp backend/src/test/debug_trace.ts kidneybuddy-backend:/app/src/test/debug_trace.ts ; docker exec kidneybuddy-backend node --import tsx src/test/debug_trace.ts 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
-		},
-		{
-			"label": "verify-after-wait",
-			"type": "shell",
-			"command": "Start-Sleep -Seconds 5 ; docker exec kidneybuddy-backend node --import tsx src/test/debug_trace.ts 2>&1 ; Write-Host '' ; Write-Host 'TEST_EXIT:' $LASTEXITCODE"
 		},
 		{
 			"label": "full-tests",
