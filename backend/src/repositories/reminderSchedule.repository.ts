@@ -154,32 +154,14 @@ export function _computeNextUpcomingCore(
       return upcomingToday.filter((r) => r.jamPengingat === nextTime);
     }
 
-    // quick-260705-r8b bug 1: a reminder whose TODAY slot already passed
-    // must never surface again as "next" — not even as tomorrow's
-    // occurrence. It remains owned by today's Obat/Cuci Darah Hari Ini list
-    // for the rest of the day. Without this exclusion, unchecking a
-    // past-due-today reminder removes it from confirmedIds, `active`
-    // re-includes it, upcomingToday is empty (its jamPengingat < currentTime),
-    // and it would otherwise fall through here and "revert" into Pengingat
-    // Berikutnya as tomorrow's slot even though today hasn't ended yet.
-    const tomorrowReminders = reminders.filter((r) => {
-      const hari = (r.hariAktif as string[]) ?? [];
-      if (!hari.includes(tomorrowDay)) return false;
-      const alsoActiveToday = hari.includes(todayDay);
-      const todaySlotPassed = r.jamPengingat < currentTime;
-      if (alsoActiveToday && todaySlotPassed) return false;
-      return true;
-    });
-
-    const earliestTomorrow = tomorrowReminders.sort((a, b) =>
-      a.jamPengingat.localeCompare(b.jamPengingat)
-    );
-
-    if (earliestTomorrow.length > 0) {
-      const nextTime = earliestTomorrow[0].jamPengingat;
-      return earliestTomorrow.filter((r) => r.jamPengingat === nextTime);
-    }
-
+    // quick-260706-epn: tomorrow-fallback removed. The card is now strictly
+    // today-only — when today has no more upcoming reminders, it must show
+    // the empty state ("Tidak ada pengingat berikutnya") rather than
+    // surfacing a reminder that is not active for today's day-of-week (e.g.
+    // a Selasa+Sabtu-only reminder must never appear as "next" on Senin,
+    // even though tomorrow is Selasa). This also subsumes quick-260705-r8b
+    // bug 1 (a today-slot-already-passed reminder reverting into "next"),
+    // since there is no longer any fallback path for it to revert through.
     return [];
   };
 
