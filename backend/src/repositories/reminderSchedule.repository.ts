@@ -3,7 +3,7 @@ import { db } from "../lib/db.js";
 import { reminderSchedule } from "../db/schema/reminderSchedule.schema.js";
 import { users } from "../db/schema/users.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
-import { wibHHmm, wibDayNameLower, wibTomorrowDayNameLower } from "../utils/wib.js";
+import { wibHHmm, wibDayNameLower, wibTomorrowDayNameLower, wibDayBounds } from "../utils/wib.js";
 import { medicationLog } from "../db/schema/medicationLog.schema.js";
 import { dialysisLog } from "../db/schema/dialysisLog.schema.js";
 import { isReminderVisibleForTherapy } from "../lib/therapyReminderScope.js";
@@ -204,9 +204,18 @@ export async function findNextUpcoming(
   const todayDay = wibDayNameLower();
   const tomorrowDay = wibTomorrowDayNameLower();
 
-  // Get IDs of reminders already confirmed today
-  const todayStart = new Date(new Date().setHours(0, 0, 0, 0));
-  const todayEnd = new Date(new Date().setHours(23, 59, 59, 999));
+  // Get IDs of reminders already confirmed today.
+  //
+  // BUG FIX (quick-260707-0uc): `new Date().setHours(0,0,0,0)` uses the
+  // Node process's LOCAL day, which inside the Docker container is UTC, not
+  // WIB. Between 00:00-07:00 WIB that UTC-day window doesn't yet include
+  // "today WIB" at all (it's still "yesterday" in UTC terms until 17:00 UTC
+  // previous day rolls to the new UTC date), wrongly hiding a dose confirmed
+  // yesterday-evening WIB, and after 07:00 WIB it wrongly counts early-
+  // morning-WIB confirmations against the wrong calendar day. Anchoring to
+  // wibDayBounds() (already used by currentTime/todayDay above) makes the
+  // exclusion window match the patient's actual WIB calendar day.
+  const { start: todayStart, end: todayEnd } = wibDayBounds();
 
   const confirmedMedicationIds = (await db
     .select({ reminderId: medicationLog.reminderId })
