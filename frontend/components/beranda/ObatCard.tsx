@@ -17,6 +17,7 @@ import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { Check, Pill } from "lucide-react";
 import { SYNC_EVENTS, dispatchSyncEvent } from "@/lib/syncEvents";
+import { getReminderDueState } from "@/lib/reminderStatus";
 
 interface MedicationEntry {
   id: string;
@@ -186,10 +187,13 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
         <div className="space-y-2">
           {entries.map((entry) => {
             const isConfirmed = entry.status === "dikonfirmasi";
-             const isLate =
-               !isConfirmed &&
-               entry.status === "tertunda" &&
-               new Date(entry.waktuPengingat) < new Date();
+            const dueState = getReminderDueState({
+              isConfirmed,
+              status: entry.status,
+              waktuPengingat: entry.waktuPengingat,
+            });
+            const isLate = dueState === "terlambat";
+            const isSegera = dueState === "segera";
             return (
               <div
                 key={entry.id}
@@ -254,6 +258,14 @@ export default function ObatCard({ accessToken, refreshKey = 0 }: ObatCardProps)
                       Catatan: {entry.catatanWaktu}
                     </p>
                   )}
+                    {isSegera && (
+                      <p
+                        className="font-sans font-medium"
+                        style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}
+                      >
+                        Segera minum obat
+                      </p>
+                    )}
                     {isLate && (
                       <p
                         className="font-sans font-medium"

@@ -13,6 +13,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Check, X } from "lucide-react";
+import { getReminderDueState } from "@/lib/reminderStatus";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
@@ -42,10 +43,13 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
   // instead of showing a broken-image icon.
   const [photoFailed, setPhotoFailed] = useState(false);
   const isConfirmed = log.status === "dikonfirmasi";
-  const isLate =
-    !isConfirmed &&
-    log.status === "tertunda" &&
-    new Date(log.waktuPengingat) < new Date();
+  const dueState = getReminderDueState({
+    isConfirmed,
+    status: log.status,
+    waktuPengingat: log.waktuPengingat,
+  });
+  const isLate = dueState === "terlambat";
+  const isSegera = dueState === "segera";
 
   return (
     <>
@@ -105,6 +109,11 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
                 Catatan: {log.catatanWaktu}
               </p>
             )}
+            {isSegera && (
+              <p className="font-sans font-medium" style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}>
+                Segera minum obat
+              </p>
+            )}
             {isLate && (
               <p className="font-sans font-medium" style={{ fontSize: 13, color: "#d4183d", marginTop: 2 }}>
                 Terlambat — segera minum obat
@@ -120,19 +129,25 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
                 ? "#f0faf9"
                 : isLate
                   ? "#fff5f5"
-                  : "#f3f3f5",
+                  : isSegera
+                    ? "#fdf3e3"
+                    : "#f3f3f5",
               color: isConfirmed
                 ? "#2a9d8f"
                 : isLate
                   ? "#d4183d"
-                  : "#7a8c8a",
+                  : isSegera
+                    ? "#7a4c0a"
+                    : "#7a8c8a",
             }}
           >
             {isConfirmed
               ? `Diminum ${formatTime(log.waktuKonfirmasi!)}`
               : isLate
                 ? "Terlambat"
-                : "Tertunda"}
+                : isSegera
+                  ? "Segera"
+                  : "Tertunda"}
           </div>
         </div>
       </button>

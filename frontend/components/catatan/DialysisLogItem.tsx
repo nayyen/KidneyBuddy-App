@@ -9,6 +9,7 @@
 
 import { Check, Droplets, X } from "lucide-react";
 import { useState } from "react";
+import { getReminderDueState } from "@/lib/reminderStatus";
 
 export interface DialysisLog {
   id: string;
@@ -37,10 +38,15 @@ const JENIS_LABELS: Record<string, string> = {
 export default function DialysisLogItem({ log, onConfirm, onUnconfirm }: DialysisLogItemProps) {
   const [showDetail, setShowDetail] = useState(false);
   const isConfirmed = log.status === "dikonfirmasi";
-  const isLate =
-    !isConfirmed &&
-    log.status === "tertunda" &&
-    new Date(log.waktuPengingat) < new Date();
+  const dueState = getReminderDueState({
+    isConfirmed,
+    status: log.status,
+    waktuPengingat: log.waktuPengingat,
+  });
+  const isLate = dueState === "terlambat";
+  const isSegera = dueState === "segera";
+  const segeraText =
+    log.jenis === "capd" ? "Segera lakukan exchange CAPD" : "Segera lakukan cuci darah";
 
   return (
     <>
@@ -91,6 +97,11 @@ export default function DialysisLogItem({ log, onConfirm, onUnconfirm }: Dialysi
                 Catatan: {log.catatanWaktu}
               </p>
             )}
+            {isSegera && (
+              <p className="font-sans font-medium" style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}>
+                {segeraText}
+              </p>
+            )}
             {isLate && (
               <p className="font-sans font-medium" style={{ fontSize: 13, color: "#ef9f27", marginTop: 2 }}>
                 Terlambat — segera lakukan cuci darah
@@ -106,26 +117,27 @@ export default function DialysisLogItem({ log, onConfirm, onUnconfirm }: Dialysi
                 ? "#f0faf9"
                 : isLate
                   ? "#fff5f5"
-                  : "#f3f3f5",
+                  : isSegera
+                    ? "#fdf3e3"
+                    : "#f3f3f5",
               color: isConfirmed
                 ? "#2a9d8f"
                 : isLate
                   ? "#d4183d"
-                  : "#7a8c8a",
+                  : isSegera
+                    ? "#7a4c0a"
+                    : "#7a8c8a",
             }}
           >
             {isConfirmed
               ? `Selesai ${formatTime(log.waktuKonfirmasi!)}`
               : isLate
                 ? "Terlambat"
-                : "Tertunda"}
+                : isSegera
+                  ? "Segera"
+                  : "Tertunda"}
           </div>
         </div>
-        {isLate && (
-          <p className="font-sans text-xs text-amber-600 mt-1.5 pl-10">
-            Segera lakukan cuci darah
-          </p>
-        )}
       </button>
 
       {showDetail && (
