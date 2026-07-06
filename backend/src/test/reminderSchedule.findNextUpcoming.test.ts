@@ -121,3 +121,80 @@ describe("_computeNextUpcomingCore — item 1 (quick-260706-8zc)", () => {
     assert.equal(result.obat[0].id, "obat-1");
   });
 });
+
+describe("_computeNextUpcomingCore — today-only filtering (quick-260706-epn)", () => {
+  // The tomorrow-fallback branch inside findNext() must not surface
+  // not-active-today reminders (quick-260706-epn). On a given weekday, the
+  // beranda "Pengingat Berikutnya" card must only ever show reminders whose
+  // hariAktif includes TODAY's day-of-week — never a reminder that merely
+  // happens to be active tomorrow.
+
+  it("Test A (obat): a reminder active only Selasa+Sabtu must NOT surface on Senin", () => {
+    const obatTue = makeReminder({
+      id: "obat-tue",
+      jenis: "obat",
+      jamPengingat: "09:00",
+      hariAktif: ["selasa", "sabtu"],
+    });
+
+    const result = _computeNextUpcomingCore(
+      [obatTue],
+      null,
+      { currentTime: "08:00", todayDay: "senin", tomorrowDay: "selasa" },
+    );
+
+    assert.equal(result.obat.length, 0);
+  });
+
+  it("Test B (capd): a reminder active only Selasa+Sabtu must NOT surface on Senin", () => {
+    const capdTue = makeReminder({
+      id: "capd-tue",
+      jenis: "capd",
+      jamPengingat: "10:00",
+      hariAktif: ["selasa", "sabtu"],
+    });
+
+    const result = _computeNextUpcomingCore(
+      [capdTue],
+      "capd",
+      { currentTime: "08:00", todayDay: "senin", tomorrowDay: "selasa" },
+    );
+
+    assert.equal(result.cuciDarah.length, 0);
+  });
+
+  it("Test C (hd): a reminder active only Selasa+Sabtu must NOT surface on Senin", () => {
+    const hdTue = makeReminder({
+      id: "hd-tue",
+      jenis: "hd",
+      jamPengingat: "10:00",
+      hariAktif: ["selasa", "sabtu"],
+    });
+
+    const result = _computeNextUpcomingCore(
+      [hdTue],
+      "hd",
+      { currentTime: "08:00", todayDay: "senin", tomorrowDay: "selasa" },
+    );
+
+    assert.equal(result.cuciDarah.length, 0);
+  });
+
+  it("Test D (positive control): a reminder active TODAY still surfaces", () => {
+    const obatMon = makeReminder({
+      id: "obat-mon",
+      jenis: "obat",
+      jamPengingat: "09:00",
+      hariAktif: ["senin"],
+    });
+
+    const result = _computeNextUpcomingCore(
+      [obatMon],
+      null,
+      { currentTime: "08:00", todayDay: "senin", tomorrowDay: "selasa" },
+    );
+
+    assert.equal(result.obat.length, 1);
+    assert.equal(result.obat[0].id, "obat-mon");
+  });
+});
