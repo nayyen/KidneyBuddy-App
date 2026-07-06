@@ -1,6 +1,6 @@
 [
   {
-    "id": "a862b305-a607-46d7-8f1e-8b080019b798",
+    "id": "e3cc3a3d-b1b7-404f-a722-72d13a1e7f75",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-01-20",
     "kategori": "Fungsi Ginjal",
@@ -14,7 +14,7 @@
     "diarsipkan": false
   },
   {
-    "id": "8fad2dfd-3f2c-41d5-bed7-b585239efd80",
+    "id": "680a6344-0044-423b-8edb-4aed7259455d",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-01-20",
     "kategori": "Fungsi Ginjal",
@@ -28,7 +28,7 @@
     "diarsipkan": false
   },
   {
-    "id": "d2bde634-e816-45ef-8d71-d5c0df829dd3",
+    "id": "b386f5d2-4308-4160-805f-19a25413bf37",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-01-20",
     "kategori": "Darah Lengkap",
@@ -42,7 +42,7 @@
     "diarsipkan": false
   },
   {
-    "id": "342b3657-7779-4f82-b430-8c5868533c2a",
+    "id": "e218fbeb-47d0-43bf-896b-78d8fe40d380",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-01-20",
     "kategori": "Elektrolit",
@@ -56,7 +56,7 @@
     "diarsipkan": false
   },
   {
-    "id": "38ddfadc-4bf4-49a6-b2d0-4e4dd87a1aa4",
+    "id": "b4023a0c-16eb-4aed-95d0-15b594b58cd6",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-01-20",
     "kategori": "Elektrolit",
@@ -70,7 +70,7 @@
     "diarsipkan": false
   },
   {
-    "id": "c1709763-4b71-42c9-aba9-ab5f5478159c",
+    "id": "2fc2a652-f48c-4957-b0bf-cccb396c8f1d",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-02-25",
     "kategori": "Fungsi Ginjal",
@@ -84,7 +84,7 @@
     "diarsipkan": false
   },
   {
-    "id": "0e8380ac-63eb-4ce8-90d6-80e6d717735a",
+    "id": "b4e143bd-48c2-43f2-87ae-ededd88c5b89",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-02-25",
     "kategori": "Fungsi Ginjal",
@@ -98,7 +98,7 @@
     "diarsipkan": false
   },
   {
-    "id": "07427e01-7718-43a8-9f40-7c67089cf607",
+    "id": "2febedc6-d274-4519-b180-2ad768aff243",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-02-25",
     "kategori": "Darah Lengkap",
@@ -112,7 +112,7 @@
     "diarsipkan": false
   },
   {
-    "id": "7390fdf3-9f0c-466e-86b5-d94e0a5cbf9b",
+    "id": "fbd2249d-3287-4cac-983a-dd715206af0a",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-02-25",
     "kategori": "Elektrolit",
@@ -126,7 +126,7 @@
     "diarsipkan": false
   },
   {
-    "id": "5ef2e104-35c6-4c0d-8449-0cb00ed2f550",
+    "id": "b4fa3343-7c6b-4111-9c3a-b560a4f667c1",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-02-25",
     "kategori": "Elektrolit",
@@ -140,7 +140,7 @@
     "diarsipkan": false
   },
   {
-    "id": "baab6d32-2337-41f5-ac42-d9621f7f07c8",
+    "id": "51d4753a-1e9d-462a-8044-4217f5656353",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-04-05",
     "kategori": "Fungsi Ginjal",
@@ -154,7 +154,7 @@
     "diarsipkan": false
   },
   {
-    "id": "dff3c18b-545d-46c8-9d91-a180fd4d6526",
+    "id": "41e02abf-910e-492a-984f-f7118ef43901",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-04-05",
     "kategori": "Fungsi Ginjal",
@@ -168,7 +168,7 @@
     "diarsipkan": false
   },
   {
-    "id": "15d7c3ca-2251-4457-92cd-0da92ec2819e",
+    "id": "7c8ff40a-0109-48c1-838a-7b6a74dd01b5",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-04-05",
     "kategori": "Darah Lengkap",
@@ -182,7 +182,7 @@
     "diarsipkan": false
   },
   {
-    "id": "372fbcd3-220f-41bc-890e-4b3409847918",
+    "id": "fc74d951-d939-4265-b09c-028d1b6f1fdd",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-04-05",
     "kategori": "Elektrolit",
@@ -196,7 +196,7 @@
     "diarsipkan": false
   },
   {
-    "id": "af2bf05f-ab9a-4dfc-aa2b-f3ac6764f4a3",
+    "id": "449c3b85-49ae-4e8e-8f12-cb0adf37a099",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-04-05",
     "kategori": "Elektrolit",
@@ -210,7 +210,7 @@
     "diarsipkan": false
   },
   {
-    "id": "742691d7-b35f-48e2-a220-5537c553ac0e",
+    "id": "b27f3c48-9aba-4291-a88e-a6e7763df5d6",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-05-15",
     "kategori": "Fungsi Ginjal",
@@ -224,7 +224,7 @@
     "diarsipkan": false
   },
   {
-    "id": "c127614a-e280-4e1b-b910-1eae47ea63a9",
+    "id": "ab8d9ebd-a2f3-4569-b864-ac9992ee9f5f",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-05-15",
     "kategori": "Fungsi Ginjal",
@@ -238,7 +238,7 @@
     "diarsipkan": false
   },
   {
-    "id": "e751bd8e-6ea7-4a52-a59e-489f9c92d92d",
+    "id": "7c43ef15-3672-49bf-adbf-e3f8de365976",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-05-15",
     "kategori": "Darah Lengkap",
@@ -252,7 +252,7 @@
     "diarsipkan": false
   },
   {
-    "id": "8bcdd780-0097-4203-babb-5378784a4526",
+    "id": "21520579-3f6d-4e7f-9227-e0775af44621",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-05-15",
     "kategori": "Elektrolit",
@@ -266,7 +266,7 @@
     "diarsipkan": false
   },
   {
-    "id": "45eca573-ff30-409c-a928-94090c49a7e9",
+    "id": "8745655d-d664-4818-b9bd-b5e577c05da3",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-05-15",
     "kategori": "Elektrolit",
@@ -280,7 +280,7 @@
     "diarsipkan": false
   },
   {
-    "id": "14b6cb5b-493c-410e-b3e1-5dc3150e7e66",
+    "id": "dd65dcf3-95aa-4ac3-bfa1-6bc6273434f3",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-06-25",
     "kategori": "Fungsi Ginjal",
@@ -294,7 +294,7 @@
     "diarsipkan": false
   },
   {
-    "id": "5a8f209b-f710-4275-b957-400f1cd97d51",
+    "id": "9bc487bf-071e-4109-b019-e62c26b7039f",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-06-25",
     "kategori": "Fungsi Ginjal",
@@ -308,7 +308,7 @@
     "diarsipkan": false
   },
   {
-    "id": "b03b9257-ba85-4327-927f-17fd999b9c9d",
+    "id": "cd40b638-a078-4cf6-bc9f-44e6450e3a44",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-06-25",
     "kategori": "Darah Lengkap",
@@ -322,7 +322,7 @@
     "diarsipkan": false
   },
   {
-    "id": "bb119590-01ba-4117-8cee-7f754923a8e1",
+    "id": "187ca441-c037-48a7-a99c-b87c9d57ead6",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-06-25",
     "kategori": "Elektrolit",
@@ -336,7 +336,7 @@
     "diarsipkan": false
   },
   {
-    "id": "009c0003-523b-4d34-ac62-f017a2757c9d",
+    "id": "64794215-4947-4328-872c-3d8c9a14f6a9",
     "userId": "11111111-1111-4111-8111-111111111111",
     "tanggalPemeriksaan": "2026-06-25",
     "kategori": "Elektrolit",
@@ -350,7 +350,7 @@
     "diarsipkan": false
   },
   {
-    "id": "1c628e77-9f2c-4fb8-9807-b24056efddbf",
+    "id": "2724cbfb-e19c-43c0-bd51-25967d2a145e",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-01-25",
     "kategori": "Fungsi Ginjal",
@@ -364,7 +364,7 @@
     "diarsipkan": false
   },
   {
-    "id": "adbc6899-b1c0-4ee6-8032-0e9106788dbe",
+    "id": "a8680a7c-2257-4b3a-a6e4-d9f895658be1",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-01-25",
     "kategori": "Fungsi Ginjal",
@@ -378,7 +378,7 @@
     "diarsipkan": false
   },
   {
-    "id": "e8701eaf-2b54-4520-981e-e17a67ce53b4",
+    "id": "c1223878-5375-44fe-b47d-8ca28e7b5372",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-01-25",
     "kategori": "Darah Lengkap",
@@ -392,7 +392,7 @@
     "diarsipkan": false
   },
   {
-    "id": "e6dda257-2a09-424f-9e6e-3ae1b9567c75",
+    "id": "f2e98a17-ec50-4466-aabf-9206f390bb89",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-01-25",
     "kategori": "Elektrolit",
@@ -406,7 +406,7 @@
     "diarsipkan": false
   },
   {
-    "id": "ea96ecce-ab29-42c8-88d7-cd1ba1e28428",
+    "id": "81a6d7a7-f2a6-4412-9529-c7b74e00faf7",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-01-25",
     "kategori": "Elektrolit",
@@ -420,7 +420,7 @@
     "diarsipkan": false
   },
   {
-    "id": "7b61fa8d-b120-46ae-b3ef-9e8ea04c25f3",
+    "id": "51a5c616-d6b0-49be-b371-6512e2c2a4a5",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-05",
     "kategori": "Fungsi Ginjal",
@@ -434,7 +434,7 @@
     "diarsipkan": false
   },
   {
-    "id": "07c783f9-af6d-47a6-8048-c8f6672d63f5",
+    "id": "004ce03e-cae6-4eb4-ad8a-87e439407bb0",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-05",
     "kategori": "Fungsi Ginjal",
@@ -448,7 +448,7 @@
     "diarsipkan": false
   },
   {
-    "id": "9edd7a3b-e91b-447e-b4b1-f3a1cd043cfe",
+    "id": "13b5df43-2c8b-476a-820f-fda162fb005d",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-05",
     "kategori": "Darah Lengkap",
@@ -462,7 +462,7 @@
     "diarsipkan": false
   },
   {
-    "id": "4353e45a-14b3-42ae-a4af-4b7b3b34106e",
+    "id": "89398264-86ca-466d-b2bf-24f879de18ff",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-05",
     "kategori": "Elektrolit",
@@ -476,7 +476,7 @@
     "diarsipkan": false
   },
   {
-    "id": "e199639c-b98a-4814-af7c-454009d8406a",
+    "id": "0a625397-941a-4c93-a380-ff9e1746c97c",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-05",
     "kategori": "Elektrolit",
@@ -490,7 +490,7 @@
     "diarsipkan": false
   },
   {
-    "id": "01ee5c21-1986-4631-b973-761819f05b3a",
+    "id": "cf8d95d8-25d0-465a-90f6-530e6753c5c2",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-27",
     "kategori": "Fungsi Ginjal",
@@ -504,7 +504,7 @@
     "diarsipkan": false
   },
   {
-    "id": "2bb4dc40-9dcc-4f20-b051-b0c0251350f8",
+    "id": "04fc681d-5527-4861-b192-264aade61a9d",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-27",
     "kategori": "Fungsi Ginjal",
@@ -518,7 +518,7 @@
     "diarsipkan": false
   },
   {
-    "id": "7030034f-3417-4939-b69c-1302b0f7c8c8",
+    "id": "bded239b-072d-4faf-a9f9-fc811f171c6d",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-27",
     "kategori": "Darah Lengkap",
@@ -532,7 +532,7 @@
     "diarsipkan": false
   },
   {
-    "id": "123dda63-8fa9-4bbb-877c-d71c14f2cb32",
+    "id": "8c5db665-f7fe-4838-997a-269525ebc359",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-27",
     "kategori": "Elektrolit",
@@ -546,7 +546,7 @@
     "diarsipkan": false
   },
   {
-    "id": "cb564bc5-ee3a-4c91-a16d-2650d9a82298",
+    "id": "b4056ae0-5275-41f3-9a77-cd04ef3addc2",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-03-27",
     "kategori": "Elektrolit",
@@ -560,7 +560,7 @@
     "diarsipkan": false
   },
   {
-    "id": "e0fb4af4-c8a3-40d5-996f-075394f79427",
+    "id": "c2ecaf4b-cacc-4331-8d51-a6a2327bd2a3",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-05-10",
     "kategori": "Fungsi Ginjal",
@@ -574,7 +574,7 @@
     "diarsipkan": false
   },
   {
-    "id": "2484a246-dc3b-4c3a-b922-b47d08cacb1a",
+    "id": "24d405a2-094d-4c69-a86a-f4b0817d57bb",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-05-10",
     "kategori": "Fungsi Ginjal",
@@ -588,7 +588,7 @@
     "diarsipkan": false
   },
   {
-    "id": "be75c2d9-a829-4a7e-9835-4ad657d3def3",
+    "id": "68d2a37e-2ab3-4d54-acf9-51aa319c4234",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-05-10",
     "kategori": "Darah Lengkap",
@@ -602,7 +602,7 @@
     "diarsipkan": false
   },
   {
-    "id": "89151451-92e5-4ccd-9193-0882a711e124",
+    "id": "eadcd6d0-2f5c-42e6-990b-c8d1b17c5ac4",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-05-10",
     "kategori": "Elektrolit",
@@ -616,7 +616,7 @@
     "diarsipkan": false
   },
   {
-    "id": "f01ba585-d4fe-48e1-87ba-983bedfaddf8",
+    "id": "db85ac6e-8e98-4d28-8246-886055bff20c",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-05-10",
     "kategori": "Elektrolit",
@@ -630,7 +630,7 @@
     "diarsipkan": false
   },
   {
-    "id": "95fe49b3-ef84-45c5-8b9a-8540f64c9d65",
+    "id": "93c6e9d9-200b-489b-b83d-10d6211a22c8",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-06-20",
     "kategori": "Fungsi Ginjal",
@@ -644,7 +644,7 @@
     "diarsipkan": false
   },
   {
-    "id": "96336827-d653-43b7-9fa5-f0dc0556e258",
+    "id": "91d35df5-1a57-40b4-bf69-e650c86823d1",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-06-20",
     "kategori": "Fungsi Ginjal",
@@ -658,7 +658,7 @@
     "diarsipkan": false
   },
   {
-    "id": "20a9d722-13c9-42a8-9663-45e675b9eaae",
+    "id": "1ec2b14c-604a-4789-a060-902bcd2112d7",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-06-20",
     "kategori": "Darah Lengkap",
@@ -672,7 +672,7 @@
     "diarsipkan": false
   },
   {
-    "id": "94163eaf-d0ca-4e50-a1fb-6c205bd1bbcd",
+    "id": "331ba4bf-e10c-491d-822d-2a4d10f1c002",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-06-20",
     "kategori": "Elektrolit",
@@ -686,7 +686,7 @@
     "diarsipkan": false
   },
   {
-    "id": "bea101ea-0640-469d-b2a2-5b2d093d3346",
+    "id": "07c31aa2-a967-4826-a6d6-89020a4e8a7c",
     "userId": "22222222-2222-4222-8222-222222222222",
     "tanggalPemeriksaan": "2026-06-20",
     "kategori": "Elektrolit",
@@ -700,7 +700,7 @@
     "diarsipkan": false
   },
   {
-    "id": "7007dc59-8592-44c5-a511-662d7fea273d",
+    "id": "2bccd867-5653-4047-8fc2-7772ece24ef3",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-01-15",
     "kategori": "Fungsi Ginjal",
@@ -714,7 +714,7 @@
     "diarsipkan": false
   },
   {
-    "id": "083841d0-2e70-4ee7-8734-db6356a22dad",
+    "id": "66fe0655-8ebe-41e0-9043-038b1e601194",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-01-15",
     "kategori": "Fungsi Ginjal",
@@ -728,7 +728,7 @@
     "diarsipkan": false
   },
   {
-    "id": "9745ce7f-fa77-46d9-8fe1-f4225c740603",
+    "id": "751d7a16-0062-4a1c-a6e7-e63ae9a03d3e",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-01-15",
     "kategori": "Darah Lengkap",
@@ -742,7 +742,7 @@
     "diarsipkan": false
   },
   {
-    "id": "a202500f-1e95-4e7e-83bb-02230a3c89c9",
+    "id": "629d2d64-4063-433e-b751-695dc4b42d9e",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-01-15",
     "kategori": "Elektrolit",
@@ -756,7 +756,7 @@
     "diarsipkan": false
   },
   {
-    "id": "e55c361b-e685-4c47-aaed-4ed158365b6d",
+    "id": "7c132643-eee3-4c54-819b-84a7ccde01d6",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-01-15",
     "kategori": "Elektrolit",
@@ -770,7 +770,7 @@
     "diarsipkan": false
   },
   {
-    "id": "09388239-fe16-458b-9e26-41cedbeee96d",
+    "id": "daa39478-751f-4714-9369-682d0757edcf",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-02-20",
     "kategori": "Fungsi Ginjal",
@@ -784,7 +784,7 @@
     "diarsipkan": false
   },
   {
-    "id": "33a1236b-24bc-4ee3-8c3a-3db1b7804f27",
+    "id": "bef082ea-c7bf-43b0-a423-baee21fcf7f8",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-02-20",
     "kategori": "Fungsi Ginjal",
@@ -798,7 +798,7 @@
     "diarsipkan": false
   },
   {
-    "id": "2272d13a-1e7f-4568-8a63-440044623b4e",
+    "id": "e80a9c4b-4f9b-43a1-a6d4-68b1e3b2c5bf",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-02-20",
     "kategori": "Darah Lengkap",
@@ -812,7 +812,7 @@
     "diarsipkan": false
   },
   {
-    "id": "db4aed72-5945-4db3-86f5-d24308416000",
+    "id": "3152c4a2-1879-42bb-a691-1258b2a5ce75",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-02-20",
     "kategori": "Elektrolit",
@@ -826,7 +826,7 @@
     "diarsipkan": false
   },
   {
-    "id": "5f19a254-13bf-47e2-98fb-eb47d0c3bf09",
+    "id": "a2590724-b17c-410e-98e6-d24d951a39c5",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-02-20",
     "kategori": "Elektrolit",
@@ -840,7 +840,7 @@
     "diarsipkan": false
   },
   {
-    "id": "6b78d8fe-40d3-40b4-823a-0c16ebaaedd5",
+    "id": "de5b9346-1d8f-45ab-8394-8497262aef5e",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-03-30",
     "kategori": "Fungsi Ginjal",
@@ -854,7 +854,7 @@
     "diarsipkan": false
   },
   {
-    "id": "d015b594-b58c-462f-82a6-52f48c1957f0",
+    "id": "fbc1ae40-f105-4c80-b3a2-0407b54fdb5e",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-03-30",
     "kategori": "Fungsi Ginjal",
@@ -868,7 +868,7 @@
     "diarsipkan": false
   },
   {
-    "id": "bfcccb39-6c8f-4db4-a143-bd48c283f207",
+    "id": "8d45ba57-b0e1-4be3-a031-d4ab2a3fca2f",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-03-30",
     "kategori": "Darah Lengkap",
@@ -882,7 +882,7 @@
     "diarsipkan": false
   },
   {
-    "id": "aeededd8-8c5b-492f-abed-c6d274b519f1",
+    "id": "5a599811-7211-43fa-bc90-2da111a5938c",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-03-30",
     "kategori": "Elektrolit",
@@ -896,7 +896,7 @@
     "diarsipkan": false
   },
   {
-    "id": "802ad768-aff2-43fb-9224-9d3287dcac98",
+    "id": "99e6e269-df83-4285-a21e-c84479931a1a",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-03-30",
     "kategori": "Elektrolit",
@@ -910,7 +910,7 @@
     "diarsipkan": false
   },
   {
-    "id": "3add7152-06af-4ab4-ba33-437c6b81111c",
+    "id": "fe125d7d-6139-4a3a-aadc-b6d229752f2b",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-05-08",
     "kategori": "Fungsi Ginjal",
@@ -924,7 +924,7 @@
     "diarsipkan": false
   },
   {
-    "id": "3ab560a4-f667-4151-9475-3a1e9d362a00",
+    "id": "579a5901-d5ae-4e71-bfbc-9afc5c19e52b",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-05-08",
     "kategori": "Fungsi Ginjal",
@@ -938,7 +938,7 @@
     "diarsipkan": false
   },
   {
-    "id": "444217f5-6563-4341-a02a-bf910e992a98",
+    "id": "1557027e-61e1-4b4a-aa61-05f88732b357",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-05-08",
     "kategori": "Darah Lengkap",
@@ -952,7 +952,7 @@
     "diarsipkan": false
   },
   {
-    "id": "4ff7118e-f439-417c-8ff4-0a010918c143",
+    "id": "edbdb1c1-2e20-4a66-aa04-ebd59eabc229",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-05-08",
     "kategori": "Elektrolit",
@@ -966,7 +966,7 @@
     "diarsipkan": false
   },
   {
-    "id": "8a7b6a74-dd01-45fc-b4d9-51d939526570",
+    "id": "33ff95b6-d1fb-4501-a485-bad6b0ba175a",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-05-08",
     "kategori": "Elektrolit",
@@ -980,7 +980,7 @@
     "diarsipkan": false
   },
   {
-    "id": "9c028d1b-6f1f-4d44-9c3b-8549aeee8e8f",
+    "id": "96566ae3-9eb4-4df7-a641-814a07fbf12e",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-06-18",
     "kategori": "Fungsi Ginjal",
@@ -994,7 +994,7 @@
     "diarsipkan": false
   },
   {
-    "id": "12cb0adf-37a0-49b2-bf3c-489abad291e8",
+    "id": "ef7e9c43-1f1a-43f8-ada9-849fd8ac11e6",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-06-18",
     "kategori": "Fungsi Ginjal",
@@ -1008,7 +1008,7 @@
     "diarsipkan": false
   },
   {
-    "id": "8ea6e776-3df5-46ab-8d9e-bda2f3556978",
+    "id": "8792be88-48db-4c68-a5c4-0b7eda6cc941",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-06-18",
     "kategori": "Darah Lengkap",
@@ -1022,7 +1022,7 @@
     "diarsipkan": false
   },
   {
-    "id": "64ac9992-ee9f-4f7c-83ef-153672c9bf6d",
+    "id": "206b5ad5-b91f-4029-b30a-076df60edd71",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-06-18",
     "kategori": "Elektrolit",
@@ -1036,7 +1036,7 @@
     "diarsipkan": false
   },
   {
-    "id": "bfe3f8de-3659-4621-9205-793f6d7e7f92",
+    "id": "733945ba-cf47-4c2c-b48c-d6dc6b510a60",
     "userId": "33333333-3333-4333-8333-333333333333",
     "tanggalPemeriksaan": "2026-06-18",
     "kategori": "Elektrolit",

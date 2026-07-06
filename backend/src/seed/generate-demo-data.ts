@@ -551,7 +551,7 @@ const lukmanFluid: FluidLogSeed[] = [];
 const sariFluid: FluidLogSeed[] = [];
 {
   const times = ["07:00", "10:00", "13:00", "16:00", "19:00"];
-  for (const date of DATE_LIST) {
+  DATE_LIST.forEach((date, dayIdx) => {
     const drinkCount = rng.randInt(4, 6);
     for (let i = 0; i < drinkCount; i++) {
       const vol = isLebaranAftermath(date) ? rng.randInt(300, 450) : rng.randInt(150, 300);
@@ -570,7 +570,13 @@ const sariFluid: FluidLogSeed[] = [];
         isLateEntry: false,
       });
     }
-    if (rng.chance(0.4)) {
+    // Oligurik (HD): urin kecil pada mayoritas hari (~90%), tren MENURUN
+    // perlahan sepanjang 180 hari (linear t=dayIdx/(n-1), base 200ml→50ml
+    // + jitter deterministik). ~10% hari tanpa keluar tetap wajar untuk pola HD.
+    if (rng.chance(0.9)) {
+      const t = dayIdx / (DATE_LIST.length - 1);
+      const base = Math.round(200 - 150 * t);
+      const vol = Math.max(30, base + rng.randInt(-30, 30));
       sariFluid.push({
         userId: SARI_ID,
         tanggal: date,
@@ -578,19 +584,20 @@ const sariFluid: FluidLogSeed[] = [];
         tipe: "keluar",
         sumber: "urine",
         konsentrasiCapd: null,
-        volume: String(rng.randInt(100, 300)),
+        volume: String(vol),
         satuan: "ml",
         kondisiKeluar: null,
         catatan: null,
         isLateEntry: false,
       });
     }
-  }
+  });
 }
 
 const budiFluid: FluidLogSeed[] = [];
 {
   const times = ["07:30", "12:00", "15:30", "20:00"];
+  const voidTimePool = ["06:30", "09:00", "12:00", "15:30", "19:00", "22:00"];
   for (const date of DATE_LIST) {
     const drinkCount = rng.randInt(3, 5);
     for (let i = 0; i < drinkCount; i++) {
@@ -610,15 +617,31 @@ const budiFluid: FluidLogSeed[] = [];
         isLateEntry: false,
       });
     }
-    if (rng.chance(0.5)) {
+    // Urin normal (Transplantasi): WAJIB 3-4 entri keluar SETIAP hari, total
+    // 1000-2000mL/hari (tidak ada hari masuk-tanpa-keluar). Bobot
+    // acak-deterministik dinormalisasi ke dayTotal; entri terakhir dikoreksi
+    // agar sum tepat = dayTotal.
+    const voidCount = rng.randInt(3, 4);
+    const dayTotal = rng.randInt(1000, 2000);
+    const weights = Array.from({ length: voidCount }, () => rng.rand());
+    const weightSum = weights.reduce((a, b) => a + b, 0);
+    const voidVolumes: number[] = [];
+    let assigned = 0;
+    for (let i = 0; i < voidCount - 1; i++) {
+      const v = Math.max(1, Math.round((dayTotal * weights[i]) / weightSum));
+      voidVolumes.push(v);
+      assigned += v;
+    }
+    voidVolumes.push(Math.max(1, dayTotal - assigned));
+    for (let i = 0; i < voidCount; i++) {
       budiFluid.push({
         userId: BUDI_ID,
         tanggal: date,
-        waktu: "09:00",
+        waktu: voidTimePool[i] ?? voidTimePool[voidTimePool.length - 1],
         tipe: "keluar",
         sumber: "urine",
         konsentrasiCapd: null,
-        volume: String(rng.randInt(800, 1500)),
+        volume: String(voidVolumes[i]),
         satuan: "ml",
         kondisiKeluar: null,
         catatan: null,
