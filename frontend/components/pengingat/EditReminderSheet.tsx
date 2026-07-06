@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -38,6 +39,27 @@ export default function EditReminderSheet({
     onSuccess?.();
   };
 
+  // Guards Radix Sheet dismissal against the native file-picker focus round
+  // trip: when the OS file picker opens/closes, focus moves away from and
+  // back to the document, which Radix's DismissableLayer treats as an
+  // outside interaction and closes the Sheet — losing the in-progress edit
+  // (quick-260706-dfx, replacing the fragile tagName-only guard from
+  // quick-260706-arp, which missed the focus-return dismissal entirely).
+  const filePickerOpenRef = useRef(false);
+
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      // Runs after Radix's synchronous focusOutside handler on the same
+      // tick, so the guard still sees `true` when it needs to, then clears
+      // it so a later genuine outside click/focus can still dismiss.
+      setTimeout(() => {
+        filePickerOpenRef.current = false;
+      }, 0);
+    };
+    window.addEventListener("focus", handleWindowFocus);
+    return () => window.removeEventListener("focus", handleWindowFocus);
+  }, []);
+
   if (!reminder) return null;
 
   return (
@@ -45,25 +67,25 @@ export default function EditReminderSheet({
       <SheetContent
         side="bottom"
         className="max-h-[92dvh] rounded-t-2xl sm:max-w-md sm:rounded-2xl sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-h-[85dvh]"
-          onPointerDownOutside={(e) => {
-            // Prevent the sheet from closing when the native file picker opens
-            // (selecting a photo triggers an outside-pointerdown event on Radix
-            // Dialog, which would close the sheet and lose the user's in-progress
-            // edit — quick-260706-arp task 1).
+          onClickCapture={(e) => {
             const target = e.target as HTMLElement | null;
-            if (
-              target?.tagName === "INPUT" &&
-              (target as HTMLInputElement).type === "file"
-            ) {
+            if (target?.closest('input[type="file"]')) {
+              filePickerOpenRef.current = true;
+            }
+          }}
+          onPointerDownOutside={(e) => {
+            if (filePickerOpenRef.current) {
               e.preventDefault();
             }
           }}
+          onFocusOutside={(e) => {
+            if (filePickerOpenRef.current) {
+              e.preventDefault();
+              filePickerOpenRef.current = false;
+            }
+          }}
           onInteractOutside={(e) => {
-            const target = e.target as HTMLElement | null;
-            if (
-              target?.tagName === "INPUT" &&
-              (target as HTMLInputElement).type === "file"
-            ) {
+            if (filePickerOpenRef.current) {
               e.preventDefault();
             }
           }}
