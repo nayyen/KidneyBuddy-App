@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 06 Plan 07 (post detail + replies + membantu + archive UI) complete - SUMMARY.md written, Phase 6 complete
-last_updated: "2026-07-06T01:45:00.000Z"
-last_activity: "2026-07-06 - Completed quick task 260706-fak: deleted 8 leftover no-import/no-export scratch debug scripts in backend/src/test/ that were causing tsc TS2451/TS2393 global-scope redeclaration errors (a long-deferred issue flagged in 5+ prior SUMMARY.md files, finally resolved). Cleaned up 13 dangling .vscode/tasks.json entries (plan estimated 2, actual was 13) and updated 2 deferred-items.md files to mark it resolved."
+stopped_at: context exhaustion at 91% (2026-07-06)
+last_updated: "2026-07-06T04:24:22.035Z"
+last_activity: "2026-07-06 - Completed quick task 260706-q0g: rebuilt demo seed as deterministic generator+loader architecture (180 days, 3 personas, 23 committed JSON files), verified live end-to-end against Postgres (row counts, 3-persona login, decryption, no emergency modal, per-section CLI arg)."
 progress:
   total_phases: 7
   completed_phases: 7
@@ -33,7 +33,7 @@ Phase: 04.1 (ux-polish-data-consistency-cuci-darah) — COMPLETE ✓
 Phase: 05 (ai-insights-anomaly-detection) — COMPLETE ✓
 Phase: 06 (community-education) — COMPLETE ✓
 Status: All 6 phases (36/36 plans) complete. v1.0-MILESTONE-AUDIT.md status: tech_debt (documentation/tracking gaps only — zero unsatisfied requirements, see audit for full evidence).
-Last activity: 2026-07-06 - Completed quick task 260706-8zc: fixed 5 reported items (dosis/konsentrasi/catatan surfaced on all reminder & log card faces across beranda/pengingat/catatan, real therapy-scoping bug fix in "Pengingat Berikutnya" next-upcoming CAPD/HD selection, root-caused photo-delete-persistence bug via stale-object-merge fix in ReminderList).
+Last activity: 2026-07-06 - Completed quick task 260706-q0g: rebuilt demo seed as deterministic generator+loader architecture (180 days, 3 personas, 23 committed JSON files), verified live end-to-end against Postgres (row counts, 3-persona login, decryption, no emergency modal, per-section CLI arg).
 
 Progress: [██████░░░░] 57%
 
@@ -59,6 +59,7 @@ Progress: [██████░░░░] 57%
 | 2026-07-06 | 260706-ea3-root-cause-fix-pengingat-edit-reminder-f | `frontend/components/pengingat/ReminderList.tsx` | User reported the edit-photo-form-disappearing bug persisted even after 260706-dfx. Found the REAL root cause: `pengingat/page.tsx`'s window-focus listener (added in 260705-9n4 for cross-device sync) bumps `reminderRefreshKey` on every window focus — including the moment the native file picker closes — which flipped `ReminderList.isLoading` back to `true` on EVERY refetch, unmounting the entire `<ReminderItem>` subtree (including the nested, conditionally-rendered `EditReminderSheet` and its local `showEdit` state). Fixed by adding `hasLoadedOnceRef`: the loading skeleton now renders only on the true initial fetch; background refetches (focus/visibility/30s poll/sync events) update `reminders` in place without ever unmounting the list, and a failed background refetch no longer clears an already-displayed list. tsc clean. Pending: human browser verification (file-picker repro + background-sync-no-flash repro + regression sanity). |
 | 2026-07-06 | 260706-epn-pada-halaman-beranda-kartu-pengingat-ber | `backend/src/repositories/reminderSchedule.repository.ts`, `backend/src/test/reminderSchedule.findNextUpcoming.test.ts` | Fixed beranda "Pengingat Berikutnya" card showing reminders not active for today's day-of-week (e.g. a Selasa+Sabtu-only reminder appearing as "next" on Senin). Root cause: `_computeNextUpcomingCore#findNext` had a deliberate tomorrow-fallback branch that surfaced tomorrow's earliest reminder whenever nothing was upcoming today — the only path that could show a not-active-today reminder. Removed the fallback entirely (card now shows the empty state instead) per the PO's explicit today-only requirement; this also subsumes 260705-r8b bug 1 (past-due-today reminder reverting via the same fallback path), since there's no longer any fallback to revert through. TDD: 4 new regression tests (obat/capd/hd negative cases + positive control) confirmed RED against old code, GREEN after the fix. tsc clean, full backend suite 255/258 (3 pre-documented container-only failures, unrelated). No frontend change needed; no human-verify checkpoint required (pure backend logic, fully covered by unit tests). |
 | 2026-07-06 | 260706-fak-fix-tsc-error-in-backend-src-test-profil | `.vscode/tasks.json`, `.planning/phases/05-ai-insights-anomaly-detection/deferred-items.md`, `.planning/quick/260705-9n4-.../deferred-items.md` (+ 8 files deleted) | Deleted 8 leftover one-off manual debug scripts under `backend/src/test/` (`debug_all.ts`, `debug_err.ts`, `debug_hari.ts`, `debug_obat.ts`, `debug_obat2.ts`, `debug_sql.ts`, `debug_trace.ts`, `profile.e2e.ts`) that had no import/export statements, causing tsc to treat them as one shared global scope and report `TS2451`/`TS2393` redeclaration errors on `BASE`/`h`/`main` — the exact error the user hit directly, and a known issue deferred across 5+ prior SUMMARY.md entries and 2 `deferred-items.md` files, never previously cleaned up. None were part of the automated `*.test.ts` suite (zero coverage lost). **Found the plan underestimated scope**: `.vscode/tasks.json` had 13 dangling task entries referencing these files, not the 2 the plan described — removed all 13 (verified via grep), preserving the 2 entries referencing untouched real modules (`verify_single_use.ts`, `debug_direct.ts`). tsc clean (only the 2 pre-existing, explicitly out-of-scope controller `string\|string[]` errors remain), tasks.json valid JSON, 255/258 backend tests pass (3 pre-documented container-only DB failures, unrelated, no regression). 1 commit. |
+| 2026-07-06 | 260706-q0g-rebuild-demo-seed-6-bulan-dengan-arsitek | `backend/src/seed/{lib/rng.ts,content/*.ts,generate-demo-data.ts,data/*.json,seed-demo.ts}` (new), `backend/src/seed/seed-education.ts` (deleted), `backend/package.json` | Rebuilt the demo seed as a two-part deterministic architecture: `generate-demo-data.ts` (mulberry32-seeded generator, verified byte-identical across regenerations) writes 23 committed JSON files modeling 180 days (2026-01-08..2026-07-06) of CKD activity for 3 personas (Lukman/CAPD, Sari/HD, Budi/Transplantasi) incl. Ramadan/Lebaran seasonality + 3 engineered anomaly episodes anchored to matching community posts; new `seed-demo.ts` loader TRUNCATEs all 22 user-data tables then FK-ordered batch-inserts with `hashPassword`/`encrypt()` applied at insert time exactly as the running app does. Old 467-line single-patient seed-demo.ts + seed-education.ts deleted. **Verified live end-to-end** (Task 3, after Docker came up): full load in-container (same ENCRYPTION_KEY as API), all per-table DB counts match the JSON exactly (users=3, fluid 3409, medication 4397, dialysis 797, activities 782, lab 75, anomaly 6, community 40/108/82, education 28), zero old-seed rows, zero tinggi+aktif anomalies (no emergency modal on demo login), all 3 personas login 200+token with onboardingComplete=true, 9+ encrypted-column endpoints return decrypted seeded plaintext with zero "Invalid ciphertext" errors, per-section CLI arg (`seed-demo.ts fluid`) works as documented. tsc clean (only the 4 pre-existing unrelated controller errors remain), 255/258 backend tests (3 pre-documented container-only failures, no regression). 2 commits (no Task 3 fixes were needed). |
 
 ## Performance Metrics
 
@@ -160,8 +161,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T00:00:00.000Z
-Stopped at: Completed quick task 260706-fak-fix-tsc-error-in-backend-src-test-profil
+Last session: 2026-07-06T04:24:21.523Z
+Stopped at: Completed quick task 260706-q0g (all 3 tasks — demo seed verified live against Postgres)
 Resume file: None
 
 ## Phase 4 Summary
