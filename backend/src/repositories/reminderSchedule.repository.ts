@@ -6,6 +6,7 @@ import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { wibHHmm, wibDayNameLower, wibTomorrowDayNameLower } from "../utils/wib.js";
 import { medicationLog } from "../db/schema/medicationLog.schema.js";
 import { dialysisLog } from "../db/schema/dialysisLog.schema.js";
+import { isReminderVisibleForTherapy } from "../lib/therapyReminderScope.js";
 
 export type ReminderSchedule = InferSelectModel<typeof reminderSchedule>;
 export type NewReminderSchedule = InferInsertModel<typeof reminderSchedule>;
@@ -123,6 +124,93 @@ export async function findTodayObatReminders(
 }
 
 /**
+ * _computeNextUpcomingCore — pure, DB-free core of findNextUpcoming's
+ * grouping/selection logic (quick-260706-8zc item 1 verification). Extracted
+ * so the therapy-scoping-before-earliest-slot-selection fix is unit
+ * testable without a live Postgres connection.
+ *
+ * `active` must already be pre-filtered to aktif=true, non-empty hariAktif,
+ * and NOT already-confirmed-today (the DB-dependent parts of
+ * findNextUpcoming). `metode` is the user's current metodeTerapiAktif.
+ */
+export function _computeNextUpcomingCore(
+  active: ReminderSchedule[],
+  metode: string | null,
+  ctx: { currentTime: string; todayDay: string; tomorrowDay: string },
+): NextUpcomingGrouped {
+  const { currentTime, todayDay, tomorrowDay } = ctx;
+
+  const findNext = (reminders: ReminderSchedule[]): ReminderSchedule[] => {
+    const todayReminders = reminders.filter((r) =>
+      ((r.hariAktif as string[]) ?? []).includes(todayDay)
+    );
+
+    const upcomingToday = todayReminders
+      .filter((r) => r.jamPengingat >= currentTime)
+      .sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat));
+
+    if (upcomingToday.length > 0) {
+      const nextTime = upcomingToday[0].jamPengingat;
+      return upcomingToday.filter((r) => r.jamPengingat === nextTime);
+    }
+
+    // quick-260705-r8b bug 1: a reminder whose TODAY slot already passed
+    // must never surface again as "next" — not even as tomorrow's
+    // occurrence. It remains owned by today's Obat/Cuci Darah Hari Ini list
+    // for the rest of the day. Without this exclusion, unchecking a
+    // past-due-today reminder removes it from confirmedIds, `active`
+    // re-includes it, upcomingToday is empty (its jamPengingat < currentTime),
+    // and it would otherwise fall through here and "revert" into Pengingat
+    // Berikutnya as tomorrow's slot even though today hasn't ended yet.
+    const tomorrowReminders = reminders.filter((r) => {
+      const hari = (r.hariAktif as string[]) ?? [];
+      if (!hari.includes(tomorrowDay)) return false;
+      const alsoActiveToday = hari.includes(todayDay);
+      const todaySlotPassed = r.jamPengingat < currentTime;
+      if (alsoActiveToday && todaySlotPassed) return false;
+      return true;
+    });
+
+    const earliestTomorrow = tomorrowReminders.sort((a, b) =>
+      a.jamPengingat.localeCompare(b.jamPengingat)
+    );
+
+    if (earliestTomorrow.length > 0) {
+      const nextTime = earliestTomorrow[0].jamPengingat;
+      return earliestTomorrow.filter((r) => r.jamPengingat === nextTime);
+    }
+
+    return [];
+  };
+
+  const obatReminders = active.filter((r) => r.jenis === "obat");
+
+  // quick-260706-8zc (item 1 verification): therapy-scope BEFORE computing
+  // "next" — findNext() picks the single earliest jamPengingat slot across
+  // ALL capd+hd reminders and discards every other slot. If an off-therapy
+  // reminder (e.g. a leftover HD reminder while the user is now on CAPD)
+  // happens to have an earlier jam_pengingat than the user's actual active-
+  // therapy reminder, that off-therapy slot would "win" the earliest-slot
+  // computation and the real next cuci-darah reminder would be silently
+  // dropped entirely (not just filtered afterward) since findNext() only
+  // returns items sharing the winning nextTime. Filtering by therapy first
+  // ensures the earliest-slot computation only ever considers reminders the
+  // user can actually act on. (getNextUpcoming() in reminders.service.ts
+  // still applies isReminderVisibleForTherapy again as a defensive no-op
+  // backstop.)
+  const cuciDarahReminders = active.filter(
+    (r) =>
+      (r.jenis === "capd" || r.jenis === "hd") &&
+      isReminderVisibleForTherapy(r.jenis, metode),
+  );
+
+  return {
+    obat: findNext(obatReminders),
+    cuciDarah: findNext(cuciDarahReminders),
+  };
+}
+
+/**
  * Find the next upcoming active reminder for a user based on current time.
  * Compares jam_pengingat (HH:mm) against the current time-of-day in Jakarta time.
  * Returns the soonest reminder today, or the first reminder tomorrow if none today.
@@ -178,58 +266,19 @@ export async function findNextUpcoming(
     const hari = (r.hariAktif as string[]) ?? [];
     return r.aktif && hari.length > 0 && !confirmedIds.includes(r.id);
   });
-  
-  const findNext = (reminders: ReminderSchedule[]): ReminderSchedule[] => {
-    const todayReminders = reminders.filter((r) => 
-      ((r.hariAktif as string[]) ?? []).includes(todayDay)
-    );
-    
-    const upcomingToday = todayReminders
-      .filter((r) => r.jamPengingat >= currentTime)
-      .sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat));
 
-    if (upcomingToday.length > 0) {
-      const nextTime = upcomingToday[0].jamPengingat;
-      return upcomingToday.filter(r => r.jamPengingat === nextTime);
-    }
+  const userRow = await db
+    .select({ metodeTerapiAktif: users.metodeTerapiAktif })
+    .from(users)
+    .where(eq(users.userId, userId as any))
+    .limit(1);
+  const metode = userRow[0]?.metodeTerapiAktif ?? null;
 
-    // quick-260705-r8b bug 1: a reminder whose TODAY slot already passed
-    // must never surface again as "next" — not even as tomorrow's
-    // occurrence. It remains owned by today's Obat/Cuci Darah Hari Ini list
-    // for the rest of the day. Without this exclusion, unchecking a
-    // past-due-today reminder removes it from confirmedIds, `active`
-    // re-includes it, upcomingToday is empty (its jamPengingat < currentTime),
-    // and it would otherwise fall through here and "revert" into Pengingat
-    // Berikutnya as tomorrow's slot even though today hasn't ended yet.
-    const tomorrowReminders = reminders.filter((r) => {
-      const hari = (r.hariAktif as string[]) ?? [];
-      if (!hari.includes(tomorrowDay)) return false;
-      const alsoActiveToday = hari.includes(todayDay);
-      const todaySlotPassed = r.jamPengingat < currentTime;
-      if (alsoActiveToday && todaySlotPassed) return false;
-      return true;
-    });
-
-    const earliestTomorrow = tomorrowReminders
-      .sort((a, b) => a.jamPengingat.localeCompare(b.jamPengingat));
-
-    if (earliestTomorrow.length > 0) {
-      const nextTime = earliestTomorrow[0].jamPengingat;
-      return earliestTomorrow.filter(r => r.jamPengingat === nextTime);
-    }
-
-    return [];
-  };
-
-  const obatReminders = active.filter((r) => r.jenis === "obat");
-  const cuciDarahReminders = active.filter(
-    (r) => r.jenis === "capd" || r.jenis === "hd",
-  );
-
-  return {
-    obat: findNext(obatReminders),
-    cuciDarah: findNext(cuciDarahReminders),
-  };
+  return _computeNextUpcomingCore(active, metode, {
+    currentTime,
+    todayDay,
+    tomorrowDay,
+  });
 }
 
 // ─── Mutations ────────────────────────────────────────────────────────
