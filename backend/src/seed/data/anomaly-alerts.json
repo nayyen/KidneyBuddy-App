@@ -1,0 +1,98 @@
+[
+  {
+    "userId": "11111111-1111-4111-8111-111111111111",
+    "tipeAnomali": "kondisi_cairan_abnormal",
+    "severity": "tinggi",
+    "confidenceScore": 88,
+    "deskripsi": "Cairan hasil drainase CAPD siang ini tercatat keruh, berbeda dari kondisi biasanya yang jernih. Kondisi ini sebaiknya tidak ditunggu — segera hubungi tim medis atau perawat dialisis Anda untuk pemeriksaan lebih lanjut.\n\nRingkasan ini dibuat otomatis oleh AI dan tidak menggantikan saran medis profesional. Selalu konsultasikan kondisi Anda dengan dokter atau tenaga kesehatan.",
+    "status": "ditindaklanjuti",
+    "feedbackPengguna": null,
+    "tipePasien": "capd",
+    "ruleData": {
+      "kondisiKeluar": "keruh",
+      "tanggal": "2026-04-14"
+    },
+    "isFallback": false,
+    "createdAt": "2026-04-14T05:30:00.000Z"
+  },
+  {
+    "userId": "11111111-1111-4111-8111-111111111111",
+    "tipeAnomali": "penurunan_volume_keluar",
+    "severity": "normal",
+    "confidenceScore": 62,
+    "deskripsi": "Rata-rata volume cairan keluar 3 hari terakhir sedikit menurun dibandingkan hari-hari sebelumnya. Ini bisa menjadi hal yang wajar, namun tetap perhatikan pola cairan Anda beberapa hari ke depan.\n\nRingkasan ini dibuat otomatis oleh AI dan tidak menggantikan saran medis profesional. Selalu konsultasikan kondisi Anda dengan dokter atau tenaga kesehatan.",
+    "status": "dibaca",
+    "feedbackPengguna": null,
+    "tipePasien": "capd",
+    "ruleData": {
+      "declinePercent": 34,
+      "thresholdPercent": 30
+    },
+    "isFallback": false,
+    "createdAt": "2026-05-20T02:00:00.000Z"
+  },
+  {
+    "userId": "22222222-2222-4222-8222-222222222222",
+    "tipeAnomali": "pola_asupan_menyimpang",
+    "severity": "normal",
+    "confidenceScore": 70,
+    "deskripsi": "Pola asupan cairan dan makanan Anda pekan ini menyimpang dari kebiasaan, kemungkinan besar terkait momen open house lebaran. Hasil lab kalium terbaru juga menunjukkan sedikit peningkatan — sebaiknya kembali perhatikan porsi buah dan makanan bersantan.\n\nRingkasan ini dibuat otomatis oleh AI dan tidak menggantikan saran medis profesional. Selalu konsultasikan kondisi Anda dengan dokter atau tenaga kesehatan.",
+    "status": "ditindaklanjuti",
+    "feedbackPengguna": null,
+    "tipePasien": "hd",
+    "ruleData": {
+      "deviationPercent": 42,
+      "konteks": "pasca_lebaran"
+    },
+    "isFallback": false,
+    "createdAt": "2026-03-27T03:00:00.000Z"
+  },
+  {
+    "userId": "22222222-2222-4222-8222-222222222222",
+    "tipeAnomali": "penurunan_volume_keluar",
+    "severity": "normal",
+    "confidenceScore": 55,
+    "deskripsi": "Volume urine yang tercatat beberapa hari terakhir sedikit lebih rendah dari rata-rata biasanya. Tetap lanjutkan pencatatan harian agar pola ini bisa dipantau bersama tim medis.\n\nRingkasan ini dibuat otomatis oleh AI dan tidak menggantikan saran medis profesional. Selalu konsultasikan kondisi Anda dengan dokter atau tenaga kesehatan.",
+    "status": "aktif",
+    "feedbackPengguna": null,
+    "tipePasien": "hd",
+    "ruleData": {
+      "declinePercent": 31,
+      "thresholdPercent": 30
+    },
+    "isFallback": false,
+    "createdAt": "2026-06-02T01:30:00.000Z"
+  },
+  {
+    "userId": "33333333-3333-4333-8333-333333333333",
+    "tipeAnomali": "jadwal_terlewat",
+    "severity": "tinggi",
+    "confidenceScore": 80,
+    "deskripsi": "Dosis Takrolimus pagi belum terkonfirmasi pada jam yang dijadwalkan. Karena obat ini perlu diminum tepat waktu setiap 12 jam pasca-transplantasi, segera konfirmasi atau minum dosis ini sesegera mungkin bila belum.\n\nRingkasan ini dibuat otomatis oleh AI dan tidak menggantikan saran medis profesional. Selalu konsultasikan kondisi Anda dengan dokter atau tenaga kesehatan.",
+    "status": "ditindaklanjuti",
+    "feedbackPengguna": null,
+    "tipePasien": "transplantasi",
+    "ruleData": {
+      "reminderNama": "Takrolimus pagi",
+      "jamPengingat": "08:00"
+    },
+    "isFallback": false,
+    "createdAt": "2026-02-10T01:15:00.000Z"
+  },
+  {
+    "userId": "33333333-3333-4333-8333-333333333333",
+    "tipeAnomali": "penurunan_volume_keluar",
+    "severity": "normal",
+    "confidenceScore": 50,
+    "deskripsi": "Volume urine 3 hari terakhir tercatat sedikit lebih rendah dari kebiasaan Anda. Perhatikan asupan cairan harian dan catat bila muncul gejala lain seperti bengkak atau penurunan berat badan mendadak.\n\nRingkasan ini dibuat otomatis oleh AI dan tidak menggantikan saran medis profesional. Selalu konsultasikan kondisi Anda dengan dokter atau tenaga kesehatan.",
+    "status": "aktif",
+    "feedbackPengguna": null,
+    "tipePasien": "transplantasi",
+    "ruleData": {
+      "declinePercent": 32,
+      "thresholdPercent": 30
+    },
+    "isFallback": false,
+    "createdAt": "2026-06-15T02:00:00.000Z"
+  }
+]
