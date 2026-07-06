@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import DeleteReminderConfirm from "./DeleteReminderConfirm";
 import { authFetch } from "@/lib/api";
+import { getCurrentPushEndpoint } from "@/lib/pushClient";
 import ReminderDetailOverlay from "./ReminderDetailOverlay";
 import EditReminderSheet from "./EditReminderSheet";
 
@@ -103,12 +104,17 @@ export default function ReminderItem({
     setIsToggling(true);
     setAktif(newAktif);
     try {
+      // quick-260707-98x: identify this device so the backend excludes it
+      // from the "updated from another device" push fan-out.
+      const pushEndpoint = await getCurrentPushEndpoint();
+      const headers = pushEndpoint ? { "X-Push-Endpoint": pushEndpoint } : undefined;
       const updated = await authFetch<Reminder>(
         `/api/reminders/${reminder.id}`,
         accessToken,
         {
           method: "PATCH",
           body: JSON.stringify({ aktif: newAktif }),
+          ...(headers && { headers }),
         },
       );
       onUpdated?.(updated);

@@ -16,6 +16,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { authFetch } from "@/lib/api";
+import { getCurrentPushEndpoint } from "@/lib/pushClient";
 import {
   createObatFormSchema,
   type CreateObatFormData,
@@ -137,10 +138,18 @@ export default function MedicationReminderForm({
 
       const method = isEditMode ? "PATCH" : "POST";
 
+      // quick-260707-98x: only needed on update — identifies this device so
+      // the backend excludes it from the cross-device "diperbarui" push.
+      // Do NOT set Content-Type — FormData sets its own multipart boundary.
+      const pushEndpoint = isEditMode ? await getCurrentPushEndpoint() : null;
+
       const res = await fetch(url, {
         method: method,
         credentials: "include",
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          ...(pushEndpoint && { "X-Push-Endpoint": pushEndpoint }),
+        },
         body: fd,
       });
 

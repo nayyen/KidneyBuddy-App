@@ -82,6 +82,29 @@ export async function subscribeAndRegister(accessToken: string): Promise<void> {
 }
 
 /**
+ * Read this device's own push endpoint, if a subscription exists.
+ *
+ * quick-260707-98x: used by reminder update call sites to identify the
+ * originating device via the `X-Push-Endpoint` request header, so the
+ * backend can exclude it from the "updated from another device" fan-out.
+ *
+ * Never throws — returns `null` on any unsupported/missing-subscription
+ * condition so callers can safely omit the header without side effects.
+ */
+export async function getCurrentPushEndpoint(): Promise<string | null> {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      return null;
+    }
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    return sub?.endpoint ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Re-subscribe if the current device's subscription is null or stale.
  * Should be called on the `visibilitychange` event (app comes to foreground)
  * to handle iOS subscription silent expiry (RESEARCH.md Pitfall 5).

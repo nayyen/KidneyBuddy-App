@@ -12,6 +12,7 @@
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authFetch } from "@/lib/api";
+import { getCurrentPushEndpoint } from "@/lib/pushClient";
 import {
   createCapdFormSchema,
   type CreateCapdFormData,
@@ -96,9 +97,15 @@ export default function CAPDReminderForm({
         : "/api/reminders";
       const method = isEditMode ? "PATCH" : "POST";
 
+      // quick-260707-98x: only needed on update — identifies this device so
+      // the backend excludes it from the cross-device "diperbarui" push.
+      const pushEndpoint = isEditMode ? await getCurrentPushEndpoint() : null;
+      const headers = pushEndpoint ? { "X-Push-Endpoint": pushEndpoint } : undefined;
+
       await authFetch(url, accessToken, {
         method: method,
         body: JSON.stringify(payload),
+        ...(headers && { headers }),
       });
 
       toast.success(`Pengingat berhasil ${isEditMode ? 'diperbarui' : 'disimpan'}`);
