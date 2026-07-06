@@ -149,7 +149,12 @@ export default function DashboardPage() {
           refreshKey={activityRefreshKey}
           onMulaiKegiatan={() => { /* logic to open activity sheet */ }}
         />
-        <ObatCard accessToken={accessToken} />
+        {/* quick-260707-1la item 1: transplant patients have no Cuci Darah
+            card, leaving an empty third column — widen Obat to fill the
+            remaining width (2 cols) instead of leaving a gap. */}
+        <div className={isTransplant ? "md:col-span-2" : ""}>
+          <ObatCard accessToken={accessToken} />
+        </div>
         {!isTransplant && (
           <CuciDarahCard accessToken={accessToken} />
         )}

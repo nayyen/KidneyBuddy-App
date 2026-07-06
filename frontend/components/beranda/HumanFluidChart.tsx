@@ -377,6 +377,22 @@ export default function HumanFluidChart({
                   {statusLabel}
                 </span>
               )}
+
+              {/* quick-260707-1la item 3: explain the normal range so the
+                  patient understands why the chart alerts. */}
+              {hasData && (
+                <span
+                  className="font-sans"
+                  style={{
+                    fontSize: 13,
+                    color: "#3d6b66",
+                    marginTop: 8,
+                    textAlign: "center",
+                  }}
+                >
+                  Rentang normal selisih harian: -1000 ml sampai 0 ml
+                </span>
+              )}
             </div>
           </>
         )}

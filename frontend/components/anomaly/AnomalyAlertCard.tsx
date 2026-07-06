@@ -162,7 +162,7 @@ export default function AnomalyAlertCard({
         <p
           className="font-sans mt-1"
           style={{
-            fontSize: 12,
+            fontSize: 15,
             color: isDarurat ? "#9c1530" : "#3d6b66",
             lineHeight: 1.6,
             ...(variant === "compact"
