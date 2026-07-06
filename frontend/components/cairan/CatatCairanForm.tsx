@@ -97,7 +97,15 @@ export default function CatatCairanForm({
     // For Urine or Lainnya, they become optional.
     const isSumberCapd = watchedSumber === "capd";
 
-  const onSubmit: SubmitHandler<CreateFluidFormData> = async (data) => {
+  const onSubmit: SubmitHandler<CreateFluidFormData> = async (rawData) => {
+    // CAPD-only fields are gated on the selected sumber, not the user's
+    // therapy method — null out any stale hidden-field value so a
+    // non-CAPD entry never submits leftover konsentrasi/kondisi
+    // (quick-260707-8je item 2).
+    const data: CreateFluidFormData =
+      rawData.sumber !== "capd"
+        ? { ...rawData, konsentrasiCapd: null, kondisiKeluar: null }
+        : rawData;
     try {
       if (!navigator.onLine) {
         // Store offline
@@ -221,15 +229,19 @@ export default function CatatCairanForm({
         )}
       </div>
 
-      {/* ── CAPD-specific fields — only when isCAPD AND keluar ── */}
-        {isCAPD && (
+      {/* ── CAPD-specific fields — gated on the SELECTED sumber, not the
+          patient's therapy method. These only render (and are only
+          required) when the user picks sumber = Exchange CAPD for this
+          entry, regardless of whether their active therapy is CAPD
+          (quick-260707-8je item 2). ── */}
+        {isSumberCapd && (
         <>
           <div>
             <label
               htmlFor="konsentrasiCapd"
               className="block text-sm font-medium font-sans text-foreground mb-1"
             >
-                Konsentrasi CAPD{!isSumberCapd ? " (opsional)" : ""}
+                Konsentrasi CAPD
             </label>
             <select
               {...register("konsentrasiCapd")}
@@ -258,7 +270,7 @@ export default function CatatCairanForm({
               htmlFor="kondisiKeluar"
               className="block text-sm font-medium font-sans text-foreground mb-1"
             >
-                Kondisi Cairan Keluar{!isSumberCapd ? " (opsional)" : ""}
+                Kondisi Cairan Keluar
             </label>
             <select
               {...register("kondisiKeluar")}

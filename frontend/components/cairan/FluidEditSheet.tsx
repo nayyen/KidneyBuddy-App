@@ -107,6 +107,10 @@ export default function FluidEditSheet({
 
   const watchedKondisiKeluar = watch("kondisiKeluar");
   const isAbnormal = watchedKondisiKeluar ? ABNORMAL_KONDISI.has(watchedKondisiKeluar) : false;
+  // CAPD-only fields are gated on the SELECTED sumber, not the patient's
+  // therapy method (quick-260707-8je item 2) — mirrors CatatCairanForm.
+  const watchedSumber = watch("sumber");
+  const isSumberCapd = watchedSumber === "capd";
 
   const onSubmit = async (data: EditFormData) => {
     setServerError("");
@@ -115,9 +119,15 @@ export default function FluidEditSheet({
       sumber: data.sumber || null,
       catatan: data.catatan || null,
     };
-    if (isCAPD && isKeluar) {
+    if (isSumberCapd) {
       body.konsentrasiCapd = data.konsentrasiCapd || null;
+    } else {
+      body.konsentrasiCapd = null;
+    }
+    if (isSumberCapd && isKeluar) {
       body.kondisiKeluar = data.kondisiKeluar || null;
+    } else {
+      body.kondisiKeluar = null;
     }
     try {
       await authFetch(`/api/fluid/${entry.id}`, accessToken, { method: "PATCH", body: JSON.stringify(body) });
@@ -177,34 +187,35 @@ export default function FluidEditSheet({
               {errors.sumber && <p className="mt-1 text-xs text-destructive">{errors.sumber.message}</p>}
             </div>
 
-            {/* CAPD fields */}
-            {isCAPD && isKeluar && (
-              <>
-                <div>
-                  <label htmlFor="edit-konsentrasi" className="block text-sm font-medium font-sans text-foreground mb-1">Konsentrasi Cairan</label>
-                  <Controller name="konsentrasiCapd" control={control} render={({ field }) => (
-                    <select {...field} value={field.value ?? ""} id="edit-konsentrasi" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
-                      <option value="">Pilih konsentrasi</option>
-                      {Object.entries(CAPD_KONSENTRASI_LABELS).map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}
-                    </select>
-                  )} />
-                </div>
-                <div>
-                  <label htmlFor="edit-kondisi" className="block text-sm font-medium font-sans text-foreground mb-1">Kondisi Cairan Keluar</label>
-                  <Controller name="kondisiKeluar" control={control} render={({ field }) => (
-                    <select {...field} value={field.value ?? ""} id="edit-kondisi" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
-                      <option value="">Pilih kondisi</option>
-                      {Object.entries(KONDISI_KELUAR_LABELS).map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}
-                    </select>
-                  )} />
-                  {isAbnormal && (
-                    <div className="flex items-start gap-2 mt-2 p-3 rounded-[10px]" style={{ background: "#fdecee", border: "1px solid #d4183d40" }}>
-                      <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: "#d4183d" }} />
-                      <p className="text-xs font-sans" style={{ color: "#9c1530" }}>Kondisi cairan tidak normal. Segera hubungi dokter.</p>
-                    </div>
-                  )}
-                </div>
-              </>
+            {/* CAPD fields — gated on the SELECTED sumber, not the
+                patient's therapy method (quick-260707-8je item 2). */}
+            {isSumberCapd && (
+              <div>
+                <label htmlFor="edit-konsentrasi" className="block text-sm font-medium font-sans text-foreground mb-1">Konsentrasi Cairan</label>
+                <Controller name="konsentrasiCapd" control={control} render={({ field }) => (
+                  <select {...field} value={field.value ?? ""} id="edit-konsentrasi" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">Pilih konsentrasi</option>
+                    {Object.entries(CAPD_KONSENTRASI_LABELS).map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}
+                  </select>
+                )} />
+              </div>
+            )}
+            {isSumberCapd && isKeluar && (
+              <div>
+                <label htmlFor="edit-kondisi" className="block text-sm font-medium font-sans text-foreground mb-1">Kondisi Cairan Keluar</label>
+                <Controller name="kondisiKeluar" control={control} render={({ field }) => (
+                  <select {...field} value={field.value ?? ""} id="edit-kondisi" className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">Pilih kondisi</option>
+                    {Object.entries(KONDISI_KELUAR_LABELS).map(([v, lbl]) => <option key={v} value={v}>{lbl}</option>)}
+                  </select>
+                )} />
+                {isAbnormal && (
+                  <div className="flex items-start gap-2 mt-2 p-3 rounded-[10px]" style={{ background: "#fdecee", border: "1px solid #d4183d40" }}>
+                    <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: "#d4183d" }} />
+                    <p className="text-xs font-sans" style={{ color: "#9c1530" }}>Kondisi cairan tidak normal. Segera hubungi dokter.</p>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Catatan */}

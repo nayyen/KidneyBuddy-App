@@ -109,6 +109,20 @@ export const createFluidSchema = z
         message: "Konsentrasi CAPD wajib diisi untuk sumber Exchange CAPD",
       });
     }
+    // quick-260707-8je item 2: Kondisi Cairan Keluar is required whenever
+    // sumber is Exchange CAPD AND the entry is Cairan Keluar — mirrors the
+    // now-always-shown-when-required UI gating in CatatCairanForm/FluidEditSheet.
+    if (
+      data.sumber === "capd" &&
+      data.tipe === "keluar" &&
+      !data.kondisiKeluar
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["kondisiKeluar"],
+        message: "Kondisi cairan keluar wajib diisi untuk Exchange CAPD",
+      });
+    }
   });
 
 export type CreateFluidFormData = z.infer<typeof createFluidSchema>;

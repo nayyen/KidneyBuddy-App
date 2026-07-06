@@ -120,6 +120,20 @@ export const createFluidSchema = z
         message: "Konsentrasi CAPD wajib diisi untuk sumber Exchange CAPD",
       });
     }
+    // quick-260707-8je item 2: server stays the source of truth — Kondisi
+    // Cairan Keluar is required precisely when sumber is Exchange CAPD AND
+    // tipe is keluar; never demanded for non-CAPD sources.
+    if (
+      data.sumber === "capd" &&
+      data.tipe === "keluar" &&
+      !data.kondisiKeluar
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["kondisiKeluar"],
+        message: "Kondisi cairan keluar wajib diisi untuk sumber Exchange CAPD",
+      });
+    }
   });
 
 export type CreateFluidPayload = z.infer<typeof createFluidSchema>;
