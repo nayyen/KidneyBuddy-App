@@ -20,8 +20,6 @@ export const registerSchema = z.object({
   email: z.string().email("Format email tidak valid"),
   password: z.string().min(8, "Password minimal 8 karakter"),
   konfirmasiPassword: z.string(),
-  nomorTelepon: z.string().min(1, "Nomor telepon wajib diisi"),
-  tanggalLahir: z.string().min(1, "Tanggal lahir wajib diisi"),
   informedConsent: z.boolean().refine((val) => val === true, {
     message: "Kamu harus menyetujui syarat dan ketentuan",
   }),
@@ -46,8 +44,6 @@ export async function register(payload: RegisterPayload) {
     namaLengkap: parsed.namaLengkap,
     email: parsed.email,
     passwordHash,
-    nomorTelepon: parsed.nomorTelepon,
-    tanggalLahir: parsed.tanggalLahir,
     informedConsent: parsed.informedConsent,
   });
 

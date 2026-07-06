@@ -9,8 +9,6 @@ interface User {
   userId: string;
   namaLengkap: string;
   email: string;
-  nomorTelepon: string;
-  tanggalLahir: string;
   metodeTerapiAktif: string | null;
   tanggalMulaiTerapi: string | null;
   role: string;

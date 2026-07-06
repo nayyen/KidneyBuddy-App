@@ -66,8 +66,6 @@ async function main() {
     namaLengkap: "Lukman Hakim",
     email: "lukman@kidneybuddy.demo",
     passwordHash,
-    nomorTelepon: "081234567890",
-    tanggalLahir: "1978-05-15",
     informedConsent: true,
     metodeTerapiAktif: "CAPD",
     tanggalMulaiTerapi: "2024-08-01",

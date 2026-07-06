@@ -45,6 +45,28 @@ export default function EditReminderSheet({
       <SheetContent
         side="bottom"
         className="max-h-[92dvh] rounded-t-2xl sm:max-w-md sm:rounded-2xl sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-h-[85dvh]"
+          onPointerDownOutside={(e) => {
+            // Prevent the sheet from closing when the native file picker opens
+            // (selecting a photo triggers an outside-pointerdown event on Radix
+            // Dialog, which would close the sheet and lose the user's in-progress
+            // edit — quick-260706-arp task 1).
+            const target = e.target as HTMLElement | null;
+            if (
+              target?.tagName === "INPUT" &&
+              (target as HTMLInputElement).type === "file"
+            ) {
+              e.preventDefault();
+            }
+          }}
+          onInteractOutside={(e) => {
+            const target = e.target as HTMLElement | null;
+            if (
+              target?.tagName === "INPUT" &&
+              (target as HTMLInputElement).type === "file"
+            ) {
+              e.preventDefault();
+            }
+          }}
       >
         <SheetHeader className="pb-3 sm:px-6 sm:pt-5 sm:pb-3 shrink-0">
           <SheetTitle className="font-heading text-base font-bold text-foreground text-left">

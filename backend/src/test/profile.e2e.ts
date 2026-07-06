@@ -20,8 +20,6 @@ async function main() {
       namaLengkap: "E2E Profile Test",
       password,
       konfirmasiPassword: password,
-      nomorTelepon: "08123456789",
-      tanggalLahir: "1990-01-01",
       informedConsent: true,
       metodeTerapi: "CAPD",
     }),

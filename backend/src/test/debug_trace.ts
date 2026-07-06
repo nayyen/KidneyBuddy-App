@@ -11,8 +11,7 @@ async function main() {
   let r = await fetch(`${BASE}/api/auth/register`, {
     method: "POST", headers: h,
     body: JSON.stringify({ email, namaLengkap: "Trace", password: pw,
-      konfirmasiPassword: pw, nomorTelepon: "08123456789",
-      tanggalLahir: "1990-01-01", informedConsent: true }),
+      konfirmasiPassword: pw, informedConsent: true }),
   });
   let reg = await r.json();
   let token = reg.accessToken;

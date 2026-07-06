@@ -6,8 +6,6 @@ export const registerSchema = z
     email: z.string().email("Format email tidak valid"),
     password: z.string().min(8, "Password minimal 8 karakter"),
     konfirmasiPassword: z.string(),
-    nomorTelepon: z.string().min(1, "Nomor telepon wajib diisi"),
-    tanggalLahir: z.string().min(1, "Tanggal lahir wajib diisi"),
     informedConsent: z.literal(true, {
       errorMap: () => ({ message: "Kamu harus menyetujui syarat dan ketentuan" }),
     }),

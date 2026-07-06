@@ -127,39 +127,6 @@ export default function RegisterPage() {
           </div>
 
           {/* Nomor Telepon */}
-          <div>
-            <label className="block text-sm font-medium font-sans text-foreground mb-1">
-              Nomor Telepon
-            </label>
-            <input
-              {...register("nomorTelepon")}
-              type="tel"
-              className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="08xxxxxxxxxx"
-            />
-            {errors.nomorTelepon && (
-              <p className="mt-1 text-xs text-destructive font-sans">
-                {errors.nomorTelepon.message}
-              </p>
-            )}
-          </div>
-
-          {/* Tanggal Lahir */}
-          <div>
-            <label className="block text-sm font-medium font-sans text-foreground mb-1">
-              Tanggal Lahir
-            </label>
-            <input
-              {...register("tanggalLahir")}
-              type="date"
-              className="w-full rounded-[10px] border border-border bg-input px-4 py-2.5 text-sm font-sans text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            {errors.tanggalLahir && (
-              <p className="mt-1 text-xs text-destructive font-sans">
-                {errors.tanggalLahir.message}
-              </p>
-            )}
-          </div>
 
           {/* Informed Consent */}
           <div className="flex items-start gap-3">

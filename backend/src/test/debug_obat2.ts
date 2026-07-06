@@ -17,8 +17,6 @@ async function main() {
       namaLengkap: "Obat Test",
       password: pw,
       konfirmasiPassword: pw,
-      nomorTelepon: "08123456789",
-      tanggalLahir: "1990-01-01",
       informedConsent: true,
     }),
   });

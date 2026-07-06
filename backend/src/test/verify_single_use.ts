@@ -20,8 +20,6 @@ async function main() {
       namaLengkap: "Verify Test",
       password: "Test1234!",
       konfirmasiPassword: "Test1234!",
-      nomorTelepon: "08123456789",
-      tanggalLahir: "1990-01-01",
       informedConsent: true,
     }),
   });

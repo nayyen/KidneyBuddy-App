@@ -99,6 +99,13 @@
       "when": 1783283503337,
       "tag": "0013_oval_photon",
       "breakpoints": true
+      },
+      {
+        "idx": 14,
+        "version": "7",
+        "when": 1783360000000,
+        "tag": "0014_drop_user_phone_birthdate",
+        "breakpoints": true
     }
   ]
 }

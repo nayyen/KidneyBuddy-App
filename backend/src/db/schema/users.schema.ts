@@ -13,8 +13,6 @@ export const users = pgTable("users", {
   namaLengkap: text("nama_lengkap").notNull(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
-  nomorTelepon: text("nomor_telepon").notNull(),
-  tanggalLahir: date("tanggal_lahir").notNull(),
   informedConsent: boolean("informed_consent").notNull().default(false),
   metodeTerapiAktif: text("metode_terapi_aktif"),
   tanggalMulaiTerapi: date("tanggal_mulai_terapi"),
