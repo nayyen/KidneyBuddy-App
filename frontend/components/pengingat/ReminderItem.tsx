@@ -8,7 +8,7 @@
  * - Time badge: PJS 700 14px #2a9d8f, bg #f0faf9, radius 8px
  * - Name: DMS 500 12px #1a2e2c
  * - Timing note: DMS 500 10px #7a8c8a
- * - Active day chips: active=#f0faf9/#2a9d8f, inactive=#f3f3f5/#cfe8e4
+ * - Active day chips: solid per-jenis (obat/capd=#2a9d8f bg + white text, hd=#ef9f27 bg + #7a4c0a text), inactive=#f3f3f5/#a8b8b6
  * - Type badge: Obat/CAPD/HD with therapy identity colors
  * - Active toggle: shadcn Switch
  */
@@ -66,6 +66,17 @@ const TYPE_BADGE_STYLE: Record<string, { bg: string; text: string }> = {
   obat: { bg: "#f0faf9", text: "#2a9d8f" },
   capd: { bg: "#f0faf9", text: "#2a9d8f" },
   hd: { bg: "#fdf3e3", text: "#7a4c0a" },
+};
+
+// Day-chip SELECTED state only — deliberately separate from TYPE_BADGE_STYLE
+// (which stays subtle for the time-badge + TYPE_LABELS badge). "Terpilih =
+// solid" makes the active-day chip clearly distinguishable from the pale
+// inactive chip (#f3f3f5/#a8b8b6) for all 3 jenis, incl. obat/capd whose
+// TYPE_BADGE_STYLE bg (#f0faf9) was nearly indistinguishable from inactive.
+const CHIP_SELECTED_STYLE: Record<string, { bg: string; text: string }> = {
+  obat: { bg: "#2a9d8f", text: "#ffffff" },
+  capd: { bg: "#2a9d8f", text: "#ffffff" },
+  hd: { bg: "#ef9f27", text: "#7a4c0a" },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -136,6 +147,7 @@ export default function ReminderItem({
   }
 
   const { bg, text } = TYPE_BADGE_STYLE[reminder.jenis] ?? TYPE_BADGE_STYLE.obat;
+  const chipSel = CHIP_SELECTED_STYLE[reminder.jenis] ?? CHIP_SELECTED_STYLE.obat;
 
   return (
     <>
@@ -213,8 +225,8 @@ export default function ReminderItem({
                             height: 22,
                             lineHeight: "22px",
                             fontSize: 11,
-                            backgroundColor: reminder.hariAktif.includes(day) ? bg : "#f3f3f5",
-                            color: reminder.hariAktif.includes(day) ? text : "#a8b8b6",
+                            backgroundColor: reminder.hariAktif.includes(day) ? chipSel.bg : "#f3f3f5",
+                            color: reminder.hariAktif.includes(day) ? chipSel.text : "#a8b8b6",
                         }}
                     >
                         {HARI_SHORT[day]}
