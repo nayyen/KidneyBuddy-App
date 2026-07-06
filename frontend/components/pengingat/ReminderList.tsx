@@ -7,7 +7,7 @@
  * Handles loading skeleton, error state, and empty state per UI-SPEC.
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Bell } from "lucide-react";
 import { Pill, Droplets } from "lucide-react";
 import { authFetch } from "@/lib/api";
@@ -34,18 +34,42 @@ export default function ReminderList({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Fix (quick-260706-ea3): the skeleton must render ONLY on the true
+  // initial load. Background refetches (window focus after the OS file
+  // picker closes, visibilitychange, the 30s cross-device poll, SYNC_EVENTS)
+  // must never flip isLoading back to true — doing so unmounts every
+  // <ReminderItem>, destroying its local showEdit state and silently
+  // closing an open EditReminderSheet mid-edit.
+  const hasLoadedOnceRef = useRef(false);
+  // Mirrors `reminders` for synchronous reads inside fetchReminders (which
+  // is memoized with only `accessToken` as a dep, so it can't safely close
+  // over the `reminders` state value directly).
+  const remindersRef = useRef<Reminder[]>([]);
+
+  useEffect(() => {
+    remindersRef.current = reminders;
+  }, [reminders]);
+
   const fetchReminders = useCallback(async () => {
     if (!accessToken) return;
-    setIsLoading(true);
-    setError(null);
+    if (!hasLoadedOnceRef.current) {
+      setIsLoading(true);
+    }
     try {
       const data = await authFetch<Reminder[]>("/api/reminders", accessToken);
       setReminders(sortByTime(Array.isArray(data) ? data : []));
+      setError(null);
     } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Gagal memuat pengingat",
-        );
+        // A background refetch failure must never tear down an already
+        // -rendered list into the full-page error state — only surface the
+        // blocking error UI when there is no data currently displayed.
+        if (remindersRef.current.length === 0) {
+          setError(
+            err instanceof Error ? err.message : "Gagal memuat pengingat",
+          );
+        }
       } finally {
+        hasLoadedOnceRef.current = true;
         setIsLoading(false);
       }
     }, [accessToken]);
