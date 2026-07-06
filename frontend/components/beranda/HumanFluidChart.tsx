@@ -12,10 +12,12 @@
  *   delta < 0  (good UF)     → fluid at/below 50%
  *   Range: ±2000ml maps to 20%–80% fill (clamped)
  *
- * Color states:
- *   delta > 0          → amber #ef9f27 @ 30% + "Cairan tertahan" label
- *   -1000 ≤ delta ≤ 0  → teal #2a9d8f @ 30% (normal)
- *   delta < -1000      → red #d4183d @ 20% + "Output berlebih" label
+ * Color states (quick-260707-8je item 3 — evidence-based per RESEARCH.md:
+ * recorded selisih up to +500 ml/day is normal insensible fluid loss that is
+ * never charted, not fluid retention):
+ *   delta > 500           → amber #ef9f27 @ 30% + "Cairan tertahan" label
+ *   -1000 ≤ delta ≤ 500   → teal #2a9d8f @ 30% (normal)
+ *   delta < -1000         → red #d4183d @ 20% + "Output berlebih" label
  *
  * Size: ~200px mobile, ~240px desktop (responsive via viewBox)
  *
@@ -143,11 +145,13 @@ export default function HumanFluidChart({
   if (!hasData) {
     fluidColor = "#2a9d8f";
     fluidOpacity = 0.15;
-  } else if (delta > 0) {
-    fluidColor = "#ef9f27"; // amber — retained fluid
+  } else if (delta > 500) {
+    fluidColor = "#ef9f27"; // amber fill — retained fluid
     fluidOpacity = 0.3;
     statusLabel = "Cairan tertahan";
-    statusColor = "#ef9f27";
+    // Dark, readable amber text (same token as the Hemodialisis amber badge
+    // text) — only the status LABEL color changes, not the silhouette fill.
+    statusColor = "#7a4c0a";
   } else if (delta < -1000) {
     fluidColor = "#d4183d"; // red — excessive output
     fluidOpacity = 0.2;
@@ -390,7 +394,7 @@ export default function HumanFluidChart({
                     textAlign: "center",
                   }}
                 >
-                  Rentang normal selisih harian: -1000 ml sampai 0 ml
+                  Rentang normal selisih harian: -1000 ml sampai +500 ml
                 </span>
               )}
             </div>
