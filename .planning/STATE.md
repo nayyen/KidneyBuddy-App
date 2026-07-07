@@ -235,3 +235,4 @@ Phase 4 delivered the Caregiver Dashboard & Doctor Reports vertical slice:
 ## Phase 6: Community Support Forum (Q&A)
 
 | 6   | Community Support Forum (Q&A) (7/7 plans: 06-01..06-07) | complete ✓ | 2026-07-04 |
+| 2026-07-07 | presentasi-md-cheatsheet | `PRESENTASI.md` | Contekan presentasi PSI: proses bisnis + skenario demo, data→informasi, ERD mermaid 22 tabel, tech stack + argumen, AI hybrid rule+Groq, klasifikasi TPS/MIS/DSS/EIS. Commit 5c08c09. |
