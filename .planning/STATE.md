@@ -5,7 +5,7 @@ milestone_name: milestone
 status: completed
 stopped_at: context exhaustion at 91% (2026-07-06)
 last_updated: "2026-07-06T04:24:22.035Z"
-last_activity: "2026-07-07 - Completed quick task 260707-0uc: fixed UTC-vs-WIB confirmed-today window in findNextUpcoming (same-slot reminders now all show on beranda; wibDayBounds reused, 5 regression tests, live-verified)."
+last_activity: "2026-07-07 - Completed quick task 260707-flu: fixed confirm/unconfirm touching an arbitrary old log row instead of today's (findByReminderAndUser now date-scoped via localDayBounds in both repositories + all 4 service call sites, 2 new regression tests)."
 progress:
   total_phases: 7
   completed_phases: 7
@@ -33,7 +33,8 @@ Phase: 04.1 (ux-polish-data-consistency-cuci-darah) — COMPLETE ✓
 Phase: 05 (ai-insights-anomaly-detection) — COMPLETE ✓
 Phase: 06 (community-education) — COMPLETE ✓
 Status: All 6 phases (36/36 plans) complete. v1.0-MILESTONE-AUDIT.md status: tech_debt (documentation/tracking gaps only — zero unsatisfied requirements, see audit for full evidence).
-Last activity: 2026-07-07 - Completed quick task 260707-aas: backend siap deployment produksi lintas domain (refresh-cookie sameSite "none" saat production via helper cookies.ts; CORS origin baca FRONTEND_URL env dengan fallback vercel.app).
+Last activity: 2026-07-07 - Completed quick task 260707-flu: fixed confirm/unconfirm touching an arbitrary old medication/dialysis log row instead of today's (findByReminderAndUser date-scoped via localDayBounds).
+Previous: Completed quick task 260707-aas: backend siap deployment produksi lintas domain (refresh-cookie sameSite "none" saat production via helper cookies.ts; CORS origin baca FRONTEND_URL env dengan fallback vercel.app).
 Previous: Completed quick task 260707-9wu: overlay detail obat & cuci darah di /catatan kini menampilkan baris Catatan (catatanWaktu) — sebelumnya hanya tampil di baris list, tidak di detail.
 Previous: Completed quick task 260707-9p9: label "Catatan Waktu" diubah menjadi "Catatan" di form input pengingat (obat + CAPD) dan overlay detail pengingat; field internal catatanWaktu tidak berubah.
 Previous: Completed quick task 260707-98x: "Pengingat Diperbarui dari perangkat lain" push no longer sent to the device that made the edit — frontend sends its own push endpoint via X-Push-Endpoint header on reminder PATCH, backend excludes that subscription from fan-out (sole-device edits now send nothing).
@@ -76,6 +77,7 @@ Progress: [██████░░░░] 57%
 | 2026-07-07 | 260707-aas-siapkan-backend-untuk-deployment-produks | `backend/src/utils/cookies.ts` (new), `backend/src/controllers/auth.controller.ts`, `backend/src/app.ts` | Prepared backend for cross-domain production deploy (Vercel frontend ↔ Railway backend). (1) Refresh-token cookie options extracted to a shared `cookies.ts` helper (`refreshCookieOptions` / `clearRefreshCookieOptions` — same shape minus maxAge so logout still clears): `sameSite: "none"` + `secure: true` in production (vercel.app→railway.app is cross-site; `strict` cookies are never sent, silently killing session refresh), `strict` unchanged in dev; applied to all 3 call sites (register/login `res.cookie`, logout `res.clearCookie`). (2) Production CORS origin now reads `FRONTEND_URL` env (already used by email.service) with `https://kidneybuddy.vercel.app` fallback via `\|\|` (empty string also falls back); dev origin unchanged. tsc: the 3 touched files compile clean (4 pre-existing unrelated controller errors remain). 2 commits (1adc072, ca2fd83). |
 | 2026-07-07 | fast-readme-publik-untrack-claudemd | `README.md` (new), `.gitignore`, `CLAUDE.md` (untracked) | Fast task pre-publish: added public README (deskripsi, fitur, arsitektur 3 kontainer, stack, cara run lokal, struktur folder, kredit Kelompok 7) and removed CLAUDE.md from git tracking (`git rm --cached` + `.gitignore` entry `CLAUDE.md` — the pre-existing lowercase `claude.md` entry never matched). Local file kept. Then merged the phase branch into `main` (had to absorb 2 content-free PR merge commits already on origin/main) and pushed — GitHub main now carries all 6 phases (~360 commits). Note: CLAUDE.md remains visible in old commit history. |
 | 2026-07-07 | fast-fix-empty-0014-migration | `backend/src/db/migrations/0014_drop_user_phone_birthdate.sql`, `0015_drop_user_phone_birthdate_rerun.sql` (new), `meta/_journal.json` | **Found during first-ever fresh-DB deploy (Railway):** migration 0014 shipped as a **0-byte file** — journal recorded it, drizzle ran it as a no-op, so fresh databases still had `users.nomor_telepon`/`tanggal_lahir` NOT NULL and register 500'd with code 23502 (local Docker DB never caught it because the drop was applied manually there in 260706-arp). Filled 0014 with idempotent `DROP COLUMN IF EXISTS` statements and added rerun migration 0015 (+journal idx 15) so databases that already recorded 0014 as applied (Railway, local) still execute the drops. Pushed to main → Railway auto-redeploy. 1 commit (ab8106c). |
+| 2026-07-07 | 260707-flu-fix-confirm-unconfirm-pengingat-menyentu | `backend/src/repositories/{medicationLog,dialysisLog}.repository.ts`, `backend/src/services/{medicationLog,dialysisLog}.service.ts`, `backend/src/test/{reminders.service,medicationLog.service}.test.ts` | **Fixed a live production bug (reproduced on Railway):** confirming/unconfirming today's obat or cuci darah reminder was updating an ARBITRARY OLD log row (e.g. a January entry) instead of today's, because `findByReminderAndUser` in both repositories ran an unscoped, unordered `SELECT ... LIMIT 1`. Both repos gained an optional `bounds` param (`gte`/`lte` on `waktuPengingat`) + `ORDER BY waktuPengingat DESC`, and all 4 service call sites (med confirm/unconfirmById, dialysis confirm/unconfirmById) now pass `localDayBounds(timezone)`. 2 new regression tests prove an old row is never touched (created new row for today, or correctly targeted a coexisting today row over the old one). No API/route shape changed. tsc clean (4 pre-existing unrelated controller errors only), 267/270 backend tests (3 pre-documented container-only). 3 commits (08e9060, 0047ccf, 2c2bded). |
 
 ## Performance Metrics
 
@@ -177,8 +179,8 @@ Items acknowledged and carried forward from previous milestone close:
 
 ## Session Continuity
 
-Last session: 2026-07-06T04:24:21.523Z
-Stopped at: Completed quick task 260706-q0g (all 3 tasks — demo seed verified live against Postgres)
+Last session: 2026-07-07T04:23:27Z
+Stopped at: Completed quick task 260707-flu (all 3 tasks — confirm/unconfirm date-scoping fix + regression tests)
 Resume file: None
 
 ## Phase 4 Summary
