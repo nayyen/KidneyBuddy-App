@@ -35,7 +35,7 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use(
   cors({
     origin: process.env.NODE_ENV === "production"
-      ? ["https://kidneybuddy.vercel.app"]
+      ? [process.env.FRONTEND_URL || "https://kidneybuddy.vercel.app"]
       : ["http://localhost:3000"],
     credentials: true,
   })
