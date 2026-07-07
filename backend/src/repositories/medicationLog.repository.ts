@@ -1,4 +1,4 @@
-import { eq, and, gte, lt, lte } from "drizzle-orm";
+import { eq, and, gte, lt, lte, desc } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { medicationLog } from "../db/schema/medicationLog.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -65,20 +65,34 @@ export async function findUnconfirmedOlderThan(minutes: number): Promise<Medicat
 /**
  * Find a medication log row for a specific reminder + user combination.
  * Used by the confirm flow to check if a row already exists.
+ *
+ * `bounds`, when supplied, scopes the lookup to the caller's local day
+ * (`gte`/`lte` on `waktuPengingat`) — this fixes a bug where confirming
+ * today's reminder could touch an arbitrary OLD row from a previous
+ * day/month. Left OPTIONAL and unbounded by default so existing callers
+ * (and in-memory test fakes) keep working unchanged. Results are ordered
+ * newest-first for determinism instead of an arbitrary row.
  */
 export async function findByReminderAndUser(
   reminderId: string,
   userId: string,
+  bounds?: { start: Date; end: Date },
 ): Promise<MedicationLog | undefined> {
+  const conditions = [
+    eq(medicationLog.reminderId, reminderId as any),
+    eq(medicationLog.userId, userId as any),
+  ];
+
+  if (bounds) {
+    conditions.push(gte(medicationLog.waktuPengingat, bounds.start as any));
+    conditions.push(lte(medicationLog.waktuPengingat, bounds.end as any));
+  }
+
   const [row] = await db
     .select()
     .from(medicationLog)
-    .where(
-      and(
-        eq(medicationLog.reminderId, reminderId as any),
-        eq(medicationLog.userId, userId as any),
-      ),
-    )
+    .where(and(...conditions))
+    .orderBy(desc(medicationLog.waktuPengingat))
     .limit(1);
   return row;
 }

@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, lt } from "drizzle-orm";
+import { eq, and, gte, lte, lt, desc } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { dialysisLog } from "../db/schema/dialysisLog.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -40,20 +40,34 @@ export async function findTodayByUser(
 
 /**
  * Find a dialysis log row for a specific reminder + user combination.
+ *
+ * `bounds`, when supplied, scopes the lookup to the caller's local day
+ * (`gte`/`lte` on `waktuPengingat`) — this fixes a bug where confirming
+ * today's reminder could touch an arbitrary OLD row from a previous
+ * day/month. Left OPTIONAL and unbounded by default so existing callers
+ * (and in-memory test fakes) keep working unchanged. Results are ordered
+ * newest-first for determinism instead of an arbitrary row.
  */
 export async function findByReminderAndUser(
   reminderId: string,
   userId: string,
+  bounds?: { start: Date; end: Date },
 ): Promise<DialysisLog | undefined> {
+  const conditions = [
+    eq(dialysisLog.reminderId, reminderId as any),
+    eq(dialysisLog.userId, userId as any),
+  ];
+
+  if (bounds) {
+    conditions.push(gte(dialysisLog.waktuPengingat, bounds.start as any));
+    conditions.push(lte(dialysisLog.waktuPengingat, bounds.end as any));
+  }
+
   const [row] = await db
     .select()
     .from(dialysisLog)
-    .where(
-      and(
-        eq(dialysisLog.reminderId, reminderId as any),
-        eq(dialysisLog.userId, userId as any),
-      ),
-    )
+    .where(and(...conditions))
+    .orderBy(desc(dialysisLog.waktuPengingat))
     .limit(1);
   return row;
 }
