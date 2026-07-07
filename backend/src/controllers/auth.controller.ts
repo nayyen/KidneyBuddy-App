@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import * as authService from "../services/auth.service.js";
+import { refreshCookieOptions, clearRefreshCookieOptions } from "../utils/cookies.js";
 
 export async function register(
   req: Request,
@@ -10,13 +11,7 @@ export async function register(
     const result = await authService.register(req.body);
 
     // Set refresh token as httpOnly cookie — NEVER in JSON body
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/api/auth",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    });
+    res.cookie("refreshToken", result.refreshToken, refreshCookieOptions);
 
     res.status(201).json({
       accessToken: result.accessToken,
@@ -57,13 +52,7 @@ export async function login(
     const result = await authService.login(req.body, deviceLabel);
 
     // Set refresh token as httpOnly cookie — NEVER in JSON body
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/api/auth",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    });
+    res.cookie("refreshToken", result.refreshToken, refreshCookieOptions);
 
     // Return access token + user in JSON body (not refresh token)
     res.json({
@@ -116,12 +105,7 @@ export async function logout(
     }
 
     // Clear the cookie
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/api/auth",
-    });
+    res.clearCookie("refreshToken", clearRefreshCookieOptions);
 
     res.json({ message: "Berhasil logout" });
   } catch (err) {
