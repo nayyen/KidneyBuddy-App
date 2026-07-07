@@ -112,4 +112,32 @@ describe("medicationLog.service — _unconfirmByIdCore", () => {
     assert.strictEqual(markUnconfirmedCalls[0].logId, "real-uuid-log-id");
     assert.strictEqual(result.confirmed, false);
   });
+
+  // quick-260707-flu regression: the real findByReminderAndUser dep is now
+  // date-scoped (bounds param), so it only ever resolves TODAY's row — an
+  // old row is never returned to be unconfirmed. Simulate that scoped dep
+  // and assert markUnconfirmedById is called with today's id, never an old
+  // row's id.
+  it("unconfirm with a scheduled- id only touches today's row (bounds-scoped finder)", async () => {
+    const markUnconfirmedCalls: { logId: string; userId: string }[] = [];
+    const OLD_ROW_ID = "old-log-id-from-last-month";
+    const TODAY_ROW_ID = "today-log-id";
+
+    const result = await _unconfirmByIdCore("user-001", `${SCHEDULED_PREFIX}reminder-abc`, {
+      markUnconfirmedById: async (logId, userId) => {
+        markUnconfirmedCalls.push({ logId, userId });
+      },
+      // A bounds-scoped finder (mirroring the real repository call site,
+      // which now always passes localDayBounds(timezone)) resolves only
+      // today's row, never the old one.
+      findByReminderAndUser: async () => {
+        return { id: TODAY_ROW_ID };
+      },
+    });
+
+    assert.strictEqual(markUnconfirmedCalls.length, 1);
+    assert.strictEqual(markUnconfirmedCalls[0].logId, TODAY_ROW_ID);
+    assert.notStrictEqual(markUnconfirmedCalls[0].logId, OLD_ROW_ID);
+    assert.strictEqual(result.confirmed, false);
+  });
 });

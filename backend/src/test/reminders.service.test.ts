@@ -23,6 +23,7 @@ const {
   _createReminderCore,
   _confirmCore,
 } = await import("../services/reminders.service.js");
+const { localDayBounds } = await import("../utils/wib.js");
 
 // ─── In-memory fakes ──────────────────────────────────────────────────────────
 
@@ -390,5 +391,184 @@ describe("reminders.service — _confirmCore (medication log confirm)", () => {
 
     assert.strictEqual(logStore.logs.length, 1);
     assert.strictEqual(logStore.logs[0].status, "dikonfirmasi");
+  });
+});
+
+// ─── Date-scoped existing-log lookup regression (quick-260707-flu) ───────────
+
+/**
+ * A findByReminderAndUser fake that HONORS the optional `bounds` param,
+ * mirroring the real repository's new date-scoping behavior: filters rows
+ * to those whose waktuPengingat falls within [bounds.start, bounds.end],
+ * then returns the newest match (mirrors ORDER BY waktuPengingat DESC LIMIT 1).
+ */
+function createInMemoryMedicationLogStoreWithBounds() {
+  const logs: StoredMedicationLog[] = [];
+  let counter = 0;
+
+  const insertLog = async (
+    data: Omit<StoredMedicationLog, "id" | "createdAt">,
+  ): Promise<StoredMedicationLog> => {
+    const row: StoredMedicationLog = {
+      ...data,
+      id: `log-id-${++counter}`,
+      createdAt: new Date(),
+    };
+    logs.push(row);
+    return row;
+  };
+
+  const findByReminderAndUser = async (
+    reminderId: string,
+    userId: string,
+    bounds?: { start: Date; end: Date },
+  ): Promise<StoredMedicationLog | undefined> => {
+    let matches = logs.filter(
+      (l) => l.reminderId === reminderId && l.userId === userId,
+    );
+    if (bounds) {
+      matches = matches.filter(
+        (l) =>
+          l.waktuPengingat.getTime() >= bounds.start.getTime() &&
+          l.waktuPengingat.getTime() <= bounds.end.getTime(),
+      );
+    }
+    matches.sort((a, b) => b.waktuPengingat.getTime() - a.waktuPengingat.getTime());
+    return matches[0];
+  };
+
+  const markConfirmed = async (id: string): Promise<void> => {
+    const log = logs.find((l) => l.id === id);
+    if (log) {
+      log.status = "dikonfirmasi";
+      log.waktuKonfirmasi = new Date();
+    }
+  };
+
+  return { insertLog, findByReminderAndUser, markConfirmed, logs };
+}
+
+describe("_confirmCore — date-scoped existing-log lookup", () => {
+  it("does NOT touch an old row from a previous month — creates a new row for today instead", async () => {
+    const reminderStore = createInMemoryReminderStore();
+    const logStore = createInMemoryMedicationLogStoreWithBounds();
+
+    const reminder = await reminderStore.insert({
+      userId: "user-001",
+      jenis: "obat",
+      nama: "Amlodipine",
+      dosis: "5mg",
+      jenisObat: "minum",
+      hariAktif: ["senin"],
+      jamPengingat: "08:00",
+      catatanWaktu: null,
+      fotoObat: null,
+      konsentrasiCapd: null,
+    });
+
+    // Seed an OLD row ~30 days ago (simulates the reproduced prod bug: a
+    // confirm returning a logId whose waktuPengingat was months old).
+    const oldDate = new Date();
+    oldDate.setDate(oldDate.getDate() - 30);
+    const oldRow = await logStore.insertLog({
+      userId: "user-001",
+      reminderId: reminder.id,
+      namaObat: "Amlodipine",
+      dosis: "5mg",
+      jenisObat: "minum",
+      status: "dikonfirmasi",
+      waktuPengingat: oldDate,
+      waktuKonfirmasi: oldDate,
+    });
+    const oldRowOriginalStatus = oldRow.status;
+    const oldRowOriginalWaktuKonfirmasi = oldRow.waktuKonfirmasi;
+
+    const bounds = localDayBounds("Asia/Jakarta");
+    const result = await _confirmCore(
+      "user-001",
+      reminder.id,
+      reminderStore.findById,
+      (rid, uid) => logStore.findByReminderAndUser(rid, uid, bounds),
+      logStore.markConfirmed,
+      logStore.insertLog,
+    );
+
+    // The old row must be completely untouched.
+    assert.strictEqual(oldRow.status, oldRowOriginalStatus);
+    assert.strictEqual(oldRow.waktuKonfirmasi, oldRowOriginalWaktuKonfirmasi);
+    assert.notStrictEqual(result.logId, oldRow.id);
+
+    // A NEW row must have been created for today.
+    assert.strictEqual(logStore.logs.length, 2);
+    const newRow = logStore.logs.find((l) => l.id === result.logId);
+    assert.ok(newRow, "expected a new log row to be created");
+    assert.strictEqual(newRow?.status, "dikonfirmasi");
+    assert.ok(
+      newRow!.waktuPengingat.getTime() >= bounds.start.getTime() &&
+        newRow!.waktuPengingat.getTime() <= bounds.end.getTime(),
+      "new row's waktuPengingat should fall within today's bounds",
+    );
+  });
+
+  it("with BOTH an old row and a today tertunda row, marks only today's row dikonfirmasi and leaves the old row untouched", async () => {
+    const reminderStore = createInMemoryReminderStore();
+    const logStore = createInMemoryMedicationLogStoreWithBounds();
+
+    const reminder = await reminderStore.insert({
+      userId: "user-001",
+      jenis: "obat",
+      nama: "Metformin",
+      dosis: "500mg",
+      jenisObat: "minum",
+      hariAktif: ["senin"],
+      jamPengingat: "08:00",
+      catatanWaktu: null,
+      fotoObat: null,
+      konsentrasiCapd: null,
+    });
+
+    const oldDate = new Date();
+    oldDate.setDate(oldDate.getDate() - 30);
+    const oldRow = await logStore.insertLog({
+      userId: "user-001",
+      reminderId: reminder.id,
+      namaObat: "Metformin",
+      dosis: "500mg",
+      jenisObat: "minum",
+      status: "tertunda",
+      waktuPengingat: oldDate,
+      waktuKonfirmasi: null,
+    });
+
+    const todayRow = await logStore.insertLog({
+      userId: "user-001",
+      reminderId: reminder.id,
+      namaObat: "Metformin",
+      dosis: "500mg",
+      jenisObat: "minum",
+      status: "tertunda",
+      waktuPengingat: new Date(),
+      waktuKonfirmasi: null,
+    });
+
+    const bounds = localDayBounds("Asia/Jakarta");
+    const result = await _confirmCore(
+      "user-001",
+      reminder.id,
+      reminderStore.findById,
+      (rid, uid) => logStore.findByReminderAndUser(rid, uid, bounds),
+      logStore.markConfirmed,
+      logStore.insertLog,
+    );
+
+    // Old row untouched.
+    assert.strictEqual(oldRow.status, "tertunda");
+    assert.strictEqual(oldRow.waktuKonfirmasi, null);
+
+    // Today's row marked confirmed; no new row inserted.
+    assert.strictEqual(result.logId, todayRow.id);
+    assert.strictEqual(todayRow.status, "dikonfirmasi");
+    assert.ok(todayRow.waktuKonfirmasi instanceof Date);
+    assert.strictEqual(logStore.logs.length, 2);
   });
 });
