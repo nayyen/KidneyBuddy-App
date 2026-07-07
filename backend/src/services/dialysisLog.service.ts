@@ -41,9 +41,14 @@ export async function confirm(
     );
   }
 
+  // quick-260707-flu: resolve timezone BEFORE the existing-log lookup so the
+  // lookup can be scoped to TODAY's local day bounds (previously ran
+  // unbounded and could return an arbitrary old row from a prior day/month).
+  const timezone = await getUserTimezone(userId);
   const existingLog = await dialysisLogRepository.findByReminderAndUser(
     reminderId,
     userId,
+    localDayBounds(timezone),
   );
 
   if (existingLog) {
@@ -51,7 +56,6 @@ export async function confirm(
     return { confirmed: true, logId: existingLog.id };
   }
 
-  const timezone = await getUserTimezone(userId);
   const newLog = await dialysisLogRepository.insert({
     userId: userId as any,
     reminderId: reminderId as any,
@@ -96,9 +100,13 @@ export async function unconfirmById(
   // item with no real log row yet is already effectively "tertunda" — no-op.
   if (logId.startsWith(SCHEDULED_PREFIX)) {
     const reminderId = logId.slice(SCHEDULED_PREFIX.length);
+    // quick-260707-flu: scope to TODAY's local day bounds — see confirm()'s
+    // matching fix above.
+    const timezone = await getUserTimezone(userId);
     const existingLog = await dialysisLogRepository.findByReminderAndUser(
       reminderId,
       userId,
+      localDayBounds(timezone),
     );
     if (existingLog) {
       await dialysisLogRepository.markUnconfirmedById(existingLog.id, userId);

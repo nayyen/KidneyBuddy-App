@@ -40,7 +40,11 @@ export async function confirm(
     userId,
     reminderId,
     reminderScheduleRepository.findById,
-    medicationLogRepository.findByReminderAndUser,
+    // quick-260707-flu: scope the existing-log lookup to TODAY's local day
+    // bounds — otherwise an arbitrary old row (any day/month) could be
+    // returned and marked confirmed instead of today's.
+    (rid, uid) =>
+      medicationLogRepository.findByReminderAndUser(rid, uid, localDayBounds(timezone)),
     medicationLogRepository.markConfirmed,
     medicationLogRepository.insert,
     timezone,
@@ -125,9 +129,13 @@ export async function unconfirmById(
   userId: string,
   logId: string,
 ): Promise<{ confirmed: boolean; logId: string }> {
+  const timezone = await getUserTimezone(userId);
   return _unconfirmByIdCore(userId, logId, {
     markUnconfirmedById: medicationLogRepository.markUnconfirmedById,
-    findByReminderAndUser: medicationLogRepository.findByReminderAndUser,
+    // quick-260707-flu: scope to TODAY's local day bounds — see confirm()'s
+    // matching fix above.
+    findByReminderAndUser: (rid, uid) =>
+      medicationLogRepository.findByReminderAndUser(rid, uid, localDayBounds(timezone)),
   });
 }
 
