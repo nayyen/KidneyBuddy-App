@@ -179,6 +179,7 @@ export default function MedicationLogItem({ log, onConfirm, onUnconfirm }: Medic
               )}
               <DetailRow label="Dosis" value={log.dosis} />
               <DetailRow label="Jenis Obat" value={log.jenisObat} />
+              <DetailRow label="Catatan" value={log.catatanWaktu} />
               {log.fotoObat && !photoFailed && (
                  <div className="py-2">
                     <p className="text-[10px] font-bold text-[#7a8c8a] uppercase tracking-wider">Foto Obat</p>

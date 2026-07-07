@@ -169,6 +169,7 @@ export default function DialysisLogItem({ log, onConfirm, onUnconfirm }: Dialysi
               {log.jenis === "capd" && (
                 <DetailRow label="Konsentrasi CAPD" value={log.konsentrasiCapd} />
               )}
+              <DetailRow label="Catatan" value={log.catatanWaktu} />
             </div>
           </div>
         </div>
