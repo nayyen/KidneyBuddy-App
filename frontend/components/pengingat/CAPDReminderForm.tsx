@@ -257,14 +257,14 @@ export default function CAPDReminderForm({
         )}
       </div>
 
-      {/* ── Catatan Waktu (optional) ── */}
+      {/* ── Catatan (optional) ── */}
       <div>
         <label
           htmlFor="capd-catatan"
           className="block font-sans font-medium mb-1"
           style={{ fontSize: 12, color: "#1a2e2c" }}
         >
-          Catatan Waktu{" "}
+          Catatan{" "}
           <span style={{ color: "#3d6b66", fontWeight: 400 }}>(opsional)</span>
         </label>
         <input

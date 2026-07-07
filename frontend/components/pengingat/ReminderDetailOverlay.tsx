@@ -77,7 +77,7 @@ export default function ReminderDetailOverlay({ reminder, onClose }: Props) {
           {reminder.jenis === "capd" && (
             <DetailRow label="Konsentrasi CAPD" value={reminder.konsentrasiCapd} />
           )}
-          <DetailRow label="Catatan Waktu" value={reminder.catatanWaktu} />
+          <DetailRow label="Catatan" value={reminder.catatanWaktu} />
         </div>
       </div>
     </div>
