@@ -103,8 +103,14 @@ serwist.addEventListeners();
 // that invariant explicit and enforced (never calls respondWith for the API
 // origin) rather than relying on the absence of a matching route — health
 // data responses must never be cached by this service worker.
+//
+// quick-260708-fr2: JSON API calls are now same-origin `/api/*` paths
+// (proxied to the backend by next.config.ts rewrites), so match by pathname
+// first; the API_BASE origin check is kept as a fallback for the remaining
+// direct-to-backend calls (uploads, image srcs, offline queue).
 swSelf.addEventListener("fetch", (event) => {
-  if (event.request.url.startsWith(API_BASE)) {
+  const { pathname } = new URL(event.request.url);
+  if (pathname.startsWith("/api/") || (API_BASE && event.request.url.startsWith(API_BASE))) {
     return; // let the browser handle it normally — never cached, never intercepted
   }
 });

@@ -60,6 +60,10 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
         NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+        # quick-260708-fr2: Next.js server-side rewrites() target — must be
+        # the compose service name (backend), not localhost, since this
+        # request originates from the Next server container, not the browser.
+        API_PROXY_TARGET: http://backend:4000
     container_name: kidneybuddy-frontend
     restart: unless-stopped
     depends_on:
@@ -67,6 +71,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+      API_PROXY_TARGET: http://backend:4000
     ports:
       - "3000:3000"
     networks:

@@ -1,4 +1,10 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+// quick-260708-fr2: same-origin relative URLs, proxied to the backend by
+// next.config.ts's rewrites(), so the httpOnly refreshToken cookie is
+// FIRST-party (iOS Safari / Android browsers block cross-site cookies,
+// which broke login/session-persistence on mobile). Only this file changes
+// — every other file with its own API_BASE (uploads, images, offline queue)
+// intentionally keeps the direct backend origin.
+const API_BASE = "";
 
 export class ApiError extends Error {
   constructor(

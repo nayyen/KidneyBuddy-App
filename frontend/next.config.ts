@@ -45,6 +45,30 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "localhost", port: "4000", pathname: "/uploads/**" },
     ],
   },
+  // quick-260708-fr2: proxy all JSON /api/* calls through the Next.js server
+  // to the backend origin so the browser sees them as SAME-ORIGIN requests.
+  // This makes the httpOnly refreshToken cookie FIRST-party — iOS Safari
+  // (ITP) and several Android browsers silently block third-party cookies,
+  // which was the root cause of login/register "working" (200 response) but
+  // the session dying immediately on mobile (the cookie was never stored).
+  // API_PROXY_TARGET is a separate override from NEXT_PUBLIC_API_URL because
+  // in docker-compose the Next SERVER must reach the backend via the compose
+  // service name (http://backend:4000), while NEXT_PUBLIC_API_URL stays
+  // localhost:4000 for the BROWSER-facing upload/image direct calls. On
+  // Vercel, NEXT_PUBLIC_API_URL is already the Railway URL, so no separate
+  // Vercel env var is needed there.
+  async rewrites() {
+    const target =
+      process.env.API_PROXY_TARGET ??
+      process.env.NEXT_PUBLIC_API_URL ??
+      "http://localhost:4000";
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${target}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);
