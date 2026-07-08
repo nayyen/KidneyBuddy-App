@@ -66,7 +66,20 @@ async function gatherWeeklyData(userId: string): Promise<WeeklyGatherResult> {
       reportRepo.getCAPDConditionsByRange(userId, start, end),
       reportRepo.getMedicationAdherenceByRange(userId, start, end),
       reportRepo.getDialysisAdherenceByRange(userId, start, end),
-      labResultRepo.findByUser(userId, { includeArchived: false }),
+      // quick-260708-qqd fix 3: this call previously had NO `days` bound
+      // (unlike every other query in this Promise.all, which is scoped to
+      // the LOOKBACK_DAYS window) — it fetched the user's ENTIRE lab
+      // history every time, then filtered it down to `recentLabRows` below.
+      // For a chronic-disease app used over months/years this grows
+      // unbounded, unlike the daily-summary path (aiSummary.service.ts),
+      // which never queries lab data at all — the two paths were NOT doing
+      // comparable work despite sharing the same Groq timeout/retry config.
+      // Bounding the DB query itself (LOOKBACK_DAYS + 1 as a small buffer
+      // for the UTC-cutoff-vs-WIB-date-string boundary) keeps this query's
+      // cost proportional to the lookback window; `recentLabRows` below
+      // (WIB-correct start/end strings) remains the authoritative filter
+      // for what actually reaches the prompt, so output is unchanged.
+      labResultRepo.findByUser(userId, { includeArchived: false, days: LOOKBACK_DAYS + 1 }),
       // Item 4: activity data was the missing dimension of the 5 gathered
       // for Wawasan Tren Mingguan — reuse the same date-range query the
       // /catatan aktivitas tab uses (WIB day bounds spanning the lookback).

@@ -109,7 +109,7 @@ export default function WeeklyInsightCard({ accessToken }: WeeklyInsightCardProp
             className="font-heading font-bold"
             style={{ fontSize: 14, color: "#1a2e2c" }}
           >
-            Wawasan Tren Mingguan
+            Wawasan Mingguan
           </p>
         </div>
         <span

@@ -18,18 +18,50 @@ export class ApiError extends Error {
   }
 }
 
+// quick-260708-qqd fix 3: apiFetch previously had NO client-side timeout —
+// a raw fetch() with no AbortController, so if a request ever genuinely
+// hangs (slow/degraded backend AI call, a dropped connection that never
+// sends a response, Groq rate-limiting piling up retries), the caller's
+// awaited promise simply never resolves or rejects. Every AI card's
+// handleGenerate has a "generating"/disabled-button state with no fallback
+// out of it, so an indefinite hang there presents to the user as the page
+// being permanently stuck ("frozen"). 45s comfortably exceeds the slowest
+// legitimate backend path (Groq client: 20s timeout x up to 3 attempts,
+// ~60s worst case is already surfaced as a clean AppError by the backend
+// well before this fires in the normal case) while still guaranteeing the
+// UI always reaches a definite error state instead of hanging forever.
+const DEFAULT_TIMEOUT_MS = 45_000;
+
 export async function apiFetch<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    credentials: "include",
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers as Record<string, string> ?? {}),
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      credentials: "include",
+      ...init,
+      signal: init?.signal ?? controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers as Record<string, string> ?? {}),
+      },
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new ApiError(
+        408,
+        "REQUEST_TIMEOUT",
+        "Permintaan memakan waktu terlalu lama. Silakan coba lagi.",
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
