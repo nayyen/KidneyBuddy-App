@@ -58,6 +58,26 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* quick-260708-s7t: reserve a permanent scrollbar gutter on desktop.
+     Without this, Chrome's classic (space-reserving) vertical scrollbar
+     shows/hides depending on whether page content is currently taller than
+     the viewport. On /catatan's Lab tab, WeeklyInsightCard's height swings
+     from a short "Membuat wawasan..." placeholder to a full narrative when
+     "Buat Ulang Wawasan" completes — near the show/hide threshold this
+     toggles the scrollbar, which changes the content column's available
+     WIDTH, which recharts' <ResponsiveContainer> (used by LabTrendChart,
+     rendered on the same tab) reacts to via its ResizeObserver, forcing a
+     chart re-measure/re-render purely because of a scrollbar flicker
+     unrelated to any real viewport resize. Mobile browsers use overlay
+     scrollbars that never reserve layout space, so this reflow path never
+     exists there — matching the reported desktop-only, never-on-Android
+     asymmetry. `scrollbar-gutter: stable` reserves the gutter unconditionally
+     so the vertical scrollbar's presence/absence never changes content
+     width, removing this reflow trigger at the root. Verified via headless
+     Chromium instrumentation (see 260708-s7t-SUMMARY.md): before this fix,
+     forcing the exact same height toggle recharts' ResizeObserver fired
+     once per toggle; after, it does not fire at all. */
+  scrollbar-gutter: stable;
 }
 
 body {
