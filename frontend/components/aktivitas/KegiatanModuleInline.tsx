@@ -3,10 +3,15 @@
 /**
  * KegiatanModuleInline.tsx — Beranda card showing current activity status
  *
- * Three states:
- * 1. No active activity: shows "Mulai Kegiatan" prompt (quiet teal card)
- * 2. Active within estimasiSelesai: shows elapsed "· Xm" duration in teal
- * 3. Active past estimasiSelesai: amber card, red "Terlambat X Menit" indicator
+ * quick-260708-qqd fix 1: now renders EVERY currently in-progress activity
+ * (each with its own "Selesai" button), stacked vertically, PLUS a persistent
+ * "Mulai Kegiatan" entry so the user can always start another activity —
+ * previously only the single most-recently-started activity was shown,
+ * silently hiding any others already in progress.
+ *
+ * Per active activity row:
+ * - Within estimasiSelesai: shows elapsed "· Xm" duration in teal
+ * - Past estimasiSelesai: amber card, red "Terlambat X Menit" indicator
  *
  * Timer shows actual elapsed/overdue duration since waktuMulai/estimasiSelesai,
  * ticking live via the `now` state (updated every 60s).
@@ -14,9 +19,9 @@
  * Selesai dispatches the shared `activity:complete` event (same as /catatan's
  * ActivityList) so AppShell opens FeelingsRatingSheet — quick-260705-r8b bug 4.
  *
- * Each render state's root container carries `self-start` so this card keeps
- * its intrinsic height regardless of sibling cards (ObatCard/CuciDarahCard)
- * growing in the shared grid row — quick-260705-r8b bug 5.
+ * The root container carries `self-start` so this card keeps its intrinsic
+ * height regardless of sibling cards (ObatCard/CuciDarahCard) growing in the
+ * shared grid row — quick-260705-r8b bug 5.
  */
 
 import { useEffect, useState, useCallback } from "react";
@@ -72,101 +77,31 @@ function isPastEstimasi(estimasiSelesai: string, now: number): boolean {
   return now > new Date(estimasiSelesai).getTime();
 }
 
-export default function KegiatanModuleInline({
-  accessToken,
-  refreshKey = 0,
-  onMulaiKegiatan,
-}: KegiatanModuleInlineProps) {
-  const [activeActivity, setActiveActivity] = useState<ActivityResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [now, setNow] = useState(Date.now());
-
-  // Poll every 60s to update duration counter in real-time
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const fetchActiveActivity = useCallback(async () => {
-    if (!accessToken) return;
-    setIsLoading(true);
-    try {
-      const data = await authFetch<ActivityResult | null>("/api/activities/active", accessToken);
-      setActiveActivity(data);
-    } catch {
-      setActiveActivity(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [accessToken]);
-
-  useEffect(() => {
-    fetchActiveActivity();
-  }, [fetchActiveActivity, refreshKey]);
-
-  // quick-260705-r8b bug 4: dispatch the SAME shared event /catatan's
-  // ActivityList uses instead of hitting a dead `/finish` endpoint + no-op
-  // callback prop. AppShell already listens for `activity:complete` and
-  // opens FeelingsRatingSheet, which itself PATCHes /api/activities/:id/complete
-  // — this must work identically whether the activity is within-estimate or
-  // overdue, so no local branching on `pastEnd` here.
-  const handleSelesai = () => {
-    if (!activeActivity) return;
-    window.dispatchEvent(
-      new CustomEvent("activity:complete", {
-        detail: { id: activeActivity.id, namaKegiatan: activeActivity.namaKegiatan },
-      }),
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <div className="w-full self-start" style={{ background: "linear-gradient(145deg, #f0faf9, #e0f5f2)", borderRadius: 16, padding: 16 }}>
-        <p className="font-sans text-sm" style={{ color: "#3d6b66" }}>Memuat...</p>
-      </div>
-    );
-  }
-
-  // State 1: No active activity — prompt to start
-  if (!activeActivity) {
-    return (
-      <div
-        className="w-full self-start cursor-pointer active:scale-[0.98] transition-transform"
-        style={{ background: "linear-gradient(145deg, #f0faf9, #e0f5f2)", borderRadius: 16, padding: 16 }}
-        onClick={() => window.dispatchEvent(new CustomEvent("activity:start"))}
-        role="button" tabIndex={0}
-        onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("activity:start")); }}
-        aria-label="Mulai kegiatan"
-      >
-        <div className="flex items-center gap-3">
-          <div style={{ width: 36, height: 36, background: "#2a9d8f", borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Play size={18} color="#ffffff" style={{ marginLeft: 2 }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-heading font-bold" style={{ fontSize: 14, color: "#1a2e2c" }}>Mulai Kegiatan</p>
-            <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Catat aktivitas harianmu</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // State 2 & 3: Active activity
-  const pastEnd = isPastEstimasi(activeActivity.estimasiSelesai, now);
+/** A single in-progress activity row, with its own Selesai button. */
+function ActiveActivityRow({
+  activity,
+  now,
+  onSelesai,
+}: {
+  activity: ActivityResult;
+  now: number;
+  onSelesai: (activity: ActivityResult) => void;
+}) {
+  const pastEnd = isPastEstimasi(activity.estimasiSelesai, now);
   // quick-260705-r8b bug 3 (frontend): while active and within estimate, show
   // elapsed time since waktuMulai ("· 13m"); once past estimasiSelesai, switch
   // to "Terlambat X Menit" in the existing red #d4183d overdue color — both
   // tick live via the `now` state.
-  const durationMinutes = computeDurationMinutes(activeActivity.waktuMulai, now);
+  const durationMinutes = computeDurationMinutes(activity.waktuMulai, now);
   const hours = Math.floor(durationMinutes / 60);
   const mins = durationMinutes % 60;
   const durationText = hours > 0 ? `${hours}j ${mins}m` : `${mins}m`;
-  const overdueMinutes = computeOverdueMinutes(activeActivity.estimasiSelesai, now);
+  const overdueMinutes = computeOverdueMinutes(activity.estimasiSelesai, now);
   const indicatorText = pastEnd ? `Terlambat ${overdueMinutes} Menit` : `· ${durationText}`;
 
   return (
     <div
-      className="w-full self-start"
+      className="w-full"
       style={{
         background: pastEnd ? "linear-gradient(145deg, #fff8e6, #ffefbf)" : "linear-gradient(145deg, #f0faf9, #e0f5f2)",
         borderRadius: 16,
@@ -180,18 +115,18 @@ export default function KegiatanModuleInline({
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-heading font-bold" style={{ fontSize: 14, color: "#1a2e2c" }}>
-            {activeActivity.namaKegiatan}
+            {activity.namaKegiatan}
             <span style={{ color: pastEnd ? "#d4183d" : "#2a9d8f", fontWeight: 700, marginLeft: 4 }}>
               {indicatorText}
             </span>
           </p>
           <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>
-            Estimasi selesai: {formatLocalTime(activeActivity.estimasiSelesai)}
+            Estimasi selesai: {formatLocalTime(activity.estimasiSelesai)}
           </p>
         </div>
         <button
           type="button"
-          onClick={handleSelesai}
+          onClick={() => onSelesai(activity)}
           className="font-sans font-medium transition-colors hover:opacity-90 active:opacity-80 shrink-0"
           style={{
             height: 32,
@@ -208,6 +143,124 @@ export default function KegiatanModuleInline({
           Selesai
         </button>
       </div>
+    </div>
+  );
+}
+
+export default function KegiatanModuleInline({
+  accessToken,
+  refreshKey = 0,
+  onMulaiKegiatan,
+}: KegiatanModuleInlineProps) {
+  const [activeActivities, setActiveActivities] = useState<ActivityResult[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
+
+  // Poll every 60s to update duration counter in real-time
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const fetchActiveActivities = useCallback(async () => {
+    if (!accessToken) return;
+    setIsLoading(true);
+    try {
+      const data = await authFetch<{ activities: ActivityResult[] }>(
+        "/api/activities/active-all",
+        accessToken,
+      );
+      setActiveActivities(data.activities ?? []);
+    } catch {
+      setActiveActivities([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    fetchActiveActivities();
+  }, [fetchActiveActivities, refreshKey]);
+
+  // quick-260705-r8b bug 4: dispatch the SAME shared event /catatan's
+  // ActivityList uses instead of hitting a dead `/finish` endpoint + no-op
+  // callback prop. AppShell already listens for `activity:complete` and
+  // opens FeelingsRatingSheet, which itself PATCHes /api/activities/:id/complete
+  // — this must work identically whether the activity is within-estimate or
+  // overdue, so no local branching on `pastEnd` here.
+  const handleSelesai = (activity: ActivityResult) => {
+    window.dispatchEvent(
+      new CustomEvent("activity:complete", {
+        detail: { id: activity.id, namaKegiatan: activity.namaKegiatan },
+      }),
+    );
+  };
+
+  const handleMulai = () => window.dispatchEvent(new CustomEvent("activity:start"));
+
+  if (isLoading) {
+    return (
+      <div className="w-full self-start" style={{ background: "linear-gradient(145deg, #f0faf9, #e0f5f2)", borderRadius: 16, padding: 16 }}>
+        <p className="font-sans text-sm" style={{ color: "#3d6b66" }}>Memuat...</p>
+      </div>
+    );
+  }
+
+  const hasActive = activeActivities.length > 0;
+
+  return (
+    <div className="w-full self-start flex flex-col gap-2">
+      {activeActivities.map((activity) => (
+        <ActiveActivityRow
+          key={activity.id}
+          activity={activity}
+          now={now}
+          onSelesai={handleSelesai}
+        />
+      ))}
+
+      {/* Mulai Kegiatan entry — always shown. When there's already >=1
+          active activity, render a more compact prompt so a second/third
+          activity can still be started without dominating the card. */}
+      {!hasActive ? (
+        <div
+          className="w-full cursor-pointer active:scale-[0.98] transition-transform"
+          style={{ background: "linear-gradient(145deg, #f0faf9, #e0f5f2)", borderRadius: 16, padding: 16 }}
+          onClick={handleMulai}
+          role="button" tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter") handleMulai(); }}
+          aria-label="Mulai kegiatan"
+        >
+          <div className="flex items-center gap-3">
+            <div style={{ width: 36, height: 36, background: "#2a9d8f", borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Play size={18} color="#ffffff" style={{ marginLeft: 2 }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-heading font-bold" style={{ fontSize: 14, color: "#1a2e2c" }}>Mulai Kegiatan</p>
+              <p className="font-sans" style={{ fontSize: 12, color: "#3d6b66" }}>Catat aktivitas harianmu</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleMulai}
+          className="w-full flex items-center gap-2 justify-center transition-colors hover:opacity-90 active:opacity-80"
+          style={{
+            background: "#f0faf9",
+            border: "1px dashed #cfe8e4",
+            borderRadius: 12,
+            padding: "8px 12px",
+            cursor: "pointer",
+          }}
+          aria-label="Mulai kegiatan lain"
+        >
+          <Play size={14} color="#2a9d8f" />
+          <span className="font-sans font-medium" style={{ fontSize: 12, color: "#2a9d8f" }}>
+            Mulai Kegiatan Lain
+          </span>
+        </button>
+      )}
     </div>
   );
 }

@@ -318,6 +318,16 @@ export async function getActiveActivity(userId: string): Promise<ActivityResult 
 }
 
 /**
+ * Get ALL currently-active (berlangsung) activities for the user —
+ * quick-260708-qqd fix 1: beranda now renders every in-progress activity
+ * (each with its own Selesai button), not just one.
+ */
+export async function getActiveActivities(userId: string): Promise<ActivityResult[]> {
+  const rows = await dailyActivityRepository.findAllActiveByUser(userId);
+  return rows.map((row) => formatActivity(row, realDecrypt));
+}
+
+/**
  * List activities for a given date (WIB-based).
  * Defaults to today's date in WIB.
  */

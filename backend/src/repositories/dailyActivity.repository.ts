@@ -42,6 +42,27 @@ export async function findActiveByUser(userId: string): Promise<DailyActivity | 
 }
 
 /**
+ * Find ALL currently-active (berlangsung) activities for a user, ordered by
+ * waktuMulai ascending (oldest-started first) — quick-260708-qqd fix 1: the
+ * beranda card previously only ever showed a single in-progress activity
+ * (mirrors findActiveByUser but without the LIMIT 1), so starting a second
+ * activity silently hid the first one from view even though it was still
+ * running. Excludes soft-deleted rows, same as findAllByUser/findByDate.
+ */
+export async function findAllActiveByUser(userId: string): Promise<DailyActivity[]> {
+  return db
+    .select()
+    .from(dailyActivities)
+    .where(
+      and(
+        eq(dailyActivities.userId, userId as any),
+        eq(dailyActivities.status, "berlangsung"),
+      ),
+    )
+    .orderBy(dailyActivities.waktuMulai);
+}
+
+/**
  * Find activities for a user on a specific date (WIB-based).
  * Determines the date range from waktuMulai.
  * Orders active-first then most recent.

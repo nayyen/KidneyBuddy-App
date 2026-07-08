@@ -68,6 +68,25 @@ export async function getActive(
 }
 
 /**
+ * GET /api/activities/active-all
+ * Get ALL currently-active (berlangsung) activities for the user —
+ * quick-260708-qqd fix 1: beranda shows every in-progress activity, not
+ * just one. Returns 200 with { activities: ActivityResult[] } (possibly empty).
+ */
+export async function getActiveList(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const activities = await activitiesService.getActiveActivities(req.user!.id);
+    res.json({ activities });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
  * GET /api/activities/all
  * List ALL activities across all dates.
  */

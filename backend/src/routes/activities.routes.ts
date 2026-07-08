@@ -25,6 +25,11 @@ router.get("/all", authenticate, activitiesController.listAll);
 // GET /api/activities/active — get currently active activity
 router.get("/active", authenticate, activitiesController.getActive);
 
+// GET /api/activities/active-all — get ALL currently active activities
+// (quick-260708-qqd fix 1). Must also come BEFORE /:id/complete, same
+// route-ordering reason as /active above.
+router.get("/active-all", authenticate, activitiesController.getActiveList);
+
 // PATCH /api/activities/:id/complete — mark an activity as complete
 router.patch("/:id/complete", authenticate, activitiesController.complete);
 

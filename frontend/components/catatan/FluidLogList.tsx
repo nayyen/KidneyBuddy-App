@@ -250,14 +250,32 @@ export default function FluidLogList({
         }
         // Sort dates descending (newest first)
         const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
-        return sortedDates.map((dateKey) => (
+        return sortedDates.map((dateKey) => {
+          // Fix 2 (quick-260708-qqd): per-day total fluid balance, same
+          // +/-/0 color convention used elsewhere (RingkasanCairan, ActivityList).
+          const dayEntries = groups[dateKey];
+          const dayMasuk = dayEntries
+            .filter((e) => e.tipe === "masuk")
+            .reduce((sum, e) => sum + (Number(e.volume) || 0), 0);
+          const dayKeluar = dayEntries
+            .filter((e) => e.tipe === "keluar")
+            .reduce((sum, e) => sum + (Number(e.volume) || 0), 0);
+          const daySelisih = dayMasuk - dayKeluar;
+          const selisihColor =
+            daySelisih > 0 ? "#2a9d8f" : daySelisih < 0 ? "#d4183d" : "#7a8c8a";
+
+          return (
           <div key={dateKey}>
             {/* Date section label — same style as ActivityList */}
-            <p
-              className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1"
-            >
-              {getGroupLabel(dateKey)}
-            </p>
+            <div className="flex items-center justify-between mb-1.5 px-1">
+              <p className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider">
+                {getGroupLabel(dateKey)}
+              </p>
+              <p className="text-xs font-sans font-semibold" style={{ color: selisihColor }}>
+                Selisih: {daySelisih > 0 ? "+" : ""}
+                {daySelisih} ml
+              </p>
+            </div>
             <div className="space-y-2">
               {groups[dateKey].map((entry) => (
                 <FluidLogItem
@@ -270,7 +288,8 @@ export default function FluidLogList({
               ))}
             </div>
           </div>
-        ));
+          );
+        });
       })()}
       <p
         className="font-sans text-right mt-1"

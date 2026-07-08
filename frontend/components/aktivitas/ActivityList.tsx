@@ -411,6 +411,12 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
                           {formatLocalDate(activity.waktuMulai)} · {formatLocalTime(activity.waktuMulai)}
                           {activity.waktuSelesai ? ` — ${formatLocalTime(activity.waktuSelesai)}` : ` — estimasi ${formatLocalTime(activity.estimasiSelesai)}`}
                         </p>
+                        {/* Fix 4 (quick-260708-qqd): total duration in minutes for
+                            EVERY entry, including completed ones — previously the
+                            durText badge above only rendered for status !== "selesai". */}
+                        <p className="font-sans" style={{ fontSize: 13, color: "#3d6b66", marginTop: 1 }}>
+                          Durasi total: {durText}
+                        </p>
                       </div>
 
                       {/* Right side */}
