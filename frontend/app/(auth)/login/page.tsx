@@ -40,6 +40,13 @@ export default function LoginPage() {
             message: err.message ?? "Terjadi kesalahan. Silakan coba lagi.",
           });
         }
+      } else {
+        // Network failure (fetch threw before a response arrived) — without
+        // this branch, the submit button silently did nothing and the user
+        // had no indication login failed.
+        setError("root", {
+          message: "Tidak dapat terhubung ke server. Periksa koneksi internet Anda lalu coba lagi.",
+        });
       }
     }
   }

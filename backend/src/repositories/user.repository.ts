@@ -1,4 +1,4 @@
-import { eq, isNull } from "drizzle-orm";
+import { eq, isNull, sql } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { users } from "../db/schema/users.schema.js";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -11,11 +11,17 @@ export async function insertUser(data: NewUser): Promise<User> {
   return row;
 }
 
+/**
+ * Case-insensitive email lookup (quick-260708-fr2). Mobile keyboards/autofill
+ * (e.g. iPhone contacts) can produce a differently-cased email than what was
+ * stored at registration; all 7 existing prod emails are already lowercase
+ * (verified), so this is backward-compatible — no data migration needed.
+ */
 export async function findByEmail(email: string): Promise<User | undefined> {
   const [row] = await db
     .select()
     .from(users)
-    .where(eq(users.email, email))
+    .where(eq(sql`lower(${users.email})`, email.trim().toLowerCase()))
     .limit(1);
   return row;
 }

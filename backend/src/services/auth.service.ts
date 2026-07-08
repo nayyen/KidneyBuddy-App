@@ -17,7 +17,7 @@ import { sendPasswordResetEmail } from "./email.service.js";
 
 export const registerSchema = z.object({
   namaLengkap: z.string().min(1, "Nama lengkap wajib diisi"),
-  email: z.string().email("Format email tidak valid"),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid"),
   password: z.string().min(8, "Password minimal 8 karakter"),
   konfirmasiPassword: z.string(),
   informedConsent: z.boolean().refine((val) => val === true, {
@@ -76,7 +76,7 @@ export async function getProfile(email: string) {
 // ─── Login Schema ──────────────────────────────────────────────────────
 
 export const loginSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid"),
   password: z.string().min(1, "Password wajib diisi"),
 });
 
@@ -194,7 +194,7 @@ export async function getMe(userId: string) {
 // ─── Forgot Password Schema & Logic ────────────────────────────────────
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid"),
 });
 
 export async function forgotPassword(params: { email: string }) {

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const registerSchema = z
   .object({
     namaLengkap: z.string().min(1, "Nama lengkap wajib diisi"),
-    email: z.string().email("Format email tidak valid"),
+    email: z.string().trim().toLowerCase().email("Format email tidak valid"),
     password: z.string().min(8, "Password minimal 8 karakter"),
     konfirmasiPassword: z.string(),
     informedConsent: z.literal(true, {
@@ -20,7 +20,7 @@ export type RegisterFormData = z.infer<typeof registerSchema>;
 // ─── Login Schema ──────────────────────────────────────────────────────
 
 export const loginSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid"),
   password: z.string().min(1, "Password wajib diisi"),
 });
 
@@ -29,7 +29,7 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 // ─── Forgot Password Schema ────────────────────────────────────────────
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid"),
 });
 
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
