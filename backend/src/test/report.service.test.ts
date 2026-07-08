@@ -300,4 +300,62 @@ describe("_generateReportCore aggregation", () => {
     assert.strictEqual(result.anomalies[0].tipeAnomali, "kondisi_cairan_abnormal");
     assert.strictEqual(result.anomalies[0].severity, "tinggi");
   });
+
+  // Fix 6 (quick-260708-qqd): new additive 9th param — every call above
+  // omits it and still gets `activities: []` (asserted implicitly by never
+  // reading result.activities there); this test explicitly exercises the
+  // passthrough with a fake activities fn returning a sample row.
+  it("returns activities passthrough with decrypted catatan + computed durasiMenit (Fix 6)", async () => {
+    const repo = createFakeReportRepo();
+    const fakeActivities = async (
+      _userId: string,
+      _dari: string,
+      _sampai: string,
+    ) => [
+      {
+        tanggal: "2026-06-02",
+        waktuMulai: "2026-06-02T08:00:00.000Z",
+        waktuSelesai: "2026-06-02T08:45:00.000Z",
+        namaKegiatan: "Jalan pagi",
+        durasiMenit: 45,
+        perasaan: "nyaman",
+        catatan: "Terasa segar setelah jalan pagi",
+      },
+    ];
+
+    const result = await _generateReportCore(
+      USER_ID,
+      "2026-06-01",
+      "2026-06-03",
+      repo.getFluidSummaryByRange,
+      repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
+      repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
+      fakeActivities,
+    );
+
+    assert.ok(Array.isArray(result.activities));
+    assert.strictEqual(result.activities.length, 1);
+    assert.strictEqual(result.activities[0].namaKegiatan, "Jalan pagi");
+    assert.strictEqual(result.activities[0].durasiMenit, 45);
+    assert.strictEqual(result.activities[0].catatan, "Terasa segar setelah jalan pagi");
+  });
+
+  it("defaults activities to an empty array when getActivitiesFn is omitted", async () => {
+    const repo = createFakeReportRepo();
+    const result = await _generateReportCore(
+      USER_ID,
+      "2026-06-01",
+      "2026-06-03",
+      repo.getFluidSummaryByRange,
+      repo.getMedicationAdherenceByRange,
+      repo.getDialysisAdherenceByRange,
+      repo.getCAPDConditionsByRange,
+      repo.getAnomaliesByRangeForReport,
+    );
+
+    assert.ok(Array.isArray(result.activities));
+    assert.strictEqual(result.activities.length, 0);
+  });
 });

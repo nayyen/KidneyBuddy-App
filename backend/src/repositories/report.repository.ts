@@ -7,11 +7,12 @@
  * All queries filter by userId (IDOR guard, non-negotiable).
  * Medication adherence uses WIB-correct timestamp boundaries (Pitfall 4).
  */
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, ne, asc } from "drizzle-orm";
 import { db } from "../lib/db.js";
 import { fluidLog } from "../db/schema/fluidLog.schema.js";
 import { medicationLog } from "../db/schema/medicationLog.schema.js";
 import { dialysisLog } from "../db/schema/dialysisLog.schema.js";
+import { dailyActivities } from "../db/schema/dailyActivity.schema.js";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -245,4 +246,57 @@ export async function getCAPDConditionsByRange(
   }
 
   return counts;
+}
+
+// ─── Activities (Fix 6, quick-260708-qqd) ───────────────────────────────────
+
+export type ReportActivityRawRow = {
+  namaKegiatan: string;
+  waktuMulai: Date;
+  waktuSelesai: Date | null;
+  estimasiSelesai: Date;
+  status: string;
+  perasaan: string | null;
+  catatanPerasaan: string | null; // still ENCRYPTED — decrypt in the service layer
+};
+
+/**
+ * Fetches the user's daily_activities within a WIB-correct date range for the
+ * doctor report's new Aktivitas section — mirrors
+ * getDialysisAdherenceByRange's T00:00:00+07:00 / T23:59:59+07:00 boundary
+ * pattern, filtering on waktuMulai. Excludes soft-deleted ('dibatalkan')
+ * rows, same as dailyActivity.repository.ts's own finders.
+ *
+ * @param userId - authenticated user ID
+ * @param startDate - range start (YYYY-MM-DD)
+ * @param endDate - range end (YYYY-MM-DD)
+ */
+export async function getActivitiesByRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<ReportActivityRawRow[]> {
+  const wibStart = new Date(`${startDate}T00:00:00+07:00`);
+  const wibEnd = new Date(`${endDate}T23:59:59+07:00`);
+
+  return db
+    .select({
+      namaKegiatan: dailyActivities.namaKegiatan,
+      waktuMulai: dailyActivities.waktuMulai,
+      waktuSelesai: dailyActivities.waktuSelesai,
+      estimasiSelesai: dailyActivities.estimasiSelesai,
+      status: dailyActivities.status,
+      perasaan: dailyActivities.perasaan,
+      catatanPerasaan: dailyActivities.catatanPerasaan,
+    })
+    .from(dailyActivities)
+    .where(
+      and(
+        eq(dailyActivities.userId, userId as any),
+        ne(dailyActivities.status, "dibatalkan"),
+        gte(dailyActivities.waktuMulai, wibStart),
+        lte(dailyActivities.waktuMulai, wibEnd),
+      ),
+    )
+    .orderBy(asc(dailyActivities.waktuMulai));
 }

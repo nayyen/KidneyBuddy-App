@@ -26,6 +26,9 @@ import KondisiCAPD, {
   type CAPDFrequencyData,
 } from "@/components/laporan/sections/KondisiCAPD";
 import Anomali, { type AnomaliRow } from "@/components/laporan/sections/Anomali";
+import AktivitasReport, {
+  type ActivityReportRow,
+} from "@/components/laporan/sections/AktivitasReport";
 
 export interface ReportData {
   fluidSummary: FluidSummaryData;
@@ -33,6 +36,7 @@ export interface ReportData {
   dialysisAdherence: DialysisAdherenceData;
   capdFrequency: CAPDFrequencyData;
   anomalies: AnomaliRow[];
+  activities: ActivityReportRow[];
 }
 
 interface Props {
@@ -128,6 +132,11 @@ export default function LaporanPreviewContent({
       {metodeTerapi === "CAPD" && (
         <KondisiCAPD capdFrequency={report.capdFrequency} />
       )}
+
+      {/* Section 3.5: Aktivitas (Fix 6, quick-260708-qqd) — placed after the
+          therapy-adherence sections, before Anomali (report ends on the
+          alert/safety summary). */}
+      <AktivitasReport activities={report.activities} />
 
       {/* Section 4: Anomali Terdeteksi (D-15 — real data) */}
       <Anomali anomalies={report.anomalies} />

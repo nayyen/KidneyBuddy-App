@@ -23,6 +23,7 @@ import type {
   MedicationAdherenceResult,
   DialysisAdherenceResult,
   CAPDConditionCounts,
+  ReportActivityRawRow,
 } from "../repositories/report.repository.js";
 
 // ─── Anomali Terdeteksi (D-15) ────────────────────────────────────────────────
@@ -57,6 +58,45 @@ async function getAnomaliesByRangeForReport(
     severity: row.severity,
     deskripsi: decrypt(row.deskripsi),
   }));
+}
+
+// ─── Aktivitas (Fix 6, quick-260708-qqd) ─────────────────────────────────────
+
+export type ReportActivityRow = {
+  tanggal: string; // WIB date derived from waktuMulai
+  waktuMulai: string; // ISO timestamp
+  waktuSelesai: string | null; // ISO timestamp, null if still berlangsung
+  namaKegiatan: string;
+  durasiMenit: number | null; // round((waktuSelesai - waktuMulai) / 60000), null if not finished
+  perasaan: string | null;
+  catatan: string | null; // decrypted plaintext (catatanPerasaan)
+};
+
+/**
+ * Fetches daily_activities for the report's date range and returns them with
+ * catatanPerasaan DECRYPTED (T-03-02 — never exposed as ciphertext) and a
+ * computed durasiMenit — mirrors getAnomaliesByRangeForReport's shape.
+ */
+async function getActivitiesByRangeForReport(
+  userId: string,
+  dari: string,
+  sampai: string,
+): Promise<ReportActivityRow[]> {
+  const rows = await reportRepository.getActivitiesByRange(userId, dari, sampai);
+  return rows.map((row: ReportActivityRawRow) => {
+    const durasiMenit = row.waktuSelesai
+      ? Math.round((row.waktuSelesai.getTime() - row.waktuMulai.getTime()) / 60000)
+      : null;
+    return {
+      tanggal: toWibDateStr(row.waktuMulai),
+      waktuMulai: row.waktuMulai.toISOString(),
+      waktuSelesai: row.waktuSelesai ? row.waktuSelesai.toISOString() : null,
+      namaKegiatan: row.namaKegiatan,
+      durasiMenit,
+      perasaan: row.perasaan,
+      catatan: row.catatanPerasaan ? decrypt(row.catatanPerasaan) : null,
+    };
+  });
 }
 
 // ─── Zod validation schema ───────────────────────────────────────────────────
@@ -119,6 +159,7 @@ export type ReportResponse = {
   dialysisAdherence: DialysisAdherence;
   capdFrequency: CAPDConditionCounts;
   anomalies: ReportAnomalyRow[];
+  activities: ReportActivityRow[]; // Fix 6 (quick-260708-qqd)
 };
 
 // ─── Injectable core function ────────────────────────────────────────────────
@@ -128,6 +169,7 @@ type GetMedFn = typeof reportRepository.getMedicationAdherenceByRange;
 type GetDialysisFn = typeof reportRepository.getDialysisAdherenceByRange;
 type GetCAPDFn = typeof reportRepository.getCAPDConditionsByRange;
 type GetAnomaliesFn = typeof getAnomaliesByRangeForReport;
+type GetActivitiesFn = typeof getActivitiesByRangeForReport;
 
 /**
  * _generateReportCore — injectable core with fake-able repository functions.
@@ -144,6 +186,11 @@ type GetAnomaliesFn = typeof getAnomaliesByRangeForReport;
  * @param getCAPDFn - injected getCAPDConditionsByRange
  * @param getAnomaliesFn - injected getAnomaliesByRangeForReport (D-15, defaults
  *   to the real implementation in the production wrapper below)
+ * @param getActivitiesFn - injected getActivitiesByRangeForReport (Fix 6,
+ *   quick-260708-qqd). Defaults to an empty-array no-op (NOT the real DB
+ *   impl) — this is an ADDITIVE param appended at the end so all 12
+ *   pre-existing report.service.test.ts calls (which omit it) keep passing
+ *   unchanged with `activities: []`, without needing a live DB connection.
  */
 export async function _generateReportCore(
   userId: string,
@@ -154,15 +201,18 @@ export async function _generateReportCore(
   getDialysisFn: GetDialysisFn,
   getCAPDFn: GetCAPDFn,
   getAnomaliesFn: GetAnomaliesFn = getAnomaliesByRangeForReport,
+  getActivitiesFn: GetActivitiesFn = async () => [],
 ): Promise<ReportResponse> {
   // Run all queries in parallel
-  const [fluidRows, medicationData, dialysisData, capdCounts, anomalies] = await Promise.all([
-    getFluidFn(userId, dari, sampai),
-    getMedFn(userId, dari, sampai),
-    getDialysisFn(userId, dari, sampai),
-    getCAPDFn(userId, dari, sampai),
-    getAnomaliesFn(userId, dari, sampai),
-  ]);
+  const [fluidRows, medicationData, dialysisData, capdCounts, anomalies, activities] =
+    await Promise.all([
+      getFluidFn(userId, dari, sampai),
+      getMedFn(userId, dari, sampai),
+      getDialysisFn(userId, dari, sampai),
+      getCAPDFn(userId, dari, sampai),
+      getAnomaliesFn(userId, dari, sampai),
+      getActivitiesFn(userId, dari, sampai),
+    ]);
 
   // Compute fluid summary
   const totalIn = fluidRows.reduce((sum, row) => sum + row.masuk, 0);
@@ -194,6 +244,7 @@ export async function _generateReportCore(
     dialysisAdherence: { taken: dialysisTaken, scheduled: dialysisScheduled, pct: dialysisPct },
     capdFrequency: capdCounts,
     anomalies, // D-15 (05-07) — real anomaly_alerts rows for the report range
+    activities, // Fix 6 (quick-260708-qqd) — real daily_activities rows for the report range
   };
 }
 
@@ -217,5 +268,6 @@ export const reportService = {
       reportRepository.getDialysisAdherenceByRange,
       reportRepository.getCAPDConditionsByRange,
       getAnomaliesByRangeForReport,
+      getActivitiesByRangeForReport,
     ),
 };

@@ -26,7 +26,12 @@ interface Props {
 }
 
 export default function RingkasanCairan({ fluidSummary }: Props) {
-  const { totalIn, totalOut, balance, avgDailyBalance } = fluidSummary;
+  // Fix 5 (quick-260708-qqd): Total Masuk/Total Keluar/Selisih Total cards
+  // removed from the UI per PO request — only Rata-rata Selisih Harian is
+  // shown now. totalIn/totalOut/balance stay in the type/props (still sent
+  // by the backend, still used for the hasData check below) since removing
+  // them from the API response isn't part of this fix.
+  const { totalIn, totalOut, avgDailyBalance } = fluidSummary;
   const { dailyBreakdown } = fluidSummary;
   const hasData = totalIn > 0 || totalOut > 0;
 
@@ -49,54 +54,25 @@ export default function RingkasanCairan({ fluidSummary }: Props) {
         </div>
       ) : (
         <div className="space-y-3">
-          {/* Summary rows */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-[#f0faf9] rounded-lg p-3">
-              <p className="text-[10px] font-medium text-[#7a8c8a]">
-                Total Masuk
-              </p>
-              <p className="text-sm font-bold text-[#1a2e2c]">{totalIn} ml</p>
-            </div>
-            <div className="bg-[#f0faf9] rounded-lg p-3">
-              <p className="text-[10px] font-medium text-[#7a8c8a]">
-                Total Keluar
-              </p>
-              <p className="text-sm font-bold text-[#1a2e2c]">{totalOut} ml</p>
-            </div>
-            <div className="bg-[#f0faf9] rounded-lg p-3">
-              <p className="text-[10px] font-medium text-[#7a8c8a]">
-                Selisih Total
-              </p>
-              <p
-                className={`text-sm font-bold ${
-                  balance > 0
-                    ? "text-[#2a9d8f]"
-                    : balance < 0
-                      ? "text-[#d4183d]"
-                      : "text-[#7a8c8a]"
-                }`}
-              >
-                {balance > 0 ? "+" : ""}
-                {balance} ml
-              </p>
-            </div>
-            <div className="bg-[#f0faf9] rounded-lg p-3">
-              <p className="text-[10px] font-medium text-[#7a8c8a]">
-                Rata-rata Selisih Harian
-              </p>
-              <p
-                className={`text-sm font-bold ${
-                  avgDailyBalance > 0
-                    ? "text-[#2a9d8f]"
-                    : avgDailyBalance < 0
-                      ? "text-[#d4183d]"
-                      : "text-[#7a8c8a]"
-                }`}
-              >
-                {avgDailyBalance > 0 ? "+" : ""}
-                {Math.round(avgDailyBalance)} ml
-              </p>
-            </div>
+          {/* Fix 5 (quick-260708-qqd): only Rata-rata Selisih Harian remains
+              (Total Masuk/Total Keluar/Selisih Total cards removed per PO) —
+              full-width single card instead of a 2-col grid. */}
+          <div className="bg-[#f0faf9] rounded-lg p-3">
+            <p className="text-[10px] font-medium text-[#7a8c8a]">
+              Rata-rata Selisih Harian
+            </p>
+            <p
+              className={`text-sm font-bold ${
+                avgDailyBalance > 0
+                  ? "text-[#2a9d8f]"
+                  : avgDailyBalance < 0
+                    ? "text-[#d4183d]"
+                    : "text-[#7a8c8a]"
+              }`}
+            >
+              {avgDailyBalance > 0 ? "+" : ""}
+              {Math.round(avgDailyBalance)} ml
+            </p>
           </div>
           {/* Per-day breakdown table */}
           {dailyBreakdown && dailyBreakdown.length > 0 && (
