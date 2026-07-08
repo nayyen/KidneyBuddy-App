@@ -11,6 +11,7 @@
  * "Rincian Harian" table / Anomali's table.
  */
 import { Activity } from "lucide-react";
+import { PERASAAN_COLOR, PERASAAN_LABEL } from "@/lib/perasaan";
 
 export interface ActivityReportRow {
   tanggal: string;
@@ -25,13 +26,6 @@ export interface ActivityReportRow {
 interface Props {
   activities: ActivityReportRow[];
 }
-
-const PERASAAN_LABEL: Record<string, string> = {
-  nyaman: "Nyaman",
-  biasa: "Biasa",
-  lelah: "Lelah",
-  berat: "Berat",
-};
 
 function formatTanggal(dateStr: string): string {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("id-ID", {
@@ -113,8 +107,20 @@ export default function AktivitasReport({ activities }: Props) {
                 <td className="text-xs font-medium text-[#1a2e2c] py-1.5 pr-2 align-top whitespace-nowrap">
                   {formatDurasi(row.durasiMenit)}
                 </td>
-                <td className="text-xs font-medium text-[#1a2e2c] py-1.5 pr-2 align-top">
-                  {row.perasaan ? (PERASAAN_LABEL[row.perasaan] ?? row.perasaan) : "-"}
+                <td className="text-xs font-medium py-1.5 pr-2 align-top">
+                  {row.perasaan ? (
+                    <span
+                      className="inline-block rounded-full px-2 py-0.5 font-semibold"
+                      style={{
+                        color: PERASAAN_COLOR[row.perasaan] ?? "#1a2e2c",
+                        backgroundColor: `${PERASAAN_COLOR[row.perasaan] ?? "#7a8c8a"}20`,
+                      }}
+                    >
+                      {PERASAAN_LABEL[row.perasaan] ?? row.perasaan}
+                    </span>
+                  ) : (
+                    <span className="text-[#1a2e2c]">-</span>
+                  )}
                 </td>
                 <td className="text-xs font-medium text-[#1a2e2c] py-1.5 align-top">
                   {row.catatan || "-"}

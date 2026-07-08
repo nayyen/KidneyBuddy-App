@@ -16,6 +16,7 @@ import RangeFilterSelect, {
   type RangeLabel,
   rangeDaysFor,
 } from "@/components/shared/RangeFilterSelect";
+import { PERASAAN_COLOR, PERASAAN_LABEL } from "@/lib/perasaan";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,19 +44,6 @@ interface ActivityListProps {
   refreshKey?: number;
   onCompleteActivity?: (id: string, nama: string) => void;
 }
-
-const PERASAAN_LABEL: Record<string, string> = {
-  nyaman: "Nyaman",
-  biasa: "Biasa",
-  lelah: "Lelah",
-  berat: "Berat",
-};
-const PERASAAN_COLOR: Record<string, string> = {
-  nyaman: "#2a9d8f",
-  biasa: "#7a8c8a",
-  lelah: "#ef9f27",
-  berat: "#d4183d",
-};
 
 // Device-timezone formatters (quick-260705-9n4 task 3): omitting `timeZone`
 // lets Intl use the browser's own local timezone instead of a hardcoded
