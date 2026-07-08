@@ -28,6 +28,13 @@ import RangeFilterSelect, {
 // history for this app.
 const ALL_DATA_DAYS = 3650;
 
+// Fix (quick-260708-uqf): giant-DOM freeze — cap how many day-groups are
+// rendered at once regardless of `range`; "Tampilkan N hari sebelumnya"
+// reveals more in steps. content-visibility on group wrappers additionally
+// lets offscreen groups skip layout/paint entirely.
+const INITIAL_DAY_GROUPS = 14;
+const LOAD_MORE_STEP = 30;
+
 interface FluidEntry {
   id: string;
   tanggal: string;
@@ -96,6 +103,8 @@ export default function FluidLogList({
   const [error, setError] = useState<string | null>(null);
   // Item 13: range filter, default "Semua data".
   const [range, setRange] = useState<RangeLabel>("Semua data");
+  // Fix (quick-260708-uqf): progressive disclosure of rendered day-groups.
+  const [visibleGroups, setVisibleGroups] = useState(INITIAL_DAY_GROUPS);
 
   const fetchEntries = useCallback(async () => {
     if (!accessToken) return;
@@ -108,6 +117,7 @@ export default function FluidLogList({
         accessToken,
       );
       setEntries(data.entries ?? []);
+      setVisibleGroups(INITIAL_DAY_GROUPS);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat catatan");
     } finally {
@@ -250,7 +260,10 @@ export default function FluidLogList({
         }
         // Sort dates descending (newest first)
         const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
-        return sortedDates.map((dateKey) => {
+        // Fix (quick-260708-uqf): cap rendered day-groups; rest revealed via
+        // "Tampilkan N hari sebelumnya" button below.
+        const renderedDates = sortedDates.slice(0, visibleGroups);
+        return renderedDates.map((dateKey) => {
           // Fix 2 (quick-260708-qqd): per-day total fluid balance, same
           // +/-/0 color convention used elsewhere (RingkasanCairan, ActivityList).
           const dayEntries = groups[dateKey];
@@ -265,7 +278,10 @@ export default function FluidLogList({
             daySelisih > 0 ? "#2a9d8f" : daySelisih < 0 ? "#d4183d" : "#7a8c8a";
 
           return (
-          <div key={dateKey}>
+          <div
+            key={dateKey}
+            style={{ contentVisibility: "auto", containIntrinsicSize: "auto 320px" }}
+          >
             {/* Date section label — same style as ActivityList */}
             <div className="flex items-center justify-between mb-1.5 px-1">
               <p className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider">
@@ -290,6 +306,33 @@ export default function FluidLogList({
           </div>
           );
         });
+      })()}
+      {(() => {
+        const groupCount = new Set(entries.map((e) => e.tanggal)).size;
+        if (groupCount <= visibleGroups) return null;
+        const remaining = Math.min(LOAD_MORE_STEP, groupCount - visibleGroups);
+        return (
+          <button
+            type="button"
+            onClick={() => setVisibleGroups((v) => v + LOAD_MORE_STEP)}
+            className="font-sans font-semibold transition-colors w-full"
+            style={{
+              background: "transparent",
+              color: "#2a9d8f",
+              border: "1px solid #2a9d8f",
+              borderRadius: 20,
+              height: 36,
+              padding: "0 14px",
+              fontSize: 13,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+            }}
+          >
+            Tampilkan {remaining} hari sebelumnya
+          </button>
+        );
       })()}
       <p
         className="font-sans text-right mt-1"

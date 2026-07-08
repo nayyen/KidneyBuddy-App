@@ -87,6 +87,13 @@ function isPastEstimasi(estimasiSelesai: string): boolean {
   return Date.now() > new Date(estimasiSelesai).getTime();
 }
 
+// Fix (quick-260708-uqf): giant-DOM freeze — cap how many day-groups are
+// rendered at once regardless of `range`; "Tampilkan N hari sebelumnya"
+// reveals more in steps. content-visibility on group wrappers additionally
+// lets offscreen groups skip layout/paint entirely.
+const INITIAL_DAY_GROUPS = 14;
+const LOAD_MORE_STEP = 30;
+
 export default function ActivityList({ accessToken, refreshKey = 0, onCompleteActivity }: ActivityListProps) {
   const [activities, setActivities] = useState<ActivityResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -103,6 +110,8 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   // (plan explicitly allows this simplification) since /api/activities/all
   // already returns every activity with no server-side date bound.
   const [range, setRange] = useState<RangeLabel>("Semua data");
+  // Fix (quick-260708-uqf): progressive disclosure of rendered day-groups.
+  const [visibleGroups, setVisibleGroups] = useState(INITIAL_DAY_GROUPS);
 
   const fetchActivities = useCallback(async () => {
     if (!accessToken) return;
@@ -111,6 +120,7 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
     try {
       const data = await authFetch<{ activities: ActivityResult[] }>("/api/activities/all", accessToken);
       setActivities(data.activities ?? []);
+      setVisibleGroups(INITIAL_DAY_GROUPS);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Gagal memuat aktivitas");
     } finally {
@@ -119,6 +129,10 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
   }, [accessToken]);
 
   useEffect(() => { fetchActivities(); }, [fetchActivities, refreshKey]);
+
+  // Reset visible-groups window whenever the range filter changes (client-side
+  // filtering means fetchActivities itself doesn't re-run on range change).
+  useEffect(() => { setVisibleGroups(INITIAL_DAY_GROUPS); }, [range]);
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
@@ -281,10 +295,13 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
         </AlertDialogContent>
       </AlertDialog>
 
-      {sortedDates.map((dateKey) => {
+      {sortedDates.slice(0, visibleGroups).map((dateKey) => {
         const items = groups[dateKey];
         return (
-          <div key={dateKey}>
+          <div
+            key={dateKey}
+            style={{ contentVisibility: "auto", containIntrinsicSize: "auto 320px" }}
+          >
             {/* Date separator */}
             <p className="text-xs font-sans font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
               {getGroupLabel(dateKey)}
@@ -441,6 +458,29 @@ export default function ActivityList({ accessToken, refreshKey = 0, onCompleteAc
           </div>
         );
       })}
+
+      {sortedDates.length > visibleGroups && (
+        <button
+          type="button"
+          onClick={() => setVisibleGroups((v) => v + LOAD_MORE_STEP)}
+          className="font-sans font-semibold transition-colors w-full"
+          style={{
+            background: "transparent",
+            color: "#2a9d8f",
+            border: "1px solid #2a9d8f",
+            borderRadius: 20,
+            height: 36,
+            padding: "0 14px",
+            fontSize: 13,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
+        >
+          Tampilkan {Math.min(LOAD_MORE_STEP, sortedDates.length - visibleGroups)} hari sebelumnya
+        </button>
+      )}
     </div>
   );
 }
