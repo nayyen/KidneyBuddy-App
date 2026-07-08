@@ -69,7 +69,7 @@ export default function LabResultList({
 
   const openFile = useCallback(async (fileId: string) => {
     if (!accessToken) return;
-    const fileUrl = `http://localhost:4000/api/lab/file/${fileId}?token=${encodeURIComponent(accessToken)}`;
+    const fileUrl = `${API_BASE}/api/lab/file/${fileId}?token=${encodeURIComponent(accessToken)}`;
     window.open(fileUrl, "_blank");
   }, [accessToken]);
 
